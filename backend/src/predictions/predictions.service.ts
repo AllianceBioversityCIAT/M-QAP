@@ -29,17 +29,17 @@ export class PredictionsService {
 
   findAll(query: PaginateQuery): Promise<Paginated<Prediction>> {
     return paginate(query, this.predictionsRepository, {
-      sortableColumns: ['id', 'text', 'claresa.(name)'],
+      sortableColumns: ['id', 'text', 'clarisa.(name)'],
       // defaultSortBy: [['text', 'DESC']],
-      searchableColumns: ['text', 'claresa.(name)'],
-      relations: ['trainingCycle', 'claresa'],
+      searchableColumns: ['text', 'clarisa.(name)'],
+      relations: ['trainingCycle', 'clarisa'],
       select: [],
       filterableColumns: {},
     });
   }
 
   findOne(id: number) {
-    return this.predictionsRepository.findOne({ where: { id } });
+    return this.predictionsRepository.findOne({ where: { id }, relations: ['clarisa'] });
   }
 
   update(id: number, updateUserDto: any) {

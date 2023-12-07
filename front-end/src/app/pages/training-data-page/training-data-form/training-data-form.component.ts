@@ -1,8 +1,8 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { ToastrService } from 'ngx-toastr';
 import { TrainingDataService } from 'src/app/services/training-data.service';
+import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
 
 export interface DialogData {
   id?: number;
@@ -21,7 +21,7 @@ export class TrainingDataFormComponent implements OnInit {
     public dialogRef: MatDialogRef<TrainingDataFormComponent>,
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
     private trainingDataService: TrainingDataService,
-    private toast: ToastrService,
+    private snackBarService: SnackBarService,
     private fb: FormBuilder
   ) {}
 
@@ -48,7 +48,7 @@ export class TrainingDataFormComponent implements OnInit {
     this.form = this.fb.group({
       text: [null, Validators.required],
       source: ['system/form', Validators.required],
-      clarisa_id: [null, Validators.required],
+      clarisa: [null, Validators.required],
     });
   }
 
@@ -60,15 +60,26 @@ export class TrainingDataFormComponent implements OnInit {
         .upsert(this.id, this.form.value)
         .subscribe({
           next: () => {
-            if (this.id) this.toast.success('Training data added successfully');
-            else this.toast.success('Training data updated successfully');
+            if (this.id) {
+              this.snackBarService.success(
+                'Training data updated successfully'
+              );
+            } else {
+              this.snackBarService.success('Training data added successfully');
+            }
             this.dialogRef.close({ submitted: true });
           },
           error: (error) => {
             console.log(error);
-            if (this.id) this.toast.error('Training data failed to update');
-            else this.toast.error('Training data failed to add');
-            this.toast.error(error.error.message);
+            if (this.id) {
+              this.snackBarService.error('Training data failed to update');
+            } else if (this.data?.data) {
+              this.snackBarService.error(
+                'Training data failed to add (Duplicated Data)'
+              );
+            } else {
+              this.snackBarService.error(error.error.message);
+            }
           },
         });
     }

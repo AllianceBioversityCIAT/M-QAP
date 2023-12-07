@@ -18,11 +18,11 @@ export class OrganizationsService {
   }
 
   get(id: number) {
-    return this.http.get(`${this.api}/` + id);
+    return this.http.get<Organization>(`${this.api}/` + id);
   }
 
   searchOrganization(term: string) {
-    return this.http.get(`${this.api}/search`, {
+    return this.http.get<Array<Organization>>(`${this.api}/search`, {
       params: {
         term,
       },

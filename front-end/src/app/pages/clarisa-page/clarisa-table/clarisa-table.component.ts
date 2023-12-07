@@ -6,6 +6,7 @@ import { Paginated } from 'src/app/share/types/paginate.type';
 import { MatDialog } from '@angular/material/dialog';
 import { OrganizationsService } from 'src/app/services/organizations.service';
 import { Organization } from 'src/app/share/types/organization.model.type';
+import { LoaderService } from 'src/app/services/loader.service';
 
 @Component({
   selector: 'app-clarisa-table',
@@ -25,11 +26,13 @@ export class ClarisaTableComponent {
   constructor(
     public dialog: MatDialog,
     private organizationService: OrganizationsService,
+    private loaderService: LoaderService,
     private fb: FormBuilder
   ) {}
 
   ngOnInit() {
     this.initForm();
+    this.loaderService.open();
     this.loadData();
   }
 
@@ -65,6 +68,7 @@ export class ClarisaTableComponent {
         this.response = response;
         this.length = response.meta.totalItems;
         this.dataSource = new MatTableDataSource(response.data);
+        this.loaderService.close();
       });
   }
 }

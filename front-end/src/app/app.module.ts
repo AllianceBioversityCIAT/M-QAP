@@ -6,10 +6,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { DeleteConfirmDialogComponent } from './share/delete-confirm-dialog/delete-confirm-dialog.component';
 import { TrainingCycleService } from './services/training-cycle.service';
 import { HttpClientModule } from '@angular/common/http';
-import { ToastrModule } from 'ngx-toastr';
 import { OrganizationsService } from './services/organizations.service';
 import { PredictionsService } from './services/predictions.service';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -28,6 +26,8 @@ import { AuthModule } from './pages/auth/auth.module';
 import { DeleteConfirmDialogModule } from './share/delete-confirm-dialog/delete-confirm-dialog.module';
 import { DialogLayoutComponent } from './share/dialog-layout/dialog-layout.component';
 import { ContactUsDialogComponent } from './components/footer/contact-us-dialog/contact-us-dialog.component';
+import { LoaderComponent } from './components/loader/loader.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [
@@ -35,6 +35,7 @@ import { ContactUsDialogComponent } from './components/footer/contact-us-dialog/
     HeaderComponent,
     FooterComponent,
     ContactUsDialogComponent,
+    LoaderComponent,
   ],
   imports: [
     BrowserModule,
@@ -44,7 +45,6 @@ import { ContactUsDialogComponent } from './components/footer/contact-us-dialog/
     ReactiveFormsModule,
     HttpClientModule,
     NgSelectModule,
-    ToastrModule.forRoot(),
     OrganizationInputComponent,
     UploadFileMaterialComponent,
     MatFormFieldModule,
@@ -58,6 +58,7 @@ import { ContactUsDialogComponent } from './components/footer/contact-us-dialog/
     AuthModule,
     DialogLayoutComponent,
     MatIconModule,
+    MatProgressSpinnerModule,
   ],
   providers: [
     TrainingCycleService,

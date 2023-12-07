@@ -19,7 +19,7 @@ import {
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule, TooltipPosition } from '@angular/material/tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { concat, Observable, of, Subject } from 'rxjs';
 import {
@@ -65,18 +65,18 @@ export class OrganizationInputComponent
   @Input() placeholder = 'Search ...';
   @Input() readonly: boolean = false;
 
-  value?: string | null;
-  labelFieldName = 'name';
+  value?: Organization | null;
   filteredOptions$: Observable<any> = of([]);
   partnerInput$ = new Subject<string>();
   searchControl = new FormControl();
   loading = false;
   selectedItem?: any;
-  control = new FormControl('', Validators.required);
+  control = new FormControl<Organization | null>(null, Validators.required);
 
   onChange?: (value: any) => void;
   onTouched?: () => void;
   compareObjects: (v1: any, v2: any) => boolean = (v1, v2): boolean => {
+    console.log(v1, v2);
     return v1.id === v2;
   };
   trackByFn(item: Organization) {
@@ -89,9 +89,6 @@ export class OrganizationInputComponent
   ) {}
 
   ngOnInit(): void {
-    this.placeholder = this.placeholder
-      ? this.placeholder
-      : this.labelFieldName;
     this.filteredOptions$ = concat(
       of([]),
       this.partnerInput$.pipe(
@@ -124,17 +121,21 @@ export class OrganizationInputComponent
     return option && option.name ? option.name : '';
   }
 
-  async writeValue(obj: any) {
-    if (obj?.clarisa_id) {
-      this.filteredOptions$ = of([obj]);
-    } else if (typeof obj == 'number') {
-      this.organizationsService.get(obj).subscribe((org) => {
+  async writeValue(value: any) {
+    console.log(value);
+    if (value?.id) {
+      this.filteredOptions$ = of([value]);
+      this.value = value;
+      this.selectedItem = value;
+      this.control.patchValue(value, { emitEvent: false });
+    } else if (typeof value == 'number') {
+      this.organizationsService.get(value).subscribe((org) => {
         this.filteredOptions$ = of([org]);
+        this.value = org;
+        this.selectedItem = org;
+        this.control.patchValue(org, { emitEvent: false });
       });
     }
-    this.value = obj;
-    this.selectedItem = obj;
-    this.control.patchValue(obj, { emitEvent: false });
   }
 
   registerOnChange(fn: any): void {
@@ -143,6 +144,6 @@ export class OrganizationInputComponent
   registerOnTouched(fn: any): void {
     this.onTouched = fn;
   }
-  setDisabledState?(isDisabled: boolean): void {}
+  setDisabledState?(_isDisabled: boolean): void {}
   ngOnDestroy(): void {}
 }

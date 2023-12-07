@@ -7,6 +7,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { PredictionsService } from 'src/app/services/predictions.service';
 import { Prediction } from 'src/app/share/types/prediction.model.type';
 import { TrainingDataFormComponent } from '../../training-data-page/training-data-form/training-data-form.component';
+import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
+import { LoaderService } from 'src/app/services/loader.service';
 
 @Component({
   selector: 'app-predictions-table',
@@ -35,11 +37,13 @@ export class PredictionsTableComponent {
   constructor(
     public dialog: MatDialog,
     private predictionsService: PredictionsService,
+    private loaderService: LoaderService,
     private fb: FormBuilder
   ) {}
 
   ngOnInit() {
     this.initForm();
+    this.loaderService.open();
     this.loadData();
   }
 
@@ -68,7 +72,7 @@ export class PredictionsTableComponent {
         data: {
           text: prediction.text,
           source: 'system/prediction',
-          clarisa_id: prediction.clarisa_id,
+          clarisa: prediction.clarisa,
         },
       },
       width: '100%',
@@ -93,6 +97,7 @@ export class PredictionsTableComponent {
         this.response = response;
         this.length = response.meta.totalItems;
         this.dataSource = new MatTableDataSource(response.data);
+        this.loaderService.close();
       });
   }
 }

@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
-import { ToastrService } from 'ngx-toastr';
 import { TrainingDataService } from 'src/app/services/training-data.service';
 import { TrainingDataFormComponent } from '../training-data-form/training-data-form.component';
 import {
@@ -14,6 +13,8 @@ import { TrainingData } from 'src/app/share/types/training-data.model.type';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { DeleteDialogService } from 'src/app/share/delete-confirm-dialog/delete-dialog.service';
 import { filter, switchMap } from 'rxjs';
+import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
+import { LoaderService } from 'src/app/services/loader.service';
 
 @Component({
   selector: 'app-training-data-table',
@@ -41,13 +42,15 @@ export class TrainingDataTableComponent {
     public dialog: MatDialog,
     private deleteDialogService: DeleteDialogService,
     private trainingDataService: TrainingDataService,
-    private toastr: ToastrService,
+    private snackBarService: SnackBarService,
     private mediaService: MediaService,
+    private loaderService: LoaderService,
     private fb: FormBuilder
   ) {}
 
   ngOnInit() {
     this.initForm();
+    this.loaderService.open();
     this.loadData();
   }
 
@@ -70,19 +73,19 @@ export class TrainingDataTableComponent {
     this.loadData();
   }
 
-  async loadData() {
+  loadData() {
     const queryString = [];
     queryString.push(`limit=${this.pageSize}`);
     queryString.push(`page=${this.pageIndex + 1}`);
     queryString.push(`sortBy=${this.sortBy}`);
     queryString.push(`search=${this.text}`);
-
     this.trainingDataService
       .find(queryString.join('&'))
       .subscribe((response) => {
         this.trainingData = response;
         this.length = response.meta.totalItems;
         this.dataSource = new MatTableDataSource(response.data);
+        this.loaderService.close();
       });
   }
 
@@ -120,7 +123,8 @@ export class TrainingDataTableComponent {
       )
       .subscribe(() => {
         this.loadData();
-        this.toastr.success('Deleted successfully');
+        console.log('>>>>>>>>>>>>>>>>>>>>>.');
+        this.snackBarService.success('Deleted successfully');
       });
   }
 }

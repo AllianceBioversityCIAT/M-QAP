@@ -11,6 +11,8 @@ import {
 import { resolve } from 'path';
 import { Commodity } from 'src/entities/commodities.entity';
 import { Repository } from 'typeorm';
+import { CreateCommoditiesDto } from './dto/create-commodities.dto';
+import { UpdateCommoditiesDto } from './dto/update-commodities.dto';
 
 @Injectable()
 export class CommoditiesService extends TypeOrmCrudService<Commodity> {
@@ -21,7 +23,7 @@ export class CommoditiesService extends TypeOrmCrudService<Commodity> {
     super(commoditiesRepository);
   }
 
-  create(createUserDto: Partial<Commodity>) {
+  create(createUserDto: Partial<CreateCommoditiesDto>) {
     const newUser = this.commoditiesRepository.create({ ...createUserDto });
     return this.commoditiesRepository.save(newUser);
   }
@@ -93,7 +95,7 @@ export class CommoditiesService extends TypeOrmCrudService<Commodity> {
     return recordsList;
   }
 
-  update(id: number, updateUserDto: any) {
+  update(id: number, updateUserDto: UpdateCommoditiesDto) {
     return this.commoditiesRepository.update({ id }, { ...updateUserDto });
   }
 

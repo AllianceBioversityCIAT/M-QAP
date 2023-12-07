@@ -1,16 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { OrganizationsService } from './organizations.service';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
-import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { OrganizationQueryParamsDTO } from './dto/search-organization-query.dto';
 import { Paginate, PaginateQuery } from 'nestjs-paginate';
@@ -20,16 +9,11 @@ import { Paginate, PaginateQuery } from 'nestjs-paginate';
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 
-  @Post()
-  create(@Body() createOrganizationDto: CreateOrganizationDto) {
-    return this.organizationsService.create(createOrganizationDto);
-  }
-
   @Get('')
   findAll(@Paginate() query: PaginateQuery) {
     return this.organizationsService.findAll(query);
   }
-  
+
   @Get('/search')
   search(@Query() query: OrganizationQueryParamsDTO) {
     return this.organizationsService.searchOrganization(query);
@@ -44,18 +28,5 @@ export class OrganizationsController {
   async importPartners() {
     await this.organizationsService.importPartners();
     return 'Partners imported successfully';
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateOrganizationDto: UpdateOrganizationDto,
-  ) {
-    return this.organizationsService.update(+id, updateOrganizationDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.organizationsService.remove(+id);
   }
 }

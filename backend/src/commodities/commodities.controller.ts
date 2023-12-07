@@ -11,6 +11,7 @@ import {
 import { CommoditiesService } from './commodities.service';
 import { Paginate, PaginateQuery } from 'nestjs-paginate';
 import { CreateCommoditiesDto } from './dto/create-commodities.dto';
+import { UpdateCommoditiesDto } from './dto/update-commodities.dto';
 
 @Controller('commodities')
 export class CommoditiesController {
@@ -37,7 +38,7 @@ export class CommoditiesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: any) {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateCommoditiesDto) {
     return this.commoditiesService.update(+id, updateUserDto);
   }
 

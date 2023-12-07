@@ -1,8 +1,8 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { ToastrService } from 'ngx-toastr';
 import { TrainingCycleService } from 'src/app/services/training-cycle.service';
+import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
 
 export interface DialogData {
   id: number;
@@ -20,7 +20,7 @@ export class TrainingCycleAddDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<TrainingCycleAddDialogComponent>,
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
     private trainingCycleService: TrainingCycleService,
-    private toast: ToastrService,
+    private snackBarService: SnackBarService,
     private fb: FormBuilder
   ) {}
 
@@ -56,14 +56,16 @@ export class TrainingCycleAddDialogComponent implements OnInit {
         .subscribe({
           next: () => {
             if (this.id) {
-              this.toast.success('Training cycle updated  successfully');
+              this.snackBarService.success(
+                'Training cycle updated  successfully'
+              );
             } else {
-              this.toast.success('Training cycle added successfully');
+              this.snackBarService.success('Training cycle added successfully');
             }
             this.dialogRef.close({ submitted: true });
           },
           error: (error) => {
-            this.toast.error(error.error.message);
+            this.snackBarService.error(error.error.message);
           },
         });
     }

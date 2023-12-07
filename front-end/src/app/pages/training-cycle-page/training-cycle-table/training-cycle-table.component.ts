@@ -3,13 +3,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { TrainingCycleService } from 'src/app/services/training-cycle.service';
-import { ToastrService } from 'ngx-toastr';
 import { TrainingCycleAddDialogComponent } from '../training-cycle-add-dialog/training-cycle-add-dialog.component';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Paginated } from 'src/app/share/types/paginate.type';
 import { DeleteConfirmDialogComponent } from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
-import { TrainingData } from 'src/app/share/types/training-data.model.type';
 import { TrainingCycle } from 'src/app/share/types/training-cycle.model.type';
+import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
+import { MediaService } from 'src/app/services/media.service';
+import { LoaderService } from 'src/app/services/loader.service';
 
 @Component({
   selector: 'app-training-cycle-table',
@@ -29,12 +30,14 @@ export class TrainingCycleTableComponent {
   constructor(
     public dialog: MatDialog,
     private trainingCycleService: TrainingCycleService,
-    private toastr: ToastrService,
+    private snackBarService: SnackBarService,
+    private loaderService: LoaderService,
     private fb: FormBuilder
   ) {}
 
   ngOnInit() {
     this.initForm();
+    this.loaderService.open();
     this.loadData();
   }
 
@@ -63,6 +66,7 @@ export class TrainingCycleTableComponent {
         this.response = response;
         this.length = response.meta.totalItems;
         this.dataSource = new MatTableDataSource(response.data);
+        this.loaderService.close();
       });
   }
 
@@ -99,10 +103,10 @@ export class TrainingCycleTableComponent {
           await this.trainingCycleService.delete(id).subscribe({
             next: () => {
               this.loadData();
-              this.toastr.success('Deleted successfully');
+              this.snackBarService.success('Deleted successfully');
             },
             error: (error) => {
-              this.toastr.error(error.error.message);
+              this.snackBarService.error(error.error.message);
             },
           });
         }

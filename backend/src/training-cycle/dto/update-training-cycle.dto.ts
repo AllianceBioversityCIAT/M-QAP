@@ -1,8 +1,8 @@
 import { Expose } from 'class-transformer';
 import { IsString } from 'class-validator';
 
-export class OrganizationQueryParamsDTO {
+export class UpdateTrainingCycleDto {
   @Expose()
   @IsString()
-  term: string;
+  text: string;
 }

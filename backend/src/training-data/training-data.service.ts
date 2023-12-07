@@ -6,6 +6,8 @@ const excelToJson = require('convert-excel-to-json');
 import { resolve } from 'path';
 import { TypeOrmCrudService } from '@nestjsx/crud-typeorm';
 import { PaginateQuery, paginate, Paginated } from 'nestjs-paginate';
+import { CreateTrainingDataDto } from './dto/create-training-data.dto';
+import { UpdateTrainingDataDto } from './dto/update-training-data.dto';
 
 @Injectable()
 export class TrainingDataService extends TypeOrmCrudService<TrainingData> {
@@ -16,12 +18,12 @@ export class TrainingDataService extends TypeOrmCrudService<TrainingData> {
     super(trainingDataRepository);
   }
 
-  async create(createUserDto: any) {
+  async create(createTrainingDataDto: CreateTrainingDataDto) {
     try {
-      const record = this.trainingDataRepository.create({ ...createUserDto });
-      console.log(record);
+      const record = this.trainingDataRepository.create({
+        ...createTrainingDataDto,
+      });
       return await this.trainingDataRepository.save(record);
-      // .catch((error) => console.log('>>>>', error));
     } catch (error) {
       (error) => console.log('>>>>', error);
       throw new BadRequestException('Duplicated data');
@@ -30,9 +32,9 @@ export class TrainingDataService extends TypeOrmCrudService<TrainingData> {
 
   public findAll(query: PaginateQuery): Promise<Paginated<TrainingData>> {
     return paginate(query, this.trainingDataRepository, {
-      sortableColumns: ['id', 'text', 'claresa.(name)'],
-      searchableColumns: ['text', 'claresa.(name)'],
-      relations: ['claresa'],
+      sortableColumns: ['id', 'text', 'clarisa.(name)'],
+      searchableColumns: ['text', 'clarisa.(name)'],
+      relations: ['clarisa'],
       select: [],
       filterableColumns: {},
     });
@@ -61,7 +63,7 @@ export class TrainingDataService extends TypeOrmCrudService<TrainingData> {
     return result;
   }
 
-  update(id: number, updateUserDto: any) {
+  update(id: number, updateUserDto: UpdateTrainingDataDto) {
     return this.trainingDataRepository.update({ id }, { ...updateUserDto });
   }
 

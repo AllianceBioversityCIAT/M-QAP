@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginateQuery, Paginated, paginate } from 'nestjs-paginate';
 import { TrainingCycle as TrainingCycle } from 'src/entities/training-cycle.entity';
 import { IsNull, Not, Repository } from 'typeorm';
+import { UpdateTrainingCycleDto } from './dto/update-training-cycle.dto';
 
 @Injectable()
 export class TrainingCycleService {
@@ -12,8 +13,8 @@ export class TrainingCycleService {
   ) {}
 
   create(createUserDto: any) {
-    const newUser = this.trainingCycleRepository.create({ ...createUserDto });
-    return this.trainingCycleRepository.save(newUser);
+    const record = this.trainingCycleRepository.create({ ...createUserDto });
+    return this.trainingCycleRepository.save(record);
   }
 
   public findAll(query: PaginateQuery): Promise<Paginated<TrainingCycle>> {
@@ -25,6 +26,7 @@ export class TrainingCycleService {
       filterableColumns: {},
     });
   }
+
   findOne(id: number) {
     return this.trainingCycleRepository.findOne({ where: { id } });
   }
@@ -36,7 +38,7 @@ export class TrainingCycleService {
     });
   }
 
-  update(id: number, updateUserDto: any) {
+  update(id: number, updateUserDto: UpdateTrainingCycleDto) {
     return this.trainingCycleRepository.update({ id }, { ...updateUserDto });
   }
 

@@ -29,7 +29,13 @@ form {
 table {
   border: 1px solid #ddd;
   border-radius: 4px;
-  overflow: hidden;
+  overflow: auto;
+  display: block;
+
+  > * {
+    width: 100%;
+  }
+
   th {
     background-color: #04030f;
     color: white;
@@ -43,9 +49,24 @@ table {
   }
 }
 
-$sizes: 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15;
+.action-column {
+  border-left: 1px solid #ddd;
+}
+
+.width-fill {
+  width: 100%;
+}
+
+$sizes: 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23;
 @each $size in $sizes {
   .width-#{$size} {
     width: #{$size}rem;
+    min-width: #{$size}rem;
+  }
+}
+
+@each $size in $sizes {
+  .min-width-#{$size} {
+    min-width: #{$size}rem;
   }
 }

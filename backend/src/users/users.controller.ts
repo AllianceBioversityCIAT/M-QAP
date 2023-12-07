@@ -25,7 +25,7 @@ import { createReadStream } from 'fs';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { Brackets, In } from 'typeorm';
-import { createAndUpdateUsers, exportToExcel, getUsers } from 'src/users/dto/users.dto';
+import { CreateAndUpdateUsers, ExportToExcel, GetUsers } from 'src/users/dto/users.dto';
 import { Roles } from 'src/auth/roles.decorator';
 import { AdminRolesGuard } from 'src/auth/admin-roles.guard';
 @ApiBearerAuth()
@@ -49,7 +49,7 @@ export class UsersController {
   @Get()
   @ApiCreatedResponse({
     description: '',
-    type: getUsers,
+    type: GetUsers,
   })
   async getUsers(@Query() query) {
     if (query.search == 'teamMember') {
@@ -91,10 +91,10 @@ export class UsersController {
   }
   @Roles()
   @Put()
-  @ApiBody({ type: createAndUpdateUsers })
+  @ApiBody({ type: CreateAndUpdateUsers })
   @ApiCreatedResponse({
     description: '',
-    type: createAndUpdateUsers,
+    type: CreateAndUpdateUsers,
   })
   async updateUser(@Body() data: any) {
     const emailExist = await this.usersService.userRepository.findOne({
@@ -111,10 +111,10 @@ export class UsersController {
   }
   @Roles()
   @Post()
-  @ApiBody({ type: createAndUpdateUsers })
+  @ApiBody({ type: CreateAndUpdateUsers })
   @ApiCreatedResponse({
     description: '',
-    type: createAndUpdateUsers,
+    type: CreateAndUpdateUsers,
   })
   async addUser(@Body() data: any) {
     const emailExist = await this.usersService.userRepository.findOne({
@@ -139,7 +139,7 @@ export class UsersController {
   @Get('export/all')
   @ApiCreatedResponse({
     description: '',
-    type: exportToExcel,
+    type: ExportToExcel,
   })
   async export(@Query() query:any) {
     let users = await this.usersService.userRepository

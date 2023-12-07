@@ -1,10 +1,8 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { ToastrService } from 'ngx-toastr';
 import { CommoditiesService } from 'src/app/services/commodities.service';
-import { Commodity } from 'src/app/share/types/commodity.model.type';
-
+import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
 export interface DialogData {
   id: number;
 }
@@ -19,7 +17,7 @@ export class CommoditiesFormComponent implements OnInit {
     public dialogRef: MatDialogRef<CommoditiesFormComponent>,
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
     private commoditiesService: CommoditiesService,
-    private toast: ToastrService,
+    private snackBrService: SnackBarService,
     private fb: FormBuilder
   ) {}
 
@@ -54,11 +52,12 @@ export class CommoditiesFormComponent implements OnInit {
     if (this.form.valid) {
       this.commoditiesService.upsert(this.id, this.form.value).subscribe({
         next: () => {
-          if (this.id) this.toast.success('Commodity added successfully');
-          else this.toast.success('Commodity updated successfully');
+          if (this.id)
+            this.snackBrService.success('Commodity added successfully');
+          else this.snackBrService.success('Commodity updated successfully');
           this.dialogRef.close({ submitted: true });
         },
-        error: (error: any) => this.toast.error(error.error.message),
+        error: (error: any) => this.snackBrService.error(error.error.message),
       });
     }
   }

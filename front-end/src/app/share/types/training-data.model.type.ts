@@ -1,4 +1,4 @@
-import { Organization } from "./organization.model.type";
+import { Organization } from './organization.model.type';
 
 export type TrainingData = {
   id: number;
@@ -7,7 +7,7 @@ export type TrainingData = {
 
   clarisa_id: number;
 
-  claresa: Organization;
+  clarisa: Organization;
 
   source: string;
 };

@@ -17,7 +17,7 @@ export class Prediction {
 
   @ManyToOne(() => Organization)
   @JoinColumn({ name: 'clarisa_id' ,})
-  claresa: Organization;
+  clarisa: Organization;
 
   @Column({ type: 'float' })
   confidant: number;

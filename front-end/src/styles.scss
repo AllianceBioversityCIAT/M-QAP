@@ -111,3 +111,18 @@ h3 {
   margin: 0px !important;
 }
 
+.mat-mdc-snack-bar-container {
+  &.snack-bar-success-panel {
+    --mdc-snackbar-container-color: rgb(31, 185, 31);
+    --mat-mdc-snack-bar-button-color: #fff;
+    --mdc-snackbar-supporting-text-color: #fff;
+  }
+}
+
+.mat-mdc-snack-bar-container {
+  &.snack-bar-error-panel {
+    --mdc-snackbar-container-color: rgb(234, 24, 59);
+    --mat-mdc-snack-bar-button-color: #fff;
+    --mdc-snackbar-supporting-text-color: #fff;
+  }
+}

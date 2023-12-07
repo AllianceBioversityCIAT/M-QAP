@@ -4,7 +4,6 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  Unique,
 } from 'typeorm';
 
 @Entity()
@@ -21,7 +20,7 @@ export class Commodity {
   @Column({ nullable: true })
   parent_id?: number;
 
-  @ManyToOne(() => Commodity)
+  @ManyToOne(() => Commodity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'parent_id' })
   parent: Commodity;
 }

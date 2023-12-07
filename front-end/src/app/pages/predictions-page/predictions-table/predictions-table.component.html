@@ -17,10 +17,10 @@
   </form>
 
   <div class="table-box">
-    <table mat-table [dataSource]="dataSource" matSort>
+    <table mat-table [dataSource]="dataSource">
       <!-- ID Column -->
       <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+        <th mat-header-cell *matHeaderCellDef class="width-6">ID</th>
         <td mat-cell *matCellDef="let element" class="width-6">
           {{ element.id }}
         </td>
@@ -28,23 +28,31 @@
 
       <!-- Text Column -->
       <ng-container matColumnDef="text">
-        <th mat-header-cell *matHeaderCellDef>Text</th>
-        <td mat-cell *matCellDef="let element">{{ element.text }}</td>
+        <th mat-header-cell *matHeaderCellDef class="min-width-22 width-fill">
+          Text
+        </th>
+        <td mat-cell *matCellDef="let element" class="min-width-22 width-fill">
+          {{ element.text }}
+        </td>
       </ng-container>
 
       <!-- CLARISA Name Column -->
       <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>CLARISA Name</th>
-        <td mat-cell *matCellDef="let element">
-          {{ element.claresa.name }}
+        <th mat-header-cell *matHeaderCellDef class="min-width-22 width-fill">
+          CLARISA Name
+        </th>
+        <td mat-cell *matCellDef="let element" class="min-width-22 width-fill">
+          {{ element.clarisa.name }}
         </td>
       </ng-container>
 
       <!-- CLARISA Acronym Column -->
       <ng-container matColumnDef="acronym">
-        <th mat-header-cell *matHeaderCellDef>CLARISA Acronym</th>
+        <th mat-header-cell *matHeaderCellDef class="width-12">
+          CLARISA Acronym
+        </th>
         <td mat-cell *matCellDef="let element" class="width-12">
-          {{ element.claresa.acronym }}
+          {{ element.clarisa.acronym }}
         </td>
       </ng-container>
 
@@ -57,19 +65,19 @@
       </ng-container>
 
       <!-- Cycle Column -->
-      <ng-container matColumnDef="cycle" >
-        <th mat-header-cell *matHeaderCellDef>Cycle</th>
+      <ng-container matColumnDef="cycle">
+        <th mat-header-cell *matHeaderCellDef class="width-8">Cycle</th>
         <td mat-cell *matCellDef="let element" class="width-8">
           {{ element.trainingCycle?.text }}
         </td>
       </ng-container>
 
       <!-- Action Name Column -->
-      <ng-container matColumnDef="actions" class="width-8">
-        <th mat-header-cell *matHeaderCellDef>
+      <ng-container matColumnDef="actions" stickyEnd>
+        <th mat-header-cell *matHeaderCellDef class="width-4">
           <span class="h5">Action</span>
         </th>
-        <td mat-cell *matCellDef="let element" class="width-8">
+        <td mat-cell *matCellDef="let element" class="width-4 action-column">
           <div class="action-container">
             <button
               mat-icon-button

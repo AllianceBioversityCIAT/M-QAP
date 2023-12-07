@@ -24,33 +24,39 @@
   </form>
 
   <div class="table-box">
-    <table mat-table [dataSource]="dataSource" matSort>
+    <table mat-table [dataSource]="dataSource">
       <!-- ID Column -->
       <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
-        <td mat-cell *matCellDef="let element" class="width-6">{{ element.id }}</td>
+        <th mat-header-cell *matHeaderCellDef class="width-6">ID</th>
+        <td mat-cell *matCellDef="let element" class="width-6">
+          {{ element.id }}
+        </td>
       </ng-container>
 
       <!-- Name Column -->
       <ng-container matColumnDef="text">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let element">{{ element.text }}</td>
+        <th mat-header-cell *matHeaderCellDef class="min-width-22 width-fill">
+          Name
+        </th>
+        <td mat-cell *matCellDef="let element" class="min-width-22 width-fill">
+          {{ element.text }}
+        </td>
       </ng-container>
 
       <!-- Created Date Column -->
       <ng-container matColumnDef="creation_date">
-        <th mat-header-cell *matHeaderCellDef>Creation date</th>
+        <th mat-header-cell *matHeaderCellDef class="width-9">Creation date</th>
         <td mat-cell *matCellDef="let element" class="width-9">
           {{ element.creation_date | date }}
         </td>
       </ng-container>
 
       <!-- Action Name Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>
+      <ng-container matColumnDef="actions" stickyEnd>
+        <th mat-header-cell *matHeaderCellDef class="width-4">
           <span class="h5">Action</span>
         </th>
-        <td mat-cell *matCellDef="let element" class="width-8">
+        <td mat-cell *matCellDef="let element" class="width-4 action-column">
           <div class="action-container">
             <button
               mat-icon-button

@@ -20,7 +20,7 @@ export class TrainingData {
 
   @ManyToOne(() => Organization)
   @JoinColumn({ name: 'clarisa_id' })
-  claresa: Organization;
+  clarisa: Organization;
 
   @Column()
   source: string;

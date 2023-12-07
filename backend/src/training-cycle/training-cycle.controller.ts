@@ -14,21 +14,16 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Paginate, PaginateQuery } from 'nestjs-paginate';
+import { UpdateTrainingCycleDto } from './dto/update-training-cycle.dto';
 @Controller('training-cycle')
 export class TrainingCycleController {
   constructor(private trainingCycleService: TrainingCycleService) {}
-  
-  @Post()
-  create(@Body() createUserDto: any) {
-    return this.trainingCycleService.create(createUserDto);
-  }
 
   @Post(':id')
   @UseInterceptors(FileInterceptor('file'))
   uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Param('id') id,
-    @Body('type') type,
+    @Param('id') id: number,
   ) {
     const training_folder_path = path.join(
       process.cwd(),
@@ -51,17 +46,20 @@ export class TrainingCycleController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.trainingCycleService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: any) {
+  update(
+    @Param('id') id: number,
+    @Body() updateUserDto: UpdateTrainingCycleDto,
+  ) {
     return this.trainingCycleService.update(+id, updateUserDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.trainingCycleService.remove(+id);
   }
 }

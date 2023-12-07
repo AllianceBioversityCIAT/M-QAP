@@ -1,6 +1,4 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
-import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from 'src/entities/organization.entity';
 import { Repository } from 'typeorm';
@@ -19,13 +17,6 @@ export class OrganizationsService {
     private organizationRepository: Repository<Organization>,
   ) {}
 
-  create(createOrganizationDto: CreateOrganizationDto) {
-    const newOrganization = this.organizationRepository.create({
-      ...createOrganizationDto,
-    });
-    return this.organizationRepository.save(newOrganization);
-  }
-
   findAll(query: PaginateQuery): Promise<Paginated<Organization>> {
     return paginate(query, this.organizationRepository, {
       sortableColumns: ['id', 'name', 'acronym'],
@@ -38,13 +29,6 @@ export class OrganizationsService {
 
   findOne(id: number) {
     return this.organizationRepository.findOneBy({ id });
-  }
-
-  update(id: number, updateOrganizationDto: UpdateOrganizationDto) {
-    return this.organizationRepository.update(
-      { id },
-      { ...updateOrganizationDto },
-    );
   }
 
   remove(id: number) {

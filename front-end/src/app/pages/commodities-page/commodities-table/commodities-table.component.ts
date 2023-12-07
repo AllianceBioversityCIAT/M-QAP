@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
-import { ToastrService } from 'ngx-toastr';
 import { DeleteConfirmDialogComponent } from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
 import {
   MediaService,
@@ -14,6 +13,8 @@ import { CommoditiesService } from 'src/app/services/commodities.service';
 import { CommoditiesFormComponent } from '../commodities-form/commodities-form.component';
 import { Commodity } from 'src/app/share/types/commodity.model.type';
 import { Organization } from 'src/app/share/types/organization.model.type';
+import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
+import { LoaderService } from 'src/app/services/loader.service';
 
 @Component({
   selector: 'app-commodities-table',
@@ -34,19 +35,15 @@ export class CommoditiesTableComponent {
   constructor(
     public dialog: MatDialog,
     private commoditiesService: CommoditiesService,
-    private toastr: ToastrService,
+    private snackBarService: SnackBarService,
     private mediaService: MediaService,
+    private loaderService: LoaderService,
     private fb: FormBuilder
   ) {}
 
   ngOnInit() {
     this.initForm();
-    this.form.valueChanges.subscribe((value) => {
-      this.text = value.text;
-      this.sortBy = value.sortBy;
-      this.loadData();
-    });
-
+    this.loaderService.open();
     this.loadData();
   }
 
@@ -54,6 +51,12 @@ export class CommoditiesTableComponent {
     this.form = this.fb.group({
       text: [''],
       sortBy: ['id:ASC'],
+    });
+
+    this.form.valueChanges.subscribe((value) => {
+      this.text = value.text;
+      this.sortBy = value.sortBy;
+      this.loadData();
     });
   }
 
@@ -77,6 +80,7 @@ export class CommoditiesTableComponent {
         this.response = response;
         this.length = response.meta.totalItems;
         this.dataSource = new MatTableDataSource(response.data);
+        this.loaderService.close();
       });
   }
 
@@ -115,10 +119,10 @@ export class CommoditiesTableComponent {
           await this.commoditiesService.delete(id).subscribe({
             next: () => {
               this.loadData();
-              this.toastr.success('Deleted successfully');
+              this.snackBarService.success('Deleted successfully');
             },
             error: (error) => {
-              this.toastr.error(error.error.message);
+              this.snackBarService.error(error.error.message);
             },
           });
         }

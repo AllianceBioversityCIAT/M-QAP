@@ -1,7 +1,7 @@
 import { PickType } from '@nestjs/swagger';
 import { User } from 'src/entities/user.entity'
 
-export class getUsers extends PickType(User, [
+export class GetUsers extends PickType(User, [
   'id',
   'email',
   'first_name',
@@ -10,7 +10,7 @@ export class getUsers extends PickType(User, [
   'role',
 ]) {}
 
-export class createAndUpdateUsers extends PickType(getUsers, [
+export class CreateAndUpdateUsers extends PickType(GetUsers, [
   'id',
   'email',
   'first_name',
@@ -18,6 +18,6 @@ export class createAndUpdateUsers extends PickType(getUsers, [
   'role',
 ]) {}
 
-export class exportToExcel {
-  user: Array<getUsers>;
+export class ExportToExcel {
+  user: Array<GetUsers>;
 }

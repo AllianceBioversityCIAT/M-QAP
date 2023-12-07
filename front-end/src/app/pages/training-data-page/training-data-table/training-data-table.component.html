@@ -28,19 +28,19 @@
         <mat-option value="id:ASC">Id / ACS</mat-option>
         <mat-option value="text:DESC">Name / DESC</mat-option>
         <mat-option value="text:ASC">Name / ACS</mat-option>
-        <mat-option value="claresa.(name):DESC">
+        <mat-option value="clarisa.(name):DESC">
           CLARISA Name / DESC</mat-option
         >
-        <mat-option value="claresa.(name):ASC"> CLARISA Name / ACS</mat-option>
+        <mat-option value="clarisa.(name):ASC"> CLARISA Name / ACS</mat-option>
       </mat-select>
     </mat-form-field>
   </form>
 
   <div class="table-box">
-    <table mat-table [dataSource]="dataSource" matSort>
+    <table mat-table [dataSource]="dataSource">
       <!-- ID Column -->
       <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+        <th mat-header-cell *matHeaderCellDef class="width-6">ID</th>
         <td mat-cell *matCellDef="let element" class="width-6">
           {{ element.id }}
         </td>
@@ -48,37 +48,45 @@
 
       <!-- Text Column -->
       <ng-container matColumnDef="text">
-        <th mat-header-cell *matHeaderCellDef>Text</th>
-        <td mat-cell *matCellDef="let element">{{ element.text }}</td>
+        <th mat-header-cell *matHeaderCellDef class="min-width-22 width-fill">
+          Text
+        </th>
+        <td mat-cell *matCellDef="let element" class="min-width-22 width-fill">
+          {{ element.text }}
+        </td>
       </ng-container>
 
       <!-- CLARISA Name Column -->
       <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>CLARISA Name</th>
-        <td mat-cell *matCellDef="let element">
-          {{ element.claresa.name }}
+        <th mat-header-cell *matHeaderCellDef class="min-width-22 width-fill">
+          CLARISA Name
+        </th>
+        <td mat-cell *matCellDef="let element" class="min-width-22 width-fill">
+          {{ element.clarisa.name }}
         </td>
       </ng-container>
 
       <!-- CLARISA Acronym Column -->
       <ng-container matColumnDef="acronym">
-        <th mat-header-cell *matHeaderCellDef>CLARISA Acronym</th>
+        <th mat-header-cell *matHeaderCellDef class="width-12">
+          CLARISA Acronym
+        </th>
         <td mat-cell *matCellDef="let element" class="width-12">
-          {{ element.claresa.acronym }}
+          {{ element.clarisa.acronym }}
         </td>
       </ng-container>
 
       <ng-container matColumnDef="source">
-        <th mat-header-cell *matHeaderCellDef>Source</th>
+        <th mat-header-cell *matHeaderCellDef class="width-10">Source</th>
         <td mat-cell *matCellDef="let element" class="width-10">
           {{ element.source }}
         </td>
       </ng-container>
 
       <!-- Action Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Action</th>
-        <td mat-cell *matCellDef="let element" class="width-8">
+      <ng-container matColumnDef="actions" stickyEnd>
+        <th mat-header-cell *matHeaderCellDef class="width-8">Action</th>
+        <td mat-cell *matCellDef="let element" class="width-8 action-column">
           <div class="action-container">
             <button
               mat-icon-button

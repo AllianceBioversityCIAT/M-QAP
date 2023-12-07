@@ -8,7 +8,7 @@ export type Prediction = {
 
   clarisa_id: number;
 
-  claresa: Organization;
+  clarisa: Organization;
 
   confidant: number;
 

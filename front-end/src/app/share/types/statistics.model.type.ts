@@ -4,11 +4,11 @@ export type Statistics = {
   totalTrainingCycle: number;
   totalPrediction: number;
   totalTrainingData: number;
-  chartData: {
+  predictionCountPerCycle: {
     cycle_id: number;
     predictions_count: number;
   }[];
-  cyclePredictionsAverage: {
+  averagePredictionPerCycle: {
     predictions_average: number;
     cycle_id: number;
   }[];

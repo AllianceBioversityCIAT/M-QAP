@@ -3,6 +3,7 @@ import { HeaderServiceService } from '../../header-service.service';
 import { Chart } from 'angular-highcharts';
 import { StatisticsService } from 'src/app/services/statistics.service';
 import { Statistics } from 'src/app/share/types/statistics.model.type';
+import { LoaderService } from 'src/app/services/loader.service';
 
 @Component({
   selector: 'app-home-page',
@@ -15,10 +16,12 @@ export class HomePageComponent {
   statistics!: Statistics;
   constructor(
     public headerService: HeaderServiceService,
-    private statisticsService: StatisticsService
+    private statisticsService: StatisticsService,
+    private loaderService: LoaderService
   ) {}
 
   ngOnInit() {
+    this.loaderService.open();
     this.headerService
       .setBackground('linear-gradient(to right, #04030F, #04030F)')
       .setBackgroundNavMain('linear-gradient(to right, #2A2E45, #212537)')
@@ -67,7 +70,7 @@ export class HomePageComponent {
         series: [
           {
             name: 'Average confidant rate / Cycle',
-            data: response.cyclePredictionsAverage.map((i) => ({
+            data: response.averagePredictionPerCycle.map((i) => ({
               name: 'Average',
               y: i.predictions_average,
               x: i.cycle_id,
@@ -111,7 +114,7 @@ export class HomePageComponent {
         series: [
           {
             name: 'Predictions count / Cycle',
-            data: response.chartData.map((i) => ({
+            data: response.predictionCountPerCycle.map((i) => ({
               y: i.predictions_count,
               x: i.cycle_id,
             })),
@@ -119,6 +122,7 @@ export class HomePageComponent {
         ],
       });
       this.statistics = response;
+      this.loaderService.close();
     });
   }
 }
