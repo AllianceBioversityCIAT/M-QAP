@@ -169,9 +169,13 @@ export class HandleService {
     keywords = keywords.map((i) => i.toLowerCase());
     const q = this.commoditiesService.commoditiesRepository
       .createQueryBuilder('commodity')
+      .leftJoinAndSelect('commodity.parent', 'parentCommodity')
       .where('LOWER(commodity.name) IN(:keywords)', { keywords });
+
+    // console.info(q.getSql());
     const list = await q.getMany();
-    return list.map((i) => i.name);
+    // console.info(list);
+    return list.map((i) => i?.parent?.name ?? i.name);
   }
 
   addOn(formatted_data, schema) {
