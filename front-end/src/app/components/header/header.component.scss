@@ -24,21 +24,50 @@
       color: white;
       display: flex;
       align-items: center;
+      div {
+        .user-name {
+          text-wrap: nowrap;
+          max-width: 5rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
     }
   }
 }
 
 nav {
+  padding: 0 1rem;
+  &::after {
+    content: "";
+    display: block;
+    height: 68px;
+    width: 2rem;
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    background: linear-gradient(
+      to right,
+      rgba(35, 39, 59, 0) 0%,
+      rgba(35, 39, 59, 1) 100%
+    );
+    z-index: 1;
+  }
+
   ul {
     display: flex;
     gap: 1rem;
     padding: 1rem;
     list-style: none;
+    overflow: auto;
+    position: relative;
 
     li {
       a {
         font-size: 1rem;
         color: white;
+        text-wrap: nowrap;
+
         &.active {
           background-color: white;
           color: #04030f;

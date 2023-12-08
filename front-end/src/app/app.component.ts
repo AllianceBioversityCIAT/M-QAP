@@ -1,13 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { HeaderServiceService } from './header-service.service';
+import { LoaderService } from './services/loader.service';
+import { state } from '@angular/animations';
+import { delay } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit {
-  constructor(public headerService: HeaderServiceService) {
+export class AppComponent implements OnInit, AfterViewInit {
+  overFlowHidden = false;
+  constructor(
+    public headerService: HeaderServiceService,
+    public loaderService: LoaderService
+  ) {
     const faviconTag = document.getElementById('faviconTag') as unknown as {
       href: string;
     };
@@ -17,7 +24,14 @@ export class AppComponent implements OnInit {
       window.matchMedia('(prefers-color-scheme: dark)').matches
     ) {
       faviconTag.href = '/assets/shared-image/mask-group.svg';
-    } else faviconTag.href = '/assets/shared-image/cgiar-logo.png';
+    } else {
+      faviconTag.href = '/assets/shared-image/cgiar-logo.png';
+    }
+  }
+  ngAfterViewInit(): void {
+    this.loaderService.state$
+      .pipe(delay(0))
+      .subscribe((state) => (this.overFlowHidden = state));
   }
 
   ngOnInit() {

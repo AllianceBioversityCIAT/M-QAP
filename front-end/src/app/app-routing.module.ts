@@ -68,6 +68,13 @@ const routes: Routes = [
     loadChildren: () =>
       import('./pages/auth/auth.module').then((m) => m.AuthModule),
   },
+  {
+    path: '**',
+    loadChildren: () =>
+      import('./pages/not-found-page/not-found-page-routing.module').then(
+        (m) => m.NotFoundPageRoutingModule
+      ),
+  },
 ];
 
 @NgModule({

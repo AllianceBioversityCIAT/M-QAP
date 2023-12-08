@@ -1,8 +1,10 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TrainingDataService } from 'src/app/services/training-data.service';
+import { vb } from 'src/app/services/validator.service';
 import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
+import { z } from 'zod';
 
 export interface DialogData {
   id?: number;
@@ -46,15 +48,16 @@ export class TrainingDataFormComponent implements OnInit {
 
   private async formInit() {
     this.form = this.fb.group({
-      text: [null, Validators.required],
-      source: ['system/form', Validators.required],
-      clarisa: [null, Validators.required],
+      text: ['', vb(z.string().min(2).max(100))],
+      source: ['system/form', vb(z.string().min(4).max(20))],
+      clarisa: [null, vb(z.object({ id: z.number() }))],
     });
   }
 
   async submit() {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity();
+    console.log(this.form.get('text')?.errors);
     if (this.form.valid) {
       await this.trainingDataService
         .upsert(this.id, this.form.value)

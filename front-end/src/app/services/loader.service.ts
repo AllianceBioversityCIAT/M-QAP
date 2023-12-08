@@ -1,20 +1,18 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LoaderService {
-  private _open = false;
+  private _state$ = new BehaviorSubject<boolean>(false);
+  public state$ = this._state$.asObservable();
 
-  get state() {
-    return this._open;
-  }
-  
   open() {
-    this._open = true;
+    this._state$.next(true);
   }
 
   close() {
-    this._open = false;
+    this._state$.next(false);
   }
 }

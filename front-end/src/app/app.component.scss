@@ -1,4 +1,8 @@
 div {
+  &.overFlowHidden{
+    max-height: 100vh;
+    overflow: hidden;
+  }
   position: relative;
   app-header {
     position: sticky;

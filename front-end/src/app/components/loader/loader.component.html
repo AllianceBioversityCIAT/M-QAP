@@ -1,6 +1,6 @@
-<div class="main-container" *ngIf="loaderService.state" @fadeIn @fadeOut>
+<div class="main-container" *ngIf="loaderService.state$ | async" @fadeIn @fadeOut>
   <div class="loader-spinner">
-    <mat-spinner></mat-spinner>
+    <span class="loader"></span>
     <img
       src="../../assets/shared-image/mask-group.svg"
       alt="~/Frontend/images/question-circular-button.svg"

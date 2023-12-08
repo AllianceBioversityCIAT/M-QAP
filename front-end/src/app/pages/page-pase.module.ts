@@ -17,6 +17,7 @@ import { EditIconComponent } from '../share/edit-icon/edit-icon.component';
 import { InputComponent } from '../share/input/input.component';
 import { OrganizationInputComponent } from '../share/organization-input/organization-input.component';
 import { SnackBarModule } from '../share/snack-bar/snack-bar.module';
+import { NotFoundPageComponent } from './not-found-page/not-found-page.component';
 
 @NgModule({
   imports: [
@@ -66,6 +67,9 @@ import { SnackBarModule } from '../share/snack-bar/snack-bar.module';
     MatInputModule,
     DialogLayoutComponent,
     SnackBarModule,
+  ],
+  declarations: [
+    NotFoundPageComponent
   ],
 })
 export class PagePaseModule {}
