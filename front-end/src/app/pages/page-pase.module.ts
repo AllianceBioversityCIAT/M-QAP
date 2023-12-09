@@ -17,7 +17,6 @@ import { EditIconComponent } from '../share/edit-icon/edit-icon.component';
 import { InputComponent } from '../share/input/input.component';
 import { OrganizationInputComponent } from '../share/organization-input/organization-input.component';
 import { SnackBarModule } from '../share/snack-bar/snack-bar.module';
-import { NotFoundPageComponent } from './not-found-page/not-found-page.component';
 import { ErrorsComponent } from '../share/errors/errors.component';
 
 @NgModule({
@@ -71,6 +70,5 @@ import { ErrorsComponent } from '../share/errors/errors.component';
     SnackBarModule,
     ErrorsComponent,
   ],
-  declarations: [NotFoundPageComponent],
 })
 export class PagePaseModule {}
