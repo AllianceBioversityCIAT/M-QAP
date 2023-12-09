@@ -13,7 +13,7 @@ export type Paginated<T> = {
       [column: string]: string | string[];
     };
   };
-  links: {
+  links?: {
     first?: string;
     previous?: string;
     current: string;
