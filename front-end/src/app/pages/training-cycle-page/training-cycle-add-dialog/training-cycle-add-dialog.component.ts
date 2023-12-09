@@ -2,7 +2,9 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TrainingCycleService } from 'src/app/services/training-cycle.service';
+import { vb } from 'src/app/services/validator.service';
 import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
+import { z } from 'zod';
 
 export interface DialogData {
   id: number;
@@ -31,7 +33,7 @@ export class TrainingCycleAddDialogComponent implements OnInit {
 
   formInit() {
     this.form = this.fb.group({
-      text: [null, Validators.required],
+      text: [null, vb(z.string().min(2).max(255))],
     });
   }
 

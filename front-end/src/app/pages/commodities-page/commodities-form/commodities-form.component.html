@@ -10,18 +10,20 @@
       <mat-label>Name <span class="star">*</span> </mat-label>
       <mat-form-field hideRequiredMarker appearance="outline">
         <input matInput formControlName="name" />
+        <app-errors matError [control]="form.get('name')"></app-errors>
       </mat-form-field>
     </app-input>
 
     <app-input>
       <mat-label>Commodity</mat-label>
-      <app-commodity-input formControlName="parent"></app-commodity-input>
+      <app-commodity-input formControlName="parent"> </app-commodity-input>
     </app-input>
 
     <app-input>
       <mat-label>Source<span class="star">*</span></mat-label>
       <mat-form-field hideRequiredMarker appearance="outline">
         <input matInput formControlName="source" />
+        <app-errors matError [control]="form.get('source')"></app-errors>
       </mat-form-field>
     </app-input>
   </form>

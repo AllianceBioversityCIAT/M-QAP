@@ -1,9 +1,15 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()
 export class Organization {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @CreateDateColumn()
+  creation_date: string;
+
+  @UpdateDateColumn()
+  update_date: string;
 
   @Column()
   name: string;

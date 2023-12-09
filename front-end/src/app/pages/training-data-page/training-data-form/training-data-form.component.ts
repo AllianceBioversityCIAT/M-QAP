@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TrainingDataService } from 'src/app/services/training-data.service';
 import { vb } from 'src/app/services/validator.service';
@@ -48,9 +48,9 @@ export class TrainingDataFormComponent implements OnInit {
 
   private async formInit() {
     this.form = this.fb.group({
-      text: ['', vb(z.string().min(2).max(100))],
-      source: ['system/form', vb(z.string().min(4).max(20))],
-      clarisa: [null, vb(z.object({ id: z.number() }))],
+      text: ['', vb(z.string().min(2).max(255))],
+      source: ['system/form', vb(z.string().min(4).max(255))],
+      clarisa: [null, vb(z.object({}))],
     });
   }
 

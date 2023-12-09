@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 export enum userRole {
   USER = 'user',
@@ -9,6 +15,12 @@ export enum userRole {
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @CreateDateColumn()
+  creation_date: string;
+
+  @UpdateDateColumn()
+  update_date: string;
 
   @Column()
   email: string;
@@ -23,9 +35,9 @@ export class User {
   role: userRole;
 
   @Column({
-      type: "varchar",
-      generatedType: 'STORED',
-      asExpression: `Concat(first_name,' ' ,last_name)`
-    })
-    full_name: string;
+    type: 'varchar',
+    generatedType: 'STORED',
+    asExpression: `Concat(first_name,' ' ,last_name)`,
+  })
+  full_name: string;
 }

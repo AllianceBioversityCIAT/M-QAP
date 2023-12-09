@@ -18,6 +18,7 @@ import { InputComponent } from '../share/input/input.component';
 import { OrganizationInputComponent } from '../share/organization-input/organization-input.component';
 import { SnackBarModule } from '../share/snack-bar/snack-bar.module';
 import { NotFoundPageComponent } from './not-found-page/not-found-page.component';
+import { ErrorsComponent } from '../share/errors/errors.component';
 
 @NgModule({
   imports: [
@@ -43,6 +44,7 @@ import { NotFoundPageComponent } from './not-found-page/not-found-page.component
     MatInputModule,
     DialogLayoutComponent,
     SnackBarModule,
+    ErrorsComponent,
   ],
   exports: [
     CommonModule,
@@ -67,9 +69,8 @@ import { NotFoundPageComponent } from './not-found-page/not-found-page.component
     MatInputModule,
     DialogLayoutComponent,
     SnackBarModule,
+    ErrorsComponent,
   ],
-  declarations: [
-    NotFoundPageComponent
-  ],
+  declarations: [NotFoundPageComponent],
 })
 export class PagePaseModule {}

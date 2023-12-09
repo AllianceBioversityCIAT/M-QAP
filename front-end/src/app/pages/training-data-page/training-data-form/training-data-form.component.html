@@ -10,21 +10,22 @@
       <mat-label>Text <span class="star">*</span> </mat-label>
       <mat-form-field hideRequiredMarker appearance="outline">
         <input matInput formControlName="text" />
+        <app-errors matError [control]="form.get('text')"></app-errors>
       </mat-form-field>
-      <mat-error></mat-error>
     </app-input>
 
     <app-input>
       <mat-label>Clarisa<span class="star">*</span></mat-label>
-      <app-organization-input
-        formControlName="clarisa"
-      ></app-organization-input>
+      <app-organization-input formControlName="clarisa">
+        <app-errors matError [animation]="true" [control]="form.get('clarisa')"></app-errors>
+      </app-organization-input>
     </app-input>
 
     <app-input>
       <mat-label>Source<span class="star">*</span></mat-label>
       <mat-form-field hideRequiredMarker appearance="outline">
         <input matInput formControlName="source" />
+        <app-errors matError [control]="form.get('source')"></app-errors>
       </mat-form-field>
     </app-input>
   </form>

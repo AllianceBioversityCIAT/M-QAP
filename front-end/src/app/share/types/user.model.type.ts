@@ -3,6 +3,10 @@ import { userRole } from './user-role.type';
 export type User = {
   id: number;
 
+  creation_date: string;
+
+  update_date: string;
+
   email: string;
 
   first_name: string;

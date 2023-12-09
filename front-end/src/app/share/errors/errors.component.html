@@ -1,0 +1,8 @@
+<ng-container *ngIf="touched">
+  <ng-container *ngIf="animation">
+    <span [@fadeInOut] *ngFor="let error of errors">{{ error.message }}</span>
+  </ng-container>
+  <ng-container *ngIf="!animation">
+    <span *ngFor="let error of errors">{{ error.message }}</span>
+  </ng-container>
+</ng-container>

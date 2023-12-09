@@ -1,5 +1,13 @@
 import { type } from 'os';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { TrainingCycle } from './training-cycle.entity';
 import { Organization } from './organization.entity';
 
@@ -8,7 +16,12 @@ export class Prediction {
   @PrimaryGeneratedColumn()
   id: number;
 
-  
+  @CreateDateColumn()
+  creation_date: string;
+
+  @UpdateDateColumn()
+  update_date: string;
+
   @Column()
   text: string;
 
@@ -16,7 +29,7 @@ export class Prediction {
   clarisa_id: number;
 
   @ManyToOne(() => Organization)
-  @JoinColumn({ name: 'clarisa_id' ,})
+  @JoinColumn({ name: 'clarisa_id' })
   clarisa: Organization;
 
   @Column({ type: 'float' })

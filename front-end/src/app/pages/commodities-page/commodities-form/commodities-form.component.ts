@@ -2,7 +2,9 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CommoditiesService } from 'src/app/services/commodities.service';
+import { vb } from 'src/app/services/validator.service';
 import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
+import { z } from 'zod';
 export interface DialogData {
   id: number;
 }
@@ -40,9 +42,9 @@ export class CommoditiesFormComponent implements OnInit {
 
   private async formInit() {
     this.form = this.fb.group({
-      name: [null, Validators.required],
+      name: ['', vb(z.string().min(2).max(255))],
       parent: [null],
-      source: ['system/form', Validators.required],
+      source: ['system/form', vb(z.string().min(2).max(255))],
     });
   }
 
