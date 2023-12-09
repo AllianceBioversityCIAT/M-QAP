@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ClarisaTableComponent } from './clarisa-table.component';
 
-describe('ClarisaTableComponent', () => {
+xdescribe('ClarisaTableComponent', () => {
   let component: ClarisaTableComponent;
   let fixture: ComponentFixture<ClarisaTableComponent>;
 

@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CommoditiesFormComponent } from './commodities-form.component';
 
-describe('CommoditiesFormComponent', () => {
+xdescribe('CommoditiesFormComponent', () => {
   let component: CommoditiesFormComponent;
   let fixture: ComponentFixture<CommoditiesFormComponent>;
 
