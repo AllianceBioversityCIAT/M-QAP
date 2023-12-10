@@ -29,26 +29,26 @@ export class AI {
     this.init();
   }
   async init() {
-      const active_cycle = await this.training_cycle.findLatestOne();
-      const training_folder_path = path.join(
-        process.cwd(),
-        'uploads/training-data/' + '1',
-      );
-      this.logger.log(
-        'Start Loading Trained Model ' +
-          process.env.PRODUCTION +
-          ' ' +
-          training_folder_path,
-      );
-      this.model = await tf.loadLayersModel(
-        'file://' + training_folder_path + '/model.json',
-      );
-      this.naturalModel = await use.load();
-      let rawData: any = fs.readFileSync(
-        training_folder_path + '/clarisa_data.json',
-      );
-      this.clarisa = JSON.parse(rawData);
-      this.logger.log('Trained Model Loaded');
+    const active_cycle = await this.training_cycle.findLatestOne();
+    const training_folder_path = path.join(
+      process.cwd(),
+      'uploads/training-data/' + active_cycle.id,
+    );
+    this.logger.log(
+      'Start Loading Trained Model ' +
+        process.env.PRODUCTION +
+        ' ' +
+        training_folder_path,
+    );
+    this.model = await tf.loadLayersModel(
+      'file://' + training_folder_path + '/model.json',
+    );
+    this.naturalModel = await use.load();
+    let rawData: any = fs.readFileSync(
+      training_folder_path + '/clarisa_data.json',
+    );
+    this.clarisa = JSON.parse(rawData);
+    this.logger.log('Trained Model Loaded');
   }
   calculatePercent(percent) {
     return Math.round(percent * 100);
