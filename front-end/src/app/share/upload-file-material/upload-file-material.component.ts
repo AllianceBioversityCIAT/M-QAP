@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Component, EventEmitter, Output } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,7 +10,6 @@ import {
   MediaService,
   UploadFileResponse,
 } from 'src/app/services/media.service';
-import { environment } from 'src/environments/environment';
 
 export const FileExtension = {
   word: '.doc, .docx',
@@ -36,25 +35,22 @@ export const FileExtension = {
 })
 export class UploadFileMaterialComponent {
   @Output() uploaded = new EventEmitter<UploadFileResponse>();
-  @Input() form!: FormGroup;
-  @Input() controller!: string;
-  @Input() type!: string;
-  @Input() label!: string;
-  environment = environment;
-  accept = [FileExtension.xcel].join(', ');
+  @Output() accept = [FileExtension.xcel].join(', ');
   constructor(private mediaService: MediaService) {}
 
-  fileSelected(input: any) {
-    console.log(input);
+  fileSelected(input: { srcElement: { files: any[]; value: string } }) {
     const { files } = input.srcElement;
+
     const formData = new FormData();
+
     for (let i = 0; i < files.length; i++) {
       formData.append(`file-${i}`, files[i], files[i].name);
     }
 
     this.mediaService.upload(formData).subscribe((file) => {
       this.uploaded.emit(file);
-      input.srcElement.value = '';
+      console.log('Called');
+      input.srcElement.value = ''; // to reset the input and emit the event when select the same file more than ones.;
     });
   }
 }
