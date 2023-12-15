@@ -11,6 +11,7 @@ import { TrainingCycle } from 'src/app/share/types/training-cycle.model.type';
 import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
 import { MediaService } from 'src/app/services/media.service';
 import { LoaderService } from 'src/app/services/loader.service';
+import { filter, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-training-cycle-table',
@@ -98,18 +99,19 @@ export class TrainingCycleTableComponent {
         },
       })
       .afterClosed()
-      .subscribe(async (dialogResult) => {
-        if (dialogResult == true) {
-          await this.trainingCycleService.delete(id).subscribe({
-            next: () => {
-              this.loadData();
-              this.snackBarService.success('Deleted successfully');
-            },
-            error: (error) => {
-              this.snackBarService.error(error.error.message);
-            },
-          });
-        }
+      .pipe(
+        filter((i) => !!i),
+        switchMap(() => this.trainingCycleService.delete(id))
+      )
+      .subscribe({
+        next: () => {
+          console.log('arrived')
+          this.loadData();
+          this.snackBarService.success('Deleted successfully');
+        },
+        error: (error) => {
+          this.snackBarService.error(error.error.message);
+        },
       });
   }
 }
