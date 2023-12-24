@@ -38,7 +38,7 @@ export class UploadFileMaterialComponent {
   @Output() accept = [FileExtension.xcel].join(', ');
   constructor(private mediaService: MediaService) {}
 
-  fileSelected(input: { srcElement: { files: any[]; value: string } }) {
+  fileSelected(input: any) {
     const { files } = input.srcElement;
 
     const formData = new FormData();

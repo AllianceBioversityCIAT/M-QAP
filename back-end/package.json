@@ -8,6 +8,8 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
+    "install-and-build": "[ ! -d './node_modules' ] && npm i || [ -d './node_modules' ] && npm run start:dev",
+    "build-and-start":  "npm run build && npm run start:dev",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

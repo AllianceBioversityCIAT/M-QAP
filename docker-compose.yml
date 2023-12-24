@@ -1,0 +1,56 @@
+version: "3.1"
+services:
+  clarisa_wos_mysql:
+    container_name: clarisa_wos_mysql
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mqap
+      MYSQL_PASSWORD: root
+    volumes:
+      - ./mysqlData:/var/lib/mysql
+    ports:
+      - "127.0.0.1:3366:3306"
+  clarisa_wos_phpmyadmin:
+    container_name: clarisa_wos_phpmyadmin
+    depends_on:
+      - clarisa_wos_mysql
+    image: phpmyadmin/phpmyadmin:latest
+    links:
+      - clarisa_wos_mysql
+    ports:
+      - 8182:80
+    environment:
+      PMA_HOST: clarisa_wos_mysql
+
+  clarisa_wos_api:
+    container_name: clarisa_wos_api
+    depends_on:
+      - clarisa_wos_mysql
+    build: 
+      context: ./back-end
+      dockerfile: Dockerfile
+    # restart: always
+    volumes:
+      - ./back-end/media:/back-end/media
+      - ./back-end/uploads:/back-end/uploads
+
+  clarisa_wos_front_end:
+    container_name: clarisa_wos_front_end
+    build: front-end
+    restart: always
+  clarisa_wos_nginx:
+    container_name: clarisa_wos_nginx
+    links:
+      - clarisa_wos_api
+    depends_on:
+      - clarisa_wos_mysql
+      - clarisa_wos_api
+    image: nginx
+    restart: always
+    ports:
+      - 4200:80
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+      # - ./SSL:/SSL
