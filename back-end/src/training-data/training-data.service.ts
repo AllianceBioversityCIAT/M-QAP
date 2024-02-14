@@ -40,6 +40,10 @@ export class TrainingDataService extends TypeOrmCrudService<TrainingData> {
     });
   }
 
+  getAll(where = {}) {
+    return this.trainingDataRepository.find({ where, relations: ['clarisa'] });
+  }
+
   async processSheet(fileName: string) {
     const filePath = resolve(process.cwd(), 'media', fileName);
 

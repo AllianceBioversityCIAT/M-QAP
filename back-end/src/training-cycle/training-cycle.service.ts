@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginateQuery, Paginated, paginate } from 'nestjs-paginate';
 import { TrainingCycle as TrainingCycle } from 'src/entities/training-cycle.entity';
 import { IsNull, Not, Repository } from 'typeorm';
+import { CreateTrainingCycleDto } from './dto/create-training-cycle.dto';
 import { UpdateTrainingCycleDto } from './dto/update-training-cycle.dto';
 
 @Injectable()
@@ -12,8 +13,8 @@ export class TrainingCycleService {
     public trainingCycleRepository: Repository<TrainingCycle>,
   ) {}
 
-  create(createUserDto: any) {
-    const record = this.trainingCycleRepository.create({ ...createUserDto });
+  create(createTrainingCycleDto: CreateTrainingCycleDto) {
+    const record = this.trainingCycleRepository.create({ ...createTrainingCycleDto });
     return this.trainingCycleRepository.save(record);
   }
 
@@ -31,15 +32,28 @@ export class TrainingCycleService {
     return this.trainingCycleRepository.findOne({ where: { id } });
   }
 
-  findLatestOne() {
+  findLatestOne(completeStatus = null) {
+    const where = {
+      id: Not(IsNull()),
+      training_is_completed: true,
+    };
+
+    if (completeStatus === true) {
+      where.training_is_completed = true;
+    } else if (completeStatus === false) {
+      where.training_is_completed = false;
+    } else {
+      delete where.training_is_completed;
+    }
+
     return this.trainingCycleRepository.findOne({
-      where: { id: Not(IsNull()) },
+      where,
       order: { id: 'DESC' },
     });
   }
 
-  update(id: number, updateUserDto: UpdateTrainingCycleDto) {
-    return this.trainingCycleRepository.update({ id }, { ...updateUserDto });
+  update(id: number, updateTrainingCycleDto: UpdateTrainingCycleDto) {
+    return this.trainingCycleRepository.update({ id }, { ...updateTrainingCycleDto });
   }
 
   remove(id: number) {

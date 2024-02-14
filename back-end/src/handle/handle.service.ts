@@ -35,7 +35,6 @@ export class HandleService {
           .map((d: string) => d.toLocaleLowerCase().split(', '))
           .flat();
     });
-    console.log(this.Commodities);
     this.logger.log('Commodities data Loaded');
   }
   async initRegions() {
@@ -48,13 +47,13 @@ export class HandleService {
     });
     this.logger.log('Clarisa Regions data Loaded');
   }
-  async toClarisa(Items, handle) {
+  async toClarisa(Items) {
     if (!Array.isArray(Items)) Items = [Items];
     let result = [];
     for (let i in Items) {
       result.push({
         name: Items[i],
-        prediction: await this.ai.makePrediction(Items[i], handle),
+        prediction: await this.ai.makePrediction(Items[i]),
       });
     }
     return result;
@@ -297,7 +296,7 @@ export class HandleService {
     let data = results.length > 1 ? results[1] : results[0];
 
     if (data?.Affiliation)
-      data.Affiliation = await this.toClarisa(data.Affiliation, handle);
+      data.Affiliation = await this.toClarisa(data.Affiliation);
 
     if (data['Region of the research']) {
       data['Region of the research'] = this.toClarisaRegions(
@@ -312,10 +311,7 @@ export class HandleService {
       };
 
     if (data.hasOwnProperty('Funding source') && data['Funding source'])
-      data['Funding source'] = await this.toClarisa(
-        data['Funding source'],
-        handle,
-      );
+      data['Funding source'] = await this.toClarisa(data['Funding source']);
 
     if (data?.Keywords) {
       if (!Array.isArray(data?.Keywords)) data.Keywords = [data.Keywords];

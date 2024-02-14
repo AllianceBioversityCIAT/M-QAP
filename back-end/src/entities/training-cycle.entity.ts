@@ -22,6 +22,9 @@ export class TrainingCycle {
   @Column()
   text: string;
 
+  @Column({default: false})
+  training_is_completed: boolean;
+
   @OneToMany(() => Prediction, (prediction) => prediction.trainingCycle)
   predictions: Prediction[];
 }

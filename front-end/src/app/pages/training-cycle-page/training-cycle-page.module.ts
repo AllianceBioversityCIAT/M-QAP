@@ -5,6 +5,7 @@ import { TrainingCycleTableComponent } from './training-cycle-table/training-cyc
 import { TrainingCycleAddDialogComponent } from './training-cycle-add-dialog/training-cycle-add-dialog.component';
 import { PagePaseModule } from '../page-pase.module';
 import { DeleteConfirmDialogModule } from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.module';
+import { MatProgressBarModule } from '@angular/material/progress-bar'
 
 @NgModule({
   declarations: [
@@ -16,6 +17,7 @@ import { DeleteConfirmDialogModule } from 'src/app/share/delete-confirm-dialog/d
     PagePaseModule,
     TrainingCyclePageRoutingModule,
     DeleteConfirmDialogModule,
+    MatProgressBarModule,
   ],
 })
 export class TrainingCyclePageModule {}

@@ -52,6 +52,11 @@ export class AppController {
 
   @Get('/predict/:name')
   async predict(@Param('name') name: string = null) {
-    return await this.ai.makePrediction(name, 'NA');
+    return await this.ai.makePrediction(name);
+  }
+
+  @Get('/start-training')
+  async startTraining() {
+    return await this.ai.startCycleTraining();
   }
 }

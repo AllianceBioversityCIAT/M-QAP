@@ -1,14 +1,15 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import { HeaderServiceService } from '../../header-service.service';
+import io from 'socket.io-client';
 
 @Component({
   selector: 'app-training-cycle-page',
   templateUrl: './training-cycle-page.component.html',
   styleUrls: ['./training-cycle-page.component.scss'],
 })
-export class TrainingCyclePageComponent {
+export class TrainingCyclePageComponent implements OnInit{
   constructor(public headerService: HeaderServiceService) {}
-
+  trainingProgressSocket: any;
   ngOnInit() {
     this.headerService
       .setBackground('linear-gradient(to right, #04030F, #04030F)')
@@ -20,5 +21,23 @@ export class TrainingCyclePageComponent {
       .setBackgroundDeleteLr('#5569dd')
       .setTitle('Training cycle')
       .setDescription('Training cycle');
+
+    this.initializeSockets();
+  }
+  initializeSockets() {
+    try {
+      this.trainingProgressSocket = io({
+        path: '/sock/socket.io',
+        query: {
+          type: 'training_progress',
+        },
+        transports: ['websocket'],
+      });
+      this.trainingProgressSocket.on('connect_error', (err: any) => {
+        console.log(err);
+      });
+    } catch (e) {
+      console.log('e => ', e);
+    }
   }
 }

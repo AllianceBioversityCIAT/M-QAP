@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, Input} from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
@@ -9,7 +9,6 @@ import { Paginated } from 'src/app/share/types/paginate.type';
 import { DeleteConfirmDialogComponent } from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
 import { TrainingCycle } from 'src/app/share/types/training-cycle.model.type';
 import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
-import { MediaService } from 'src/app/services/media.service';
 import { LoaderService } from 'src/app/services/loader.service';
 import { filter, switchMap } from 'rxjs';
 
@@ -19,15 +18,18 @@ import { filter, switchMap } from 'rxjs';
   styleUrls: ['./training-cycle-table.component.scss'],
 })
 export class TrainingCycleTableComponent {
-  columnsToDisplay: string[] = ['id', 'text', 'creation_date', 'actions'];
+  columnsToDisplay: string[] = ['id', 'text', 'creation_date', 'update_date', 'training_is_completed', 'actions'];
   dataSource!: MatTableDataSource<TrainingCycle>;
   form!: FormGroup;
   response!: Paginated<TrainingCycle>;
   length = 0;
   pageSize = 50;
   pageIndex = 0;
-  sortBy = 'text:ASC';
+  sortBy = 'id:DESC';
   text = '';
+  @Input('trainingProgressSocket') trainingProgressSocket: any;
+  trainingProgress = 0;
+  trainingStatus = '';
   constructor(
     public dialog: MatDialog,
     private trainingCycleService: TrainingCycleService,
@@ -40,12 +42,23 @@ export class TrainingCycleTableComponent {
     this.initForm();
     this.loaderService.open();
     this.loadData();
+
+    if (this.trainingProgressSocket) {
+      this.trainingProgressSocket.on('training_progress', (message: any) => {
+        this.trainingProgress = message.progress;
+        this.trainingStatus = message.process;
+        if (message.progress === 0) {
+          this.snackBarService.success('Training finished successfully.');
+          this.loadData();
+        }
+      });
+    }
   }
 
   initForm() {
     this.form = this.fb.group({
       text: [''],
-      sortBy: ['text:ASC'],
+      sortBy: ['id:DESC'],
     });
     this.form.valueChanges.subscribe((value) => {
       this.text = value.text;
@@ -94,7 +107,7 @@ export class TrainingCycleTableComponent {
     this.dialog
       .open(DeleteConfirmDialogComponent, {
         data: {
-          message: 'Are you sure you want to delete this record ?',
+          message: 'Are you sure you want to delete this record?',
           title: 'Delete',
         },
       })
@@ -107,11 +120,35 @@ export class TrainingCycleTableComponent {
         next: () => {
           console.log('arrived')
           this.loadData();
-          this.snackBarService.success('Deleted successfully');
+          this.snackBarService.success('Deleted successfully.');
         },
         error: (error) => {
           this.snackBarService.error(error.error.message);
         },
+      });
+  }
+
+  startTraining() {
+    this.dialog
+      .open(DeleteConfirmDialogComponent, {
+        data: {
+          message: 'Are you sure you want to start new training cycle?',
+          title: 'Start new training cycle',
+        },
+      })
+      .afterClosed()
+      .subscribe(async (dialogResult) => {
+        if (dialogResult == true) {
+          await this.trainingCycleService.startTraining().subscribe({
+            next: () => {
+              this.loadData();
+              this.snackBarService.success('Training started successfully.');
+            },
+            error: (error) => {
+              this.snackBarService.error(error.error.message);
+            },
+          });
+        }
       });
   }
 }

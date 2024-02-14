@@ -43,4 +43,8 @@ export class TrainingCycleService {
   delete(id: number) {
     return this.http.delete(`${this.api}/` + id);
   }
+
+  startTraining() {
+    return this.http.get(`${environment.api_url}/start-training`);
+  }
 }

@@ -18,6 +18,7 @@ import { MediaModule } from './media/media.module';
 import { CommoditiesModule } from './commodities/commodities.module';
 import { AuthModule } from './auth/auth.module';
 import { StatisticsModule } from './statistics/statistics.module';
+import { SocketsModule } from './sockets/sockets.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { StatisticsModule } from './statistics/statistics.module';
       autoLoadEntities: true,
       namingStrategy: new SnakeNamingStrategy(),
     }),
+    SocketsModule,
     HttpModule,
     TrainingDataModule,
     TrainingCycleModule,
