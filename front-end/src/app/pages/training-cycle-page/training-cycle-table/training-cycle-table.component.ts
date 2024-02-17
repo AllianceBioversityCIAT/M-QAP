@@ -30,6 +30,7 @@ export class TrainingCycleTableComponent {
   @Input('trainingProgressSocket') trainingProgressSocket: any;
   trainingProgress = 0;
   trainingStatus = '';
+  trainingInProgress = false;
   constructor(
     public dialog: MatDialog,
     private trainingCycleService: TrainingCycleService,
@@ -47,8 +48,9 @@ export class TrainingCycleTableComponent {
       this.trainingProgressSocket.on('training_progress', (message: any) => {
         this.trainingProgress = message.progress;
         this.trainingStatus = message.process;
+        this.trainingInProgress = message.trainingInProgress;
         if (message.progress === 0) {
-          this.snackBarService.success('Training finished successfully.');
+          this.snackBarService.success(`Training ${message.process} successfully.`);
           this.loadData();
         }
       });
@@ -143,6 +145,33 @@ export class TrainingCycleTableComponent {
             next: () => {
               this.loadData();
               this.snackBarService.success('Training started successfully.');
+            },
+            error: (error) => {
+              this.snackBarService.error(error.error.message);
+            },
+          });
+        }
+      });
+  }
+
+  cancelTraining() {
+    this.dialog
+      .open(DeleteConfirmDialogComponent, {
+        data: {
+          message: 'Are you sure you want to cancel this training cycle?',
+          title: 'Cancel training cycle',
+        },
+      })
+      .afterClosed()
+      .subscribe(async (dialogResult) => {
+        if (dialogResult == true) {
+          await this.trainingCycleService.cancelTraining().subscribe({
+            next: (data: any) => {
+              if (data.stopped) {
+                this.snackBarService.success(data.message);
+              } else {
+                this.snackBarService.error(data.message);
+              }
             },
             error: (error) => {
               this.snackBarService.error(error.error.message);

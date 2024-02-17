@@ -6,7 +6,12 @@
     </button>
   </section>
   <ng-container *ngIf="trainingProgress > 0">
-    <span>Training in progress <i><b>{{ trainingProgress.toFixed(2) }}%</b> - {{ trainingStatus }}</i></span>
+    <span class="progress-container">
+      Training in progress <i><b>{{ trainingProgress.toFixed(2) }}%</b> - {{ trainingStatus }}</i>
+      <button *ngIf="trainingInProgress" mat-icon-button matTooltip="Cancel training cycle" (click)="cancelTraining()">
+        <mat-icon>block</mat-icon>
+      </button>
+    </span>
     <mat-progress-bar mode="determinate" [value]="trainingProgress"></mat-progress-bar>
   </ng-container>
 
@@ -49,24 +54,24 @@
 
       <!-- Created Date Column -->
       <ng-container matColumnDef="creation_date">
-        <th mat-header-cell *matHeaderCellDef class="width-9">Creation date</th>
-        <td mat-cell *matCellDef="let element" class="width-9">
-          {{ element.creation_date | date }}
+        <th mat-header-cell *matHeaderCellDef class="width-14">Creation date</th>
+        <td mat-cell *matCellDef="let element" class="width-14">
+          {{ element.creation_date | date:'medium' }}
         </td>
       </ng-container>
 
       <!-- Updated Date Column -->
       <ng-container matColumnDef="update_date">
-        <th mat-header-cell *matHeaderCellDef class="width-9">Update date</th>
-        <td mat-cell *matCellDef="let element" class="width-9">
-          {{ element.update_date | date }}
+        <th mat-header-cell *matHeaderCellDef class="width-14">Update date</th>
+        <td mat-cell *matCellDef="let element" class="width-14">
+          {{ element.update_date | date:'medium' }}
         </td>
       </ng-container>
 
       <!-- Usable Column -->
       <ng-container matColumnDef="training_is_completed">
-        <th mat-header-cell *matHeaderCellDef class="width-9">Is usable</th>
-        <td mat-cell *matCellDef="let element" class="width-9">
+        <th mat-header-cell *matHeaderCellDef class="width-6">Is usable</th>
+        <td mat-cell *matCellDef="let element" class="width-6">
           {{ element.training_is_completed ? 'Yes' : 'No' }}
         </td>
       </ng-container>
@@ -86,13 +91,9 @@
               <mat-icon><app-edit-icon></app-edit-icon> </mat-icon>
             </button>
 
-            <!-- <button
-              mat-icon-button
-              matTooltip="Delete"
-              (click)="delete(element.id)"
-            >
+            <button mat-icon-button matTooltip="Delete" (click)="delete(element.id)">
               <mat-icon><app-delete-icon></app-delete-icon></mat-icon>
-            </button> -->
+            </button>
           </div>
         </td>
       </ng-container>

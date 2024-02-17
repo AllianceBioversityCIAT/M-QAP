@@ -30,11 +30,12 @@ export class SocketsGateway implements OnGatewayConnection, OnGatewayDisconnect 
         }
     }
 
-    emitTrainingProgress(progress, process) {
+    emitTrainingProgress(progress, process, trainingInProgress) {
         for (const socketId of this.trainingProgressSockets) {
             this.server.in(socketId).emit('training_progress', {
                 progress,
                 process,
+                trainingInProgress,
             });
         }
     }

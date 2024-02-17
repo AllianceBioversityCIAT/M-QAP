@@ -45,6 +45,10 @@ export class TrainingCycleService {
   }
 
   startTraining() {
-    return this.http.get(`${environment.api_url}/start-training`);
+    return this.http.get(`${this.api}/start-training`);
+  }
+
+  cancelTraining() {
+    return this.http.get(`${this.api}/cancel-training`);
   }
 }

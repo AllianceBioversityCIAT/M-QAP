@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AI } from './ai/ai.service';
+import { AiTrainingModule } from './ai/ai-training.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DoiService } from './doi/doi.service';
@@ -47,6 +48,7 @@ import { SocketsModule } from './sockets/sockets.module';
     AuthModule,
     CommoditiesModule,
     StatisticsModule,
+    AiTrainingModule,
   ],
   controllers: [AppController, DashboardController],
   providers: [AppService, DoiService, AI, HandleService, FormatService],

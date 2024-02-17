@@ -1,1 +1,8 @@
 @import "../../../sass/table.scss";
+
+.progress-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  white-space: break-spaces;
+}

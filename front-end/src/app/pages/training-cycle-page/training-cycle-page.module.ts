@@ -5,7 +5,8 @@ import { TrainingCycleTableComponent } from './training-cycle-table/training-cyc
 import { TrainingCycleAddDialogComponent } from './training-cycle-add-dialog/training-cycle-add-dialog.component';
 import { PagePaseModule } from '../page-pase.module';
 import { DeleteConfirmDialogModule } from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.module';
-import { MatProgressBarModule } from '@angular/material/progress-bar'
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar'
     TrainingCyclePageRoutingModule,
     DeleteConfirmDialogModule,
     MatProgressBarModule,
+    MatTooltipModule,
   ],
 })
 export class TrainingCyclePageModule {}

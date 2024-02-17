@@ -28,6 +28,7 @@ import { DialogLayoutComponent } from './share/dialog-layout/dialog-layout.compo
 import { ContactUsDialogComponent } from './components/footer/contact-us-dialog/contact-us-dialog.component';
 import { LoaderComponent } from './components/loader/loader.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
   declarations: [
@@ -59,6 +60,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     DialogLayoutComponent,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
   ],
   providers: [
     TrainingCycleService,
