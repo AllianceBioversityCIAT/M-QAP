@@ -75,32 +75,33 @@
           <span>Home</span>
         </a>
       </li>
-      <li>
-        <a routerLink="training-data" routerLinkActive="active" mat-button>
-          <span>Training Data</span>
-        </a>
-      </li>
-      <li>
-        <a routerLink="training-cycle" routerLinkActive="active" mat-button>
-          <span>Training cycle</span>
-        </a>
-      </li>
-      <li>
-        <a routerLink="predictions" routerLinkActive="active" mat-button>
-          <span>Predictions</span>
-        </a>
-      </li>
-      <li>
-        <a routerLink="clarisa" routerLinkActive="active" mat-button>
-          <span>Clarisa</span>
-        </a>
-      </li>
-
-      <li>
-        <a routerLink="commodities" routerLinkActive="active" mat-button>
-          <span>Commodities</span>
-        </a>
-      </li>
+      <ng-container *ngIf="isAdmin">
+        <li>
+          <a routerLink="training-data" routerLinkActive="active" mat-button>
+            <span>Training Data</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="training-cycle" routerLinkActive="active" mat-button>
+            <span>Training cycle</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="predictions" routerLinkActive="active" mat-button>
+            <span>Predictions</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="clarisa" routerLinkActive="active" mat-button>
+            <span>Clarisa</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="commodities" routerLinkActive="active" mat-button>
+            <span>Commodities</span>
+          </a>
+        </li>
+      </ng-container>
     </ul>
   </nav>
 </header>

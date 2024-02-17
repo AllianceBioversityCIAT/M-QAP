@@ -27,6 +27,7 @@ export class HeaderComponent {
   ngOnInit() {
     this.router.events.subscribe(() => {
       this.user = this.authService.getLoggedInUser();
+      this.isAdmin = this.authService.isAdmin();
     });
   }
   logout() {

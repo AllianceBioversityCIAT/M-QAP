@@ -45,7 +45,6 @@ export class AwsStrategy extends PassportStrategy(Strategy, 'AWS') {
         .pipe(map((d) => d.data.access_token)),
     ).catch((e) => false);
 
-    console.log(access_token);
     if (!access_token)
       throw new UnauthorizedException(
         'Authorization Code does not exist or expired',
