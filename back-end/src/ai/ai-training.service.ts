@@ -10,10 +10,11 @@ import {catchError, map} from 'rxjs/operators';
 import * as fs from 'fs';
 import {firstValueFrom} from 'rxjs';
 import {TrainingCycleService} from 'src/training-cycle/training-cycle.service';
-import {trainingRunner} from '../../predictions/src';
 import {TrainingDataService} from '../training-data/training-data.service';
 import {SocketsGateway} from '../sockets/sockets.gateway';
 import {UpdateTrainingCycleDto} from '../training-cycle/dto/update-training-cycle.dto';
+import {Worker} from 'worker_threads';
+import workerThreadFilePath from './worker-threads/config';
 
 @Injectable()
 export class AiTrainingService {
@@ -23,7 +24,7 @@ export class AiTrainingService {
     naturalModel;
     activeCycleId: number = null;
     activeTrainingCycleId: number = null;
-    activeTrainingModel;
+    activeTrainingWorker;
     activeTrainingAbortSignal = false;
 
     constructor(
@@ -34,6 +35,7 @@ export class AiTrainingService {
     ) {
         this.init();
     }
+
     async init() {
         let lastCycle = null;
         this.activeCycleId = null;
@@ -112,7 +114,7 @@ export class AiTrainingService {
 
         fs.mkdirSync(trainingFolderPath, {recursive: true});
 
-        const clarisaData = await this.getClarisaDataPartners(trainingFolderPath);
+        const controlledListData = await this.getClarisaDataPartners(trainingFolderPath);
 
         const trainingData = (await this.trainingDataService.getAll()).map(item => {
             return {
@@ -132,15 +134,23 @@ export class AiTrainingService {
                 training: 80,
             },
         };
-        return trainingRunner(
-            1000,
-            100,
-            50,
-            progressSettings,
-            clarisaData,
-            trainingData,
-            async (type, progress, model) => {
-                this.activeTrainingModel = model;
+
+        const worker = new Worker(workerThreadFilePath, {
+            workerData: {
+                loadDataPatchSize: 1000,
+                epochs: 100,
+                trainingPatchSize: 50,
+                progressSettings,
+                trainingFolderPath,
+                controlledListData,
+                trainingData,
+            },
+        });
+
+        this.activeTrainingWorker = worker;
+        worker.on('message', async (message) => {
+            if (message?.processing) {
+                const {type, progress} = message.processing;
                 if (type === 'compilingData') {
                     this.socketsGateway.emitTrainingProgress(progress, 'Compiling data...', false);
                 } else if (type === 'trainingStart') {
@@ -148,9 +158,8 @@ export class AiTrainingService {
                 } else if (type === 'epochEnd') {
                     this.socketsGateway.emitTrainingProgress(progress, 'Training AI...', true);
                 } else if (type === 'trainingComplete') {
-                    await model.save('file://' + trainingFolderPath);
-                    this.activeTrainingModel = null;
                     this.activeTrainingCycleId = null;
+                    worker.terminate();
 
                     if (!this.activeTrainingAbortSignal) {
                         const updateTrainingCycleDto: UpdateTrainingCycleDto = {
@@ -170,12 +179,24 @@ export class AiTrainingService {
                         }
                     }
                 }
-            });
+            } else if (message?.result) {
+                return message.result;
+            }
+        });
+        worker.on('error', (e) => {
+            this.socketsGateway.emitTrainingProgress(0, 'Terminated', false);
+            worker.terminate();
+        });
+        worker.on('exit', (code) => {
+            this.activeTrainingWorker = null;
+        });
     }
 
     cancelCycleTraining() {
-        if (this.activeTrainingModel) {
-            this.activeTrainingModel.stopTraining = true;
+        if (this.activeTrainingWorker) {
+            this.activeTrainingWorker.postMessage({
+                stopTraining: true
+            });
             this.activeTrainingAbortSignal = true;
             return {
                 stopped: true,

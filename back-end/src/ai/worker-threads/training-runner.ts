@@ -1,10 +1,45 @@
-import * as tf from '@tensorflow/tfjs-node';
-
-require('@tensorflow/tfjs');
+import {workerData, parentPort} from 'worker_threads';
+import {
+    ControlledListItem,
+    EventEmitter,
+    ProgressSettings,
+    TrainingItem,
+    TrainingResponse
+} from './interface';
 import * as use from '@tensorflow-models/universal-sentence-encoder';
-import {TrainingResponse, TrainingItem, ControlledListItem, EventEmitter, ProgressSettings} from './interface'
+import * as tf from '@tensorflow/tfjs-node';
 import {UniversalSentenceEncoder} from '@tensorflow-models/universal-sentence-encoder';
 import {Tensor} from '@tensorflow/tfjs-core/dist/tensor';
+
+let activeTrainingModel = null;
+
+async function run() {
+    const result = await trainingRunner(
+        workerData.loadDataPatchSize,
+        workerData.epochs,
+        workerData.trainingPatchSize,
+        workerData.progressSettings,
+        workerData.trainingFolderPath,
+        workerData.controlledListData,
+        workerData.trainingData,
+        (type, progress, model) => {
+            activeTrainingModel = model;
+            parentPort.postMessage({
+                processing: {type, progress}
+            });
+        });
+
+    parentPort.postMessage({
+        result
+    });
+
+    parentPort.on('message', async (message) => {
+        if (message?.stopTraining && message.stopTraining === true) {
+            activeTrainingModel.stopTraining = true;
+        }
+    });
+}
+
 
 const prepareData = {
     start: (controlledListData: ControlledListItem[], trainingData: TrainingItem[]) => {
@@ -19,6 +54,7 @@ const prepareData = {
         let controlledListLabels = controlledListData.map((d: any) => d.name);
         let controlledListIds = controlledListData.map((d: any) => d.code);
 
+        // controlledListData.splice(0, 10).forEach((element) => {
         controlledListData.forEach((element) => {
             data.push(element.name as string);
             labels.push(controlledListLabels.indexOf(element.name));
@@ -112,7 +148,6 @@ const tensorOperations = {
         });
     },
     embedSentencesInBatches: async (model: UniversalSentenceEncoder, data: string[], loadDataPatchSize: number, eventEmitter: EventEmitter, progressSettings: ProgressSettings) => {
-        const timer = ms => new Promise(res => setTimeout(res, ms))
         const embeddings = [];
         for (let i = 0; i < data.length; i += loadDataPatchSize) {
             const batchSentences = data.slice(i, i + loadDataPatchSize);
@@ -122,12 +157,10 @@ const tensorOperations = {
             const availablePercentage = progressSettings.availablePercentageDistribution.compiling * (100 - progressSettings.reservedPercentage) / 100;
             const progress = (i + loadDataPatchSize) / data.length * availablePercentage;
             eventEmitter('compilingData', progress + progressSettings.reservedPercentage, null);
-            await timer(10);
-
         }
         return tf.concat(embeddings);
     },
-    trainModel: (model: tf.Sequential, inputs: tf.Tensor2D, labels: Tensor, epochs: number, trainingPatchSize: number, eventEmitter: EventEmitter, progressSettings: ProgressSettings) => {
+    trainModel: (model: tf.Sequential, dataLength: number, inputs: tf.Tensor2D, labels: Tensor, epochs: number, trainingPatchSize: number, eventEmitter: EventEmitter, progressSettings: ProgressSettings, trainingFolderPath: string) => {
         const progress = progressSettings.availablePercentageDistribution.trainingStart * (100 - progressSettings.reservedPercentage) / 100;
         eventEmitter('trainingStart', progress + progressSettings.reservedPercentage + progressSettings.availablePercentageDistribution.compiling, model);
 
@@ -138,24 +171,38 @@ const tensorOperations = {
         });
         const availablePercentage = progressSettings.availablePercentageDistribution.training * (100 - progressSettings.reservedPercentage) / 100;
 
+        let currentEpoch = 0;
+        const batchesCount = Math.ceil(dataLength / trainingPatchSize);
+        const batches = epochs * batchesCount;
+
+        const achievedProgress = progressSettings.reservedPercentage + progressSettings.availablePercentageDistribution.compiling + progressSettings.availablePercentageDistribution.trainingStart;
         model.fit(inputs, labels, {
             epochs,
             shuffle: true,
             batchSize: trainingPatchSize,
+            verbose: 0,
             callbacks: {
-                onEpochEnd: (epoch) => {
-                    let currentProgress = ((epoch + 1) / epochs * availablePercentage) + progressSettings.reservedPercentage + progressSettings.availablePercentageDistribution.compiling + progressSettings.availablePercentageDistribution.trainingStart;
+                onEpochBegin:(epoch) => {
+                    currentEpoch = epoch;
+                },
+                onBatchEnd: (batch) => {
+                    const currentBatch = (currentEpoch * batchesCount) + (batch + 1);
+                    let currentProgress = (currentBatch / batches * availablePercentage) + achievedProgress;
                     currentProgress = currentProgress > 100 ? 100 : currentProgress;
                     eventEmitter(
                         'epochEnd',
                         currentProgress,
                         model,
-                    )
+                    );
                 },
             }
         })
-            .then(() => {
+            .then(async () => {
+                await model.save('file://' + trainingFolderPath);
                 eventEmitter('trainingComplete', 0, model)
+            })
+            .catch((e) => {
+                console.log(e);
             });
     },
 }
@@ -165,6 +212,7 @@ export async function trainingRunner(
     epochs: number,
     trainingPatchSize: number,
     progressSettings: ProgressSettings,
+    trainingFolderPath: string,
     controlledListData: ControlledListItem[],
     trainingData: TrainingItem[],
     eventEmitter: EventEmitter,
@@ -174,7 +222,7 @@ export async function trainingRunner(
         const model = await tensorOperations.createModel(labels);
         const tensorData: any = await tensorOperations.convertToTensor(data, labels, loadDataPatchSize, eventEmitter, progressSettings);
 
-        tensorOperations.trainModel(model, tensorData.inputs, tensorData.labels, epochs, trainingPatchSize, eventEmitter, progressSettings);
+        tensorOperations.trainModel(model, labels.length, tensorData.inputs, tensorData.labels, epochs, trainingPatchSize, eventEmitter, progressSettings, trainingFolderPath);
 
         return {
             started: true,
@@ -188,3 +236,5 @@ export async function trainingRunner(
         }
     }
 }
+
+run();
