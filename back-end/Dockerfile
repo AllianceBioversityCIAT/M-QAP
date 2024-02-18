@@ -1,11 +1,9 @@
-FROM node:18
+FROM docker.io/node:20-bookworm
+
+COPY . .
 
 WORKDIR /back-end
 
-COPY package*.json ./
-
 RUN npm install
-
-COPY . .
 
 CMD [ "npm", "run", "build-and-start" ]

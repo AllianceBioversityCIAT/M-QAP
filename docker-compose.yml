@@ -27,11 +27,11 @@ services:
   clarisa_wos_api:
     container_name: clarisa_wos_api
     depends_on:
-      - clarisa_wos_mysql
-    build: 
+      - mysql
+    build:
       context: ./back-end
       dockerfile: Dockerfile
-    # restart: always
+    restart: always
     volumes:
       - ./back-end/media:/back-end/media
       - ./back-end/uploads:/back-end/uploads
@@ -40,17 +40,10 @@ services:
     container_name: clarisa_wos_front_end
     build: front-end
     restart: always
-  clarisa_wos_nginx:
-    container_name: clarisa_wos_nginx
     links:
       - clarisa_wos_api
     depends_on:
-      - clarisa_wos_mysql
+      - mysql
       - clarisa_wos_api
-    image: nginx
-    restart: always
     ports:
-      - 4200:80
-    volumes:
-      - ./default.conf:/etc/nginx/conf.d/default.conf
-      # - ./SSL:/SSL
+      - 9981:80
