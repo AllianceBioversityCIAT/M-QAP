@@ -85,7 +85,7 @@ export class TrainingCycleController {
 
     @Delete(':id')
     async remove(@Param('id') id: number) {
-        if (this.aiTrainingService.activeTrainingCycleId) {
+        if (this.aiTrainingService.activeTrainingCycleId === id) {
             throw new HttpException(
                 'Training for this cycle is in progress, please wait until the training is completed or cancel the training before deleting the cycle.',
                 HttpStatus.INTERNAL_SERVER_ERROR,

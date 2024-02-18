@@ -14,7 +14,7 @@ export class PredictionsService {
   ) {}
 
   async create(createUserDto: any) {
-    const cycle = await this.trainingCycleService.findLatestOne();
+    const cycle = await this.trainingCycleService.findLatestOne(true);
     const exist = await this.predictionsRepository.findOne({
       where: { text: createUserDto.text, trainingCycle: cycle },
     });
