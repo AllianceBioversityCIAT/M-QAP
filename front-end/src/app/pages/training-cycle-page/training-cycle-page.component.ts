@@ -27,14 +27,14 @@ export class TrainingCyclePageComponent implements OnInit{
   }
   initializeSockets() {
     try {
-      this.trainingProgressSocket = io({
-        path: `${environment.api_url}/socket.io`,
+      this.trainingProgressSocket = io(environment.api_url, {
         query: {
           type: 'training_progress',
         },
         transports: ['websocket'],
       });
       this.trainingProgressSocket.on('connect_error', (err: any) => {
+        console.log(`Failed to connect: ${environment.api_url}/socket.io`);
         console.log(err);
       });
     } catch (e) {
