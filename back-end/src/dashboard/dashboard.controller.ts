@@ -1,9 +1,15 @@
-import { Controller, Get } from '@nestjs/common';
-import { TrainingCycle } from 'src/entities/training-cycle.entity';
-import { PredictionsService } from 'src/predictions/predictions.service';
-import { TrainingDataService } from 'src/training-data/training-data.service';
-import { DataSource } from 'typeorm';
+import {Controller, Get, UseGuards} from '@nestjs/common';
+import {TrainingCycle} from 'src/entities/training-cycle.entity';
+import {PredictionsService} from 'src/predictions/predictions.service';
+import {TrainingDataService} from 'src/training-data/training-data.service';
+import {DataSource} from 'typeorm';
+import {JwtAuthGuard} from '../auth/jwt-auth.guard';
+import {RolesGuard} from '../auth/roles.guard';
+import {Roles} from '../auth/roles.decorator';
+import {Role} from '../auth/role.enum';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.Admin, Role.User)
 @Controller('dashboard')
 export class DashboardController {
   constructor(private dataSource: DataSource,private trainingDataService :TrainingDataService,private predictionsService :PredictionsService) {}

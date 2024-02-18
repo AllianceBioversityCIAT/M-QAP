@@ -1,57 +1,67 @@
-import { Controller, Get, Param, Post, UploadedFiles, UseInterceptors, Delete, Res } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
-import { diskStorage } from 'multer';
-import { join } from 'path';
-import { Logger } from '@nestjs/common';
-import { MediaService } from './media.service';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { ApiExcludeController } from '@nestjs/swagger';
+import {Controller, Get, Param, Post, UploadedFiles, UseInterceptors, Delete, Res, UseGuards} from '@nestjs/common';
+import {v4 as uuidv4} from 'uuid';
+import {diskStorage} from 'multer';
+import {join} from 'path';
+import {Logger} from '@nestjs/common';
+import {MediaService} from './media.service';
+import {AnyFilesInterceptor} from '@nestjs/platform-express';
+import {ApiExcludeController} from '@nestjs/swagger';
+import {JwtAuthGuard} from '../auth/jwt-auth.guard';
+import {RolesGuard} from '../auth/roles.guard';
+import {Roles} from '../auth/roles.decorator';
+import {Role} from '../auth/role.enum';
+
 @ApiExcludeController()
 @Controller('media')
 export class MediaController {
-  logger = new Logger('media');
-  mediaPath = process.cwd();
+    logger = new Logger('media');
+    mediaPath = process.cwd();
 
-  constructor(private mediaService: MediaService) {}
+    constructor(private mediaService: MediaService) {
+    }
 
-  @Post()
-  @UseInterceptors(
-    AnyFilesInterceptor({
-      storage: diskStorage({
-        destination: join(process.cwd(), 'media'),
-        filename: (req, file, cb) => {
-          const fileNameSplit = file.originalname.split('.');
-          const fileExt = fileNameSplit[fileNameSplit.length - 1];
-          const name = file.originalname
-            .toLowerCase()
-            .replace(/ /g, '-')
-            .replace(/[^\w-]+/g, '');
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.Admin)
+    @Post()
+    @UseInterceptors(
+        AnyFilesInterceptor({
+            storage: diskStorage({
+                destination: join(process.cwd(), 'media'),
+                filename: (req, file, cb) => {
+                    const fileNameSplit = file.originalname.split('.');
+                    const fileExt = fileNameSplit[fileNameSplit.length - 1];
+                    const name = file.originalname
+                        .toLowerCase()
+                        .replace(/ /g, '-')
+                        .replace(/[^\w-]+/g, '');
 
-          cb(null, `${name}-${uuidv4()}.${fileExt}`);
-        },
-      }),
-    }),
-  )
-  uploadFile(@UploadedFiles() files) {
-    return { fileName: files[0].filename };
-  }
+                    cb(null, `${name}-${uuidv4()}.${fileExt}`);
+                },
+            }),
+        }),
+    )
+    uploadFile(@UploadedFiles() files) {
+        return {fileName: files[0].filename};
+    }
 
-  @Get(':id')
-  async getFileObject(@Param('id') id, @Res() res) {
-    return this.mediaService.getFileObject(id, res);
-  }
+    @Get(':id')
+    async getFileObject(@Param('id') id, @Res() res) {
+        return this.mediaService.getFileObject(id, res);
+    }
 
-  @Get('file/:id')
-  async getFileBinary(@Param('id') id, @Res() res) {
-    return this.mediaService.getFileBinary(id, res);
-  }
+    @Get('file/:id')
+    async getFileBinary(@Param('id') id, @Res() res) {
+        return this.mediaService.getFileBinary(id, res);
+    }
 
-  @Delete(':id')
-  async deleteImage(@Param('id') id) {
-    // if (!isNumber(+id)) throw new BadRequestException();
-    //TODO implement this method
-    // return this.mediaService.removeFile(id);
-  }
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.Admin)
+    @Delete(':id')
+    async deleteImage(@Param('id') id) {
+        // if (!isNumber(+id)) throw new BadRequestException();
+        //TODO implement this method
+        // return this.mediaService.removeFile(id);
+    }
 }
 
 // export const environment = {

@@ -17,7 +17,6 @@ export class AppController {
     private handleService: HandleService,
     private ai: AI,
   ) {}
-  //@UseGuards(AuthGuard)
   @Get('/')
   async info(
     @Query('link') link: string = null,

@@ -7,7 +7,7 @@ import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TrainingCycleService } from './services/training-cycle.service';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { OrganizationsService } from './services/organizations.service';
 import { PredictionsService } from './services/predictions.service';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -29,6 +29,7 @@ import { ContactUsDialogComponent } from './components/footer/contact-us-dialog/
 import { LoaderComponent } from './components/loader/loader.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { HttpHeaderService } from './services/http-header.service';
 
 @NgModule({
   declarations: [
@@ -63,6 +64,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatTooltipModule,
   ],
   providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpHeaderService,
+      multi: true,
+    },
     TrainingCycleService,
     OrganizationsService,
     PredictionsService,

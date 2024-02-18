@@ -10,6 +10,7 @@ import {
     Post,
     UploadedFile,
     UseInterceptors,
+    UseGuards,
 } from '@nestjs/common';
 import {TrainingCycleService} from './training-cycle.service';
 import {FileInterceptor} from '@nestjs/platform-express';
@@ -18,7 +19,13 @@ import * as path from 'path';
 import {Paginate, PaginateQuery} from 'nestjs-paginate';
 import {UpdateTrainingCycleDto} from './dto/update-training-cycle.dto';
 import {AiTrainingService} from '../ai/ai-training.service';
+import {JwtAuthGuard} from '../auth/jwt-auth.guard';
+import {RolesGuard} from '../auth/roles.guard';
+import {Roles} from '../auth/roles.decorator';
+import {Role} from '../auth/role.enum';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.Admin)
 @Controller('training-cycle')
 export class TrainingCycleController {
     constructor(
