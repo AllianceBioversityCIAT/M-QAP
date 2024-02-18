@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import { HeaderServiceService } from '../../header-service.service';
 import io from 'socket.io-client';
+import {environment} from '../../../environments/environment';
 
 @Component({
   selector: 'app-training-cycle-page',
@@ -27,7 +28,7 @@ export class TrainingCyclePageComponent implements OnInit{
   initializeSockets() {
     try {
       this.trainingProgressSocket = io({
-        path: '/sock/socket.io',
+        path: `${environment.api_url}/socket.io`,
         query: {
           type: 'training_progress',
         },
