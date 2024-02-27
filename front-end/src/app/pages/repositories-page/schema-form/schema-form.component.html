@@ -1,0 +1,46 @@
+<app-dialog-layout>
+  <h3 header-label>Repository schema</h3>
+
+  <button header-action mat-icon-button (click)="dialogRef.close()">
+    <mat-icon> close</mat-icon>
+  </button>
+
+  <form content [formGroup]="form">
+    <ng-container *ngFor="let schemaForm of this.schemaForms; let i = index">
+      <form [formGroup]="schemaForm">
+        <div class="schema-row">
+          <app-input>
+            <mat-label>Source <span class="star">*</span></mat-label>
+            <mat-form-field appearance="outline">
+              <input matInput formControlName="source"/>
+              <app-errors matError [control]="schemaForm.get('source')"></app-errors>
+            </mat-form-field>
+          </app-input>
+
+          <app-input>
+            <mat-label>Target <span class="star">*</span></mat-label>
+            <ng-select formControlName="target" [items]="targets" bindLabel="id" bindValue="id"></ng-select>
+            <div class="mat-mdc-form-field-subscript-wrapper mat-mdc-form-field-bottom-align">
+              <div class="mat-mdc-form-field-error-wrapper">
+                <app-errors matError [control]="schemaForm.get('target')"></app-errors>
+              </div>
+            </div>
+          </app-input>
+
+          <button class="pull-right" (click)="DeleteSchema(this.schemaFormsArray, i)" color="warn"
+                  mat-icon-button>
+            <mat-icon aria-hidden="false" aria-label="delete">delete</mat-icon>
+          </button>
+        </div>
+      </form>
+    </ng-container>
+    <button class="float-left" (click)="AddNewSchema(this.schemaFormsArray)" mat-raised-button>
+      New schema
+      <mat-icon aria-hidden="false" aria-label="add">add</mat-icon>
+    </button>
+  </form>
+
+  <button action type="submit" mat-raised-button color="primary" (click)="submit()">
+    Save
+  </button>
+</app-dialog-layout>

@@ -1,0 +1,71 @@
+<app-dialog-layout>
+  <h3 header-label>{{ id ? "Edit" : "Add" }} Repository</h3>
+
+  <button header-action mat-icon-button (click)="dialogRef.close()">
+    <mat-icon> close</mat-icon>
+  </button>
+
+  <form content [formGroup]="form">
+    <app-input>
+      <mat-label>Name <span class="star">*</span></mat-label>
+      <mat-form-field appearance="outline">
+        <input matInput formControlName="name"/>
+        <app-errors matError [control]="form.get('name')"></app-errors>
+      </mat-form-field>
+    </app-input>
+
+    <app-input>
+      <mat-label>Type <span class="star">*</span></mat-label>
+      <ng-select formControlName="type" [items]="repositoryTypes" bindLabel="id" bindValue="id"></ng-select>
+      <div class="mat-mdc-form-field-subscript-wrapper mat-mdc-form-field-bottom-align">
+        <div class="mat-mdc-form-field-error-wrapper">
+          <app-errors matError [control]="form.get('type')"></app-errors>
+        </div>
+      </div>
+    </app-input>
+
+    <app-input>
+      <mat-label>Base URL<span class="star">*</span></mat-label>
+      <mat-form-field appearance="outline">
+        <input matInput formControlName="base_url"/>
+        <app-errors matError [control]="form.get('base_url')"></app-errors>
+      </mat-form-field>
+    </app-input>
+
+    <app-input>
+      <mat-label>API URL<span class="star">*</span></mat-label>
+      <mat-form-field appearance="outline">
+        <input matInput formControlName="api_path"/>
+        <app-errors matError [control]="form.get('api_path')"></app-errors>
+      </mat-form-field>
+    </app-input>
+
+    <app-input>
+      <mat-label>Identifier Type <span class="star">*</span></mat-label>
+      <ng-select formControlName="identifier_type" [items]="identifiersTypes" bindLabel="id" bindValue="id"></ng-select>
+      <div class="mat-mdc-form-field-subscript-wrapper mat-mdc-form-field-bottom-align">
+        <div class="mat-mdc-form-field-error-wrapper">
+          <app-errors matError [control]="form.get('identifier_type')"></app-errors>
+        </div>
+      </div>
+    </app-input>
+
+    <app-input>
+      <mat-label>Identifier prefix<span class="star">*</span></mat-label>
+      <mat-form-field appearance="outline">
+        <input matInput formControlName="prefix"/>
+        <app-errors matError [control]="form.get('prefix')"></app-errors>
+      </mat-form-field>
+    </app-input>
+  </form>
+
+  <button
+    action
+    type="submit"
+    mat-raised-button
+    color="primary"
+    (click)="submit()"
+  >
+    {{ id ? "Edit" : "Add" }}
+  </button>
+</app-dialog-layout>

@@ -1,0 +1,18 @@
+.schema-row {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  flex-direction: row;
+
+  app-input:nth-child(1) {
+    width: 40%;
+  }
+
+  app-input:nth-child(2) {
+    width: 40%
+  }
+
+  button {
+    margin-top: 23px;
+  }
+}

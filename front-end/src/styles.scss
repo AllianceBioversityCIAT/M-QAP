@@ -126,3 +126,19 @@ h3 {
     --mdc-snackbar-supporting-text-color: #fff;
   }
 }
+
+ng-select {
+  .ng-select-container {
+    border-color: var(--mdc-outlined-text-field-outline-color) !important;
+  }
+
+  .ng-select-container:hover {
+    border-color: var(--mdc-outlined-text-field-hover-outline-color) !important;
+  }
+}
+
+ng-select.ng-invalid.ng-touched {
+  .ng-select-container {
+    border-color: var(--mdc-outlined-text-field-error-outline-color) !important;
+  }
+}

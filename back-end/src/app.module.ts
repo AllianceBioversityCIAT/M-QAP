@@ -20,6 +20,7 @@ import { CommoditiesModule } from './commodities/commodities.module';
 import { AuthModule } from './auth/auth.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { SocketsModule } from './sockets/sockets.module';
+import { RepositoriesModule } from './repositories/repositories.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { SocketsModule } from './sockets/sockets.module';
     CommoditiesModule,
     StatisticsModule,
     AiTrainingModule,
+    RepositoriesModule,
   ],
   controllers: [AppController, DashboardController],
   providers: [AppService, DoiService, AI, HandleService, FormatService],
