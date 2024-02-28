@@ -97,6 +97,19 @@ export class SchemaFormComponent implements OnInit {
   }, {
     id: 'contributorType',
   }];
+  formatters = [{
+    id: 'date',
+  }, {
+    id: 'datetime',
+  }, {
+    id: 'country',
+  }, {
+    id: 'language',
+  }, {
+    id: 'combine',
+  }, {
+    id: 'split',
+  }]
 
   constructor(
     public dialogRef: MatDialogRef<SchemaFormComponent>,
@@ -116,10 +129,12 @@ export class SchemaFormComponent implements OnInit {
     }
   }
 
-  GetSchemaElement(source = '', target = ''): FormGroup {
+  GetSchemaElement(source = '', target = '', formatter = '', formatterAddition = ''): FormGroup {
     return this.fb.group({
       source: [source, vb(z.string().min(1))],
       target: [target, vb(z.string().min(1))],
+      formatter: [formatter],
+      formatter_addition: [formatterAddition],
     });
   }
 
@@ -129,7 +144,7 @@ export class SchemaFormComponent implements OnInit {
 
   private async formInit(schema: RepositorySchema[] | null) {
     if (schema) {
-      this.schemaForms = schema.map(item => this.GetSchemaElement(item.source, item.target));
+      this.schemaForms = schema.map(item => this.GetSchemaElement(item.source, item.target, item.formatter, item.formatter_addition));
       this.schemaFormsArray = new FormArray(this.schemaForms);
       this.form = this.fb.group({
         schema: [this.schemaFormsArray],
@@ -155,8 +170,8 @@ export class SchemaFormComponent implements OnInit {
     }
   }
 
-  AddNewSchema(deliverables: FormArray) {
-    deliverables.push(this.GetSchemaElement('', ''));
+  AddNewSchema(schema: FormArray) {
+    schema.push(this.GetSchemaElement('', '', '', ''));
   }
 
   DeleteSchema(schema: FormArray, index: number) {

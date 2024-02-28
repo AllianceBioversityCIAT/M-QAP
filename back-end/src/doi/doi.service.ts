@@ -76,23 +76,6 @@ export class DoiService {
     } as DoiInfo;
   }
   async getWOSinfoByDoi(doi): Promise<DoiInfo> {
-    await this.httpService
-      .post(
-        process.env.MEL_API + 'wos-user-quota-usage/external-usage',
-        {
-          doi: doi,
-        },
-        { headers: { authorization: process.env.MEL_API_KEY } },
-      )
-      .pipe(
-        map((d: any) => d.data),
-        catchError((e) => {
-          this.logger.log('MEL API is not connected');
-          this.logger.error(e);
-          return [null];
-        }),
-      )
-      .toPromise();
     const result: any = await this.httpService
       .get(
         `${process.env.WOS_API_URL}?databaseId=WOS&count=100&firstRecord=1&optionView=FR&usrQuery=DO=${doi}`,

@@ -95,8 +95,7 @@ export class RepositoriesTableComponent {
   openDialogSchema(repository_id?: number): void {
     this.dialog.open(SchemaFormComponent, {
       data: {repository_id},
-      width: '100%',
-      maxWidth: '650px',
+      width: '90%',
       maxHeight: '90vh',
     });
   }

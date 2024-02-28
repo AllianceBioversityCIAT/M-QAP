@@ -6,4 +6,8 @@ export type RepositorySchema = {
   source: string;
 
   target: string;
+
+  formatter: string;
+
+  formatter_addition: string;
 };

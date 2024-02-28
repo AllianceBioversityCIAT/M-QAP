@@ -14,4 +14,12 @@ export class CreateRepositorySchemaDto {
     @Expose()
     @IsString()
     target: string;
+
+    @Expose()
+    @IsString()
+    formatter: string;
+
+    @Expose()
+    @IsString()
+    formatter_addition: string;
 }

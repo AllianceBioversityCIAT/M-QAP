@@ -8,7 +8,8 @@ import {RepositoriesSchema} from 'src/entities/repositories-schema.entity';
 @Module({
     imports: [TypeOrmModule.forFeature([Repositories, RepositoriesSchema])],
     controllers: [RepositoriesController],
-    providers: [RepositoriesService]
+    providers: [RepositoriesService],
+    exports: [RepositoriesService],
 })
 export class RepositoriesModule {
 }

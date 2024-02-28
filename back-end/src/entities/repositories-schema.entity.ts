@@ -19,4 +19,14 @@ export class RepositoriesSchema {
 
     @Column()
     target: string;
+
+    @Column({
+        type: 'enum',
+        enum: ['date', 'datetime', 'country', 'language', 'combine', 'split'],
+        nullable: true
+    })
+    formatter: string;
+
+    @Column({nullable: true})
+    formatter_addition: string;
 }

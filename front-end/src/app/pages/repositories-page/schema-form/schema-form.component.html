@@ -27,6 +27,24 @@
             </div>
           </app-input>
 
+          <app-input>
+            <mat-label>Formatter</mat-label>
+            <ng-select formControlName="formatter" [items]="formatters" bindLabel="id" bindValue="id"></ng-select>
+            <div class="mat-mdc-form-field-subscript-wrapper mat-mdc-form-field-bottom-align">
+              <div class="mat-mdc-form-field-error-wrapper">
+                <app-errors matError [control]="schemaForm.get('formatter')"></app-errors>
+              </div>
+            </div>
+          </app-input>
+
+          <app-input>
+            <mat-label>Formatter addition</mat-label>
+            <mat-form-field appearance="outline">
+              <input matInput formControlName="formatter_addition"/>
+              <app-errors matError [control]="schemaForm.get('formatter_addition')"></app-errors>
+            </mat-form-field>
+          </app-input>
+
           <button class="pull-right" (click)="DeleteSchema(this.schemaFormsArray, i)" color="warn"
                   mat-icon-button>
             <mat-icon aria-hidden="false" aria-label="delete">delete</mat-icon>
