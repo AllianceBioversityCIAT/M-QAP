@@ -29,8 +29,8 @@ export class RepositoriesService extends TypeOrmCrudService<Repositories> {
 
     public findAll(query: PaginateQuery): Promise<Paginated<Repositories>> {
         return paginate(query, this.repositoriesRepository, {
-            sortableColumns: ['id', 'name'],
-            searchableColumns: ['name'],
+            sortableColumns: ['id', 'name', 'type'],
+            searchableColumns: ['id', 'name', 'type', 'base_url', 'api_path', 'identifier_type', 'prefix'],
             select: [],
         });
     }

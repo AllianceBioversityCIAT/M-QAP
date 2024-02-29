@@ -23,12 +23,13 @@ import {UsersService} from './users.service';
 import {createReadStream} from 'fs';
 import {join} from 'path';
 import {unlink} from 'fs/promises';
-import {Brackets, In} from 'typeorm';
-import {CreateAndUpdateUsers, ExportToExcel, GetUsers} from 'src/users/dto/users.dto';
+import {In} from 'typeorm';
+import {CreateAndUpdateUsers, ExportToExcel} from 'src/users/dto/users.dto';
 import {JwtAuthGuard} from '../auth/jwt-auth.guard';
 import {RolesGuard} from '../auth/roles.guard';
 import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
+import {Paginate, PaginateQuery} from 'nestjs-paginate';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.Admin)
@@ -52,48 +53,14 @@ export class UsersController {
         } else return {id: 'ASC'};
     }
 
-    @Get()
-    @ApiCreatedResponse({
-        description: '',
-        type: GetUsers,
-    })
-    async getUsers(@Query() query) {
-        if (query.search == 'teamMember') {
-            return this.usersService.userRepository
-                .createQueryBuilder('users')
-                .where('users.full_name like :full_name', {
-                    full_name: `%${query.full_name}%`,
-                })
-                .orWhere('users.email like :email', {email: `%${query.email}%`})
-                .select([
-                    'users.id as id',
-                    'users.full_name as full_name',
-                    'users.email as email',
-                ])
-                .getRawMany();
-        } else {
-            const take = query.limit || 10;
-            const skip = (Number(query.page || 1) - 1) * take;
-            let ids = await this.usersService.userRepository
-                .createQueryBuilder('users')
-                .where('users.role = :role', {role: query?.role ? query?.role : 0})
-                .andWhere(
-                    new Brackets((qb) => {
-                        qb.where('users.full_name like :full_name', {
-                            full_name: `%${query.email || ''}%`,
-                        }).orWhere('users.email like :email', {email: `%${query.email || ''}%`});
-                    }),
-                )
-                .orderBy(this.sort(query))
-                .skip(skip || 0)
-                .take(take || 10)
+    @Get('')
+    findAll(@Paginate() query: PaginateQuery) {
+        return this.usersService.findAll(query);
+    }
 
-            const finalResult = await ids.getManyAndCount();
-            return {
-                result: finalResult[0],
-                count: finalResult[1],
-            };
-        }
+    @Get(':id')
+    findOne(@Param('id') id: number) {
+        return this.usersService.findOne({where: {id}});
     }
 
     @Put()

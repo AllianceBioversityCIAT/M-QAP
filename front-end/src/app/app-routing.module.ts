@@ -73,6 +73,14 @@ const routes: Routes = [
       ),
   },
   {
+    canActivate: [AdminGuard],
+    path: 'users',
+    loadChildren: () =>
+      import('./pages/users-page/users-page.module').then(
+        (m) => m.UsersPageModule
+      ),
+  },
+  {
     path: 'auth',
     loadChildren: () =>
       import('./pages/auth/auth.module').then((m) => m.AuthModule),

@@ -37,7 +37,7 @@ export class User {
   @Column({
     type: 'varchar',
     generatedType: 'STORED',
-    asExpression: `Concat(first_name,' ' ,last_name)`,
+    asExpression: `Concat_WS(' ', TRIM(first_name), TRIM(last_name))`,
   })
   full_name: string;
 }
