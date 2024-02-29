@@ -8,8 +8,8 @@ import { AuthService } from '../pages/auth/auth.service';
 })
 export class AuthGuard implements CanActivate {
   constructor(
-    private authService: AuthService,
-    private router: Router) {
+    private authService: AuthService
+  ) {
 
   }
   async canActivate(
@@ -17,11 +17,11 @@ export class AuthGuard implements CanActivate {
     state: RouterStateSnapshot) {
       const user = await this.authService.getLoggedInUser();
       if(!user) {
-        this.router.navigate(['/']);
+        this.authService.goToLogin();
         return false;
-      } else { 
+      } else {
         return true;
       }
   }
-  
+
 }
