@@ -97,12 +97,13 @@ export class AiTrainingService {
 
         this.socketsGateway.emitTrainingProgress(1, 'Initializing...', false);
         const lastCycle = await this.trainingCycleService.findLatestOne();
+        const lastCycleId = lastCycle && lastCycle?.id ? lastCycle.id : 0;
 
         const now = new Date();
         const day = now.getDate().toString().length === 1 ? `0${now.getDate()}` : now.getDate();
         const date = `${now.toLocaleString('default', {month: 'short'})} ${day}, ${now.getFullYear()}`;
         const trainingCycle: CreateTrainingCycleDto = {
-            text: `Cycle ${(lastCycle.id + 1).toString()} - ${date}`
+            text: `Cycle ${(lastCycleId + 1).toString()} - ${date}`
         }
         await this.trainingCycleService.create(trainingCycle);
 
