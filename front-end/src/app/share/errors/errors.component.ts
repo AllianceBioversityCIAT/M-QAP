@@ -21,7 +21,6 @@ export class ErrorsComponent {
     Object.keys(this.control?.errors ?? {}).forEach((key) => {
       if (this.control?.errors) errorsList.push(this.control?.errors[key]);
     });
-    console.log(errorsList);
     return errorsList;
   }
 

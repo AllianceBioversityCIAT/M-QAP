@@ -76,7 +76,6 @@ export class OrganizationInputComponent
   onChange?: (value: any) => void;
   onTouched?: () => void;
   compareObjects: (v1: any, v2: any) => boolean = (v1, v2): boolean => {
-    console.log(v1, v2);
     return v1.id === v2;
   };
   trackByFn(item: Organization) {
@@ -89,8 +88,17 @@ export class OrganizationInputComponent
   ) {}
 
   ngOnInit(): void {
+    this.initializeSelect([]);
+    this.control.valueChanges.subscribe((value) => {
+      this.value = value;
+      if (this.onTouched) this.onTouched();
+      if (this.onChange) this.onChange(value);
+    });
+  }
+
+  initializeSelect(presetValues: Array<any>): void {
     this.filteredOptions$ = concat(
-      of([]),
+      of(presetValues),
       this.partnerInput$.pipe(
         distinctUntilChanged(),
         filter((term) => {
@@ -98,7 +106,6 @@ export class OrganizationInputComponent
         }),
         tap(() => (this.loading = true)),
         switchMap((term) => {
-          console.log(term);
           return this.organizationsService.searchOrganization(term).pipe(
             catchError(() => of([])),
             tap(() => (this.loading = false))
@@ -106,11 +113,6 @@ export class OrganizationInputComponent
         })
       )
     );
-    this.control.valueChanges.subscribe((value) => {
-      this.value = value;
-      if (this.onTouched) this.onTouched();
-      if (this.onChange) this.onChange(value);
-    });
   }
 
   selected() {
@@ -122,15 +124,14 @@ export class OrganizationInputComponent
   }
 
   async writeValue(value: any) {
-    console.log(value);
     if (value?.id) {
-      this.filteredOptions$ = of([value]);
+      this.initializeSelect([value]);
       this.value = value;
       this.selectedItem = value;
       this.control.patchValue(value, { emitEvent: false });
     } else if (typeof value == 'number') {
       this.organizationsService.get(value).subscribe((org) => {
-        this.filteredOptions$ = of([org]);
+        this.initializeSelect([org]);
         this.value = org;
         this.selectedItem = org;
         this.control.patchValue(org, { emitEvent: false });

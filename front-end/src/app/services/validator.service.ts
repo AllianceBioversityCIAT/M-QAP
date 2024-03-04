@@ -8,7 +8,6 @@ export const vb = (schema: ZodFirstPartySchemaTypes) => {
       schema.parse(control.value);
     } catch (err: any) {
       if (err instanceof ZodError) {
-        console.log(err.issues);
         return err.issues;
       }
     }
