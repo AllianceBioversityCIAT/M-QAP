@@ -10,6 +10,7 @@ import {CommoditiesService} from 'src/commodities/commodities.service';
 import {RepositoriesService} from 'src/repositories/repositories.service';
 import {Repositories} from 'src/entities/repositories.entity';
 import {RepositoriesSchema} from "../entities/repositories-schema.entity";
+import {lastValueFrom} from 'rxjs';
 
 const https = require('https');
 
@@ -166,72 +167,65 @@ export class HandleService {
 
     async getCkan(prefix, suffix, repository: Repositories) {
         const baseUrl = repository.identifier_type === 'DOI' ? 'https://dx.doi.org' : 'https://hdl.handle.net';
-        let id = await this.http
+        const idResult: any = await lastValueFrom(this.http
             .get(`${baseUrl}/${prefix}/${suffix}`)
-            .pipe(
-                map((d) => {
-                    const splitted = d.request.res.responseUrl.split('/');
-                    return splitted[splitted.length - 1];
-                }),
-            )
-            .toPromise()
-            .catch((e) => {
-                console.error(e);
+        ).catch((e) => console.error(e));
+        if (idResult && idResult?.status && idResult.status == 200 && idResult?.request?.res?.responseUrl) {
+            const split = idResult.request.res.responseUrl.split('/');
+            const id = split[split.length - 1];
+
+            const result: any = await lastValueFrom(this.http
+                .get(`${repository.api_path}/action/package_show?id=${id}`)
+            ).catch((e) => console.error(e));
+            if (result && result?.status && result.status == 200 && result?.data?.result) {
+                const data = result.data.result;
+                if (data) {
+                    let formatted_data = this.formatService.format(
+                        this.flatData(data, null, null, {organization: 'title'}),
+                        repository,
+                    );
+                    formatted_data = this.addOn(formatted_data, repository);
+
+                    formatted_data['repo'] = repository.name;
+                    return formatted_data;
+                }
+            } else {
                 return false;
-            });
-
-        let data = await this.http
-            .get(`${repository.api_path}/action/package_show?id=${id}`)
-            .pipe(map((d) => d.data.result))
-            .toPromise()
-            .catch((e) => {
-                console.error(e);
-                return false;
-            });
-
-        if (data) {
-            let formatted_data = this.formatService.format(
-                this.flatData(data, null, null, {organization: 'title'}),
-                repository,
-            );
-            formatted_data = this.addOn(formatted_data, repository);
-
-            formatted_data['repo'] = repository.name;
-            return formatted_data;
+            }
+        } else {
+            return false;
         }
     }
 
     async getDataVerse(prefix, suffix, repository: Repositories) {
         const identifier = repository.identifier_type === 'DOI' ? 'doi' : 'hdl';
-        let data = await this.http
-            .get(
-                `${repository.api_path}/datasets/:persistentId/?persistentId=${identifier}:${prefix}/${suffix}`,
-                {
-                    headers: {
-                        Accept: 'application/json',
-                        cookie:
-                            'incap_ses_288_2801958=/N6gO8gj1g4/4pnW2C7/A9DVbGMAAAAAW5jDWMnTcDMG7GaTE79mDg==; visid_incap_2801958=moDP+bZVRZ6D2SJehPzbxs/VbGMAAAAAQUIPAAAAAACXoHcOizPhxog6dcc30XRK; JSESSIONID=124ddc7e698f28720098b66aa429',
-                        'User-Agent': 'CLARISA',
-                    },
-                    httpsAgent: new https.Agent({rejectUnauthorized: false}),
+        const result: any = await lastValueFrom(this.http
+            .get(`${repository.api_path}/datasets/:persistentId/?persistentId=${identifier}:${prefix}/${suffix}`, {
+                headers: {
+                    Accept: 'application/json',
+                    cookie:
+                        'incap_ses_288_2801958=/N6gO8gj1g4/4pnW2C7/A9DVbGMAAAAAW5jDWMnTcDMG7GaTE79mDg==; visid_incap_2801958=moDP+bZVRZ6D2SJehPzbxs/VbGMAAAAAQUIPAAAAAACXoHcOizPhxog6dcc30XRK; JSESSIONID=124ddc7e698f28720098b66aa429',
+                    'User-Agent': 'CLARISA',
                 },
-            )
-            .pipe(map((d) => d.data.data))
-            .toPromise()
-            .catch((e) => {
-                console.error(e);
-                return false;
-            });
-        if (data) {
-            let formatted_data = this.formatService.format(
-                this.flatData(data, 'typeName', 'value'),
-                repository,
-            );
+                httpsAgent: new https.Agent({rejectUnauthorized: false}),
+            })
+        ).catch((e) => console.error(e));
 
-            formatted_data = this.addOn(formatted_data, repository);
+        if (result && result?.status && result.status == 200 && result?.data?.data) {
+            const data = result.data.data;
+            if (data) {
+                let formatted_data = this.formatService.format(
+                    this.flatData(data, 'typeName', 'value'),
+                    repository,
+                );
 
-            formatted_data['repo'] = repository.name;
-            return formatted_data;
+                formatted_data = this.addOn(formatted_data, repository);
+
+                formatted_data['repo'] = repository.name;
+                return formatted_data;
+            }
+        } else {
+            return false;
         }
     }
 
@@ -364,9 +358,7 @@ export class HandleService {
         } else if (repository.type == 'DSpace7') {
             dataSources.push(this.getDpsace7(prefix, suffix, repository));
         } else if (repository.type == 'Dataverse') {
-            dataSources.push(
-                this.getDataVerse(prefix, suffix, repository),
-            );
+            dataSources.push(this.getDataVerse(prefix, suffix, repository));
         } else if (repository.type == 'CKAN') {
             dataSources.push(this.getCkan(prefix, suffix, repository));
         }
@@ -580,40 +572,51 @@ export class HandleService {
     }
 
     async getDpsace(prefix, suffix, repository) {
-        let data = await this.http
+        const result: any = await lastValueFrom(this.http
             .get(`${repository.base_url}/rest/handle/${prefix}/${suffix}?expand=all`)
-            .pipe(map((d) => d.data))
-            .toPromise()
-            .catch((e) => console.error(e));
-        let formatted_data = this.formatService.format(data, repository);
-        formatted_data['repo'] = repository.name;
-        return formatted_data;
+        ).catch((e) => console.error(e));
+        if (result && result?.status && result.status == 200 && result?.data) {
+            const data = result.data;
+            const formatted_data = this.formatService.format(data, repository);
+            formatted_data['repo'] = repository.name;
+            return formatted_data;
+        } else {
+            return false;
+        }
     }
 
     async getDpsace7(prefix, suffix, repository) {
-        // Temporary use of legacy API
-        let data = await this.http
-            .get(`${repository.base_url}/rest/handle/${prefix}/${suffix}?expand=all`)
-            .pipe(map((d) => d.data))
-            .toPromise()
-            .catch((e) => console.error(e));
-        let formatted_data = this.formatService.format(data, repository);
-        formatted_data['repo'] = repository.name;
-        return formatted_data;
+        const result: any = await lastValueFrom(this.http
+            .get(`${repository.api_path}/pid/find?id=${prefix}/${suffix}`)
+        ).catch((e) => console.error(e));
+        if (result && result?.status && result.status == 200 && result?.data) {
+            const data = result.data;
+            const metadata = [];
+            Object.keys(data.metadata).map(field => {
+                return data.metadata[field].map(value => {
+                    metadata.push({
+                        key: field,
+                        value: value.value
+                    });
+                });
+            });
+            data.metadata = metadata;
+            let formatted_data = this.formatService.format(data, repository);
+            formatted_data['repo'] = repository.name;
+            return formatted_data;
+        } else {
+            return false;
+        }
     }
 
     async getAltmetricByHandle(prefix, suffix, identifier_type) {
-        const link = `https://api.altmetric.com/v1/${identifier_type === 'DOI' ? 'doi' : 'handle'}/${prefix}/${suffix}`;
-        return await this.http
-            .get(link)
-            .pipe(
-                map((d) => {
-                    if (d && d.status == 200) {
-                        return d.data;
-                    } else return null;
-                }),
-            )
-            .toPromise()
-            .catch(() => null);
+        const result: any = await lastValueFrom(this.http
+            .get(`https://api.altmetric.com/v1/${identifier_type === 'DOI' ? 'doi' : 'handle'}/${prefix}/${suffix}`)
+        ).catch(() => null);
+        if (result && result?.status && result.status == 200 && result?.data) {
+            return result.data;
+        } else {
+            return null;
+        }
     }
 }

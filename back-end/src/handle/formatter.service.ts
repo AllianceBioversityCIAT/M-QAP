@@ -15,42 +15,13 @@ export class FormatService {
         const parsedSchema: any = {};
         if (repository.type === 'DSpace5') {
             parsedSchema.id = 'id';
-            parsedSchema.name = 'name';
-            parsedSchema.handle = 'handle';
-            parsedSchema.bitstreamms = [
-                {
-                    where: {bundleName: 'THUMBNAIL'},
-                    value: {retrieveLink: 'thumbnail'},
-                    prefix: repository.base_url
-                }
-            ];
         } else if (repository.type === 'DSpace6') {
             parsedSchema.uuid = 'uuid';
-            parsedSchema.name = 'name';
-            parsedSchema.handle = 'handle';
-            parsedSchema.bitstreamms = [
-                {
-                    where: {bundleName: 'THUMBNAIL'},
-                    value: {retrieveLink: 'thumbnail'},
-                    prefix: repository.base_url
-                }
-            ];
         } else if (repository.type === 'DSpace7') {
             parsedSchema.uuid = 'uuid';
-            parsedSchema.name = 'name';
-            parsedSchema.handle = 'handle';
-            parsedSchema.bitstreamms = [
-                {
-                    where: {bundleName: 'THUMBNAIL'},
-                    value: {retrieveLink: 'thumbnail'},
-                    prefix: repository.base_url
-                }
-            ];
         } else if (repository.type === 'Dataverse') {
-            parsedSchema.id = 'id';
             parsedSchema.handle = 'persistentUrl';
         } else if (repository.type === 'CKAN') {
-            parsedSchema.id = 'id';
             parsedSchema.handle = 'identifier';
         }
 
