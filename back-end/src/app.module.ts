@@ -22,6 +22,7 @@ import { StatisticsModule } from './statistics/statistics.module';
 import { SocketsModule } from './sockets/sockets.module';
 import { RepositoriesModule } from './repositories/repositories.module';
 import { UsersModule } from './users/users.module';
+import { ApiKeysModule } from './api-keys/api-keys.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { UsersModule } from './users/users.module';
     AiTrainingModule,
     RepositoriesModule,
     UsersModule,
+    ApiKeysModule,
   ],
   controllers: [AppController, DashboardController],
   providers: [AppService, DoiService, AI, HandleService, FormatService],

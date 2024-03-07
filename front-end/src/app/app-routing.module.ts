@@ -81,6 +81,14 @@ const routes: Routes = [
       ),
   },
   {
+    canActivate: [AdminGuard],
+    path: 'api-keys',
+    loadChildren: () =>
+      import('./pages/api-keys-page/api-keys-page.module').then(
+        (m) => m.ApiKeysPageModule
+      ),
+  },
+  {
     path: 'auth',
     loadChildren: () =>
       import('./pages/auth/auth.module').then((m) => m.AuthModule),
