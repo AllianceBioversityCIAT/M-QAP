@@ -1,5 +1,5 @@
-import {Component, OnInit} from '@angular/core';
-import { HeaderServiceService } from '../../header-service.service';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {HeaderServiceService} from '../../header-service.service';
 import io from 'socket.io-client';
 import {environment} from '../../../environments/environment';
 
@@ -8,9 +8,12 @@ import {environment} from '../../../environments/environment';
   templateUrl: './training-cycle-page.component.html',
   styleUrls: ['./training-cycle-page.component.scss'],
 })
-export class TrainingCyclePageComponent implements OnInit{
-  constructor(public headerService: HeaderServiceService) {}
+export class TrainingCyclePageComponent implements OnInit, OnDestroy {
+  constructor(public headerService: HeaderServiceService) {
+  }
+
   trainingProgressSocket: any;
+
   ngOnInit() {
     this.headerService
       .setBackground('linear-gradient(to right, #04030F, #04030F)')
@@ -25,6 +28,7 @@ export class TrainingCyclePageComponent implements OnInit{
 
     this.initializeSockets();
   }
+
   initializeSockets() {
     try {
       this.trainingProgressSocket = io(environment.api_url, {
@@ -40,5 +44,9 @@ export class TrainingCyclePageComponent implements OnInit{
     } catch (e) {
       console.log('e => ', e);
     }
+  }
+
+  ngOnDestroy() {
+    this.trainingProgressSocket.disconnect();
   }
 }
