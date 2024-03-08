@@ -10,10 +10,18 @@ import { DoiInfo } from 'src/doi-info';
 import * as FormData from 'form-data';
 const https = require('https');
 import { HttpService } from '@nestjs/axios';
+import {ApiKeysService} from '../api-keys/api-keys.service';
+import {ApiKey} from '../entities/api-key.entity';
+import {AppService} from '../app.service';
 @Injectable()
 export class DoiService {
   private readonly logger = new Logger(DoiService.name);
-  constructor(private httpService: HttpService, private ai: AI) {}
+  constructor(
+      private httpService: HttpService,
+      private ai: AI,
+      private appService: AppService,
+      private apiKeysService: ApiKeysService,
+      ) {}
 
   isDOI(doi): any {
     const result = new RegExp(`(?<=)10\..*`).exec(doi);
@@ -75,7 +83,11 @@ export class DoiService {
       gardian: null,
     } as DoiInfo;
   }
-  async getWOSinfoByDoi(doi): Promise<DoiInfo> {
+  async getWOSinfoByDoi(doi, apiKeyEntity: ApiKey): Promise<DoiInfo> {
+    const availableQuota = await this.apiKeysService.getWosAvailableQuota(apiKeyEntity);
+    if (availableQuota.available <= 0) {
+      return null;
+    }
     const result: any = await this.httpService
       .get(
         `${process.env.WOS_API_URL}?databaseId=WOS&count=100&firstRecord=1&optionView=FR&usrQuery=DO=${doi}`,
@@ -88,6 +100,8 @@ export class DoiService {
       .pipe(
         map((data_from_wos: any) => {
           if (data_from_wos && data_from_wos.status == 200) {
+            this.apiKeysService.createApiWosUsage(apiKeyEntity, doi);
+
             let finaldata: DoiInfo;
             try {
               const records = data_from_wos?.data?.Data?.Records?.records;
@@ -290,7 +304,7 @@ export class DoiService {
     }
     return result;
   }
-  async getInfoByDOI(doi) {
+  async getInfoByDOI(doi, apiKeyEntity: ApiKey) {
     const doiExist = await this.isDOIExist(doi);
     if (doiExist == 404)
       return new HttpException(
@@ -298,8 +312,8 @@ export class DoiService {
         HttpStatus.BAD_REQUEST,
       );
 
-    const results = await Promise.all([
-      this.getWOSinfoByDoi(doi),
+    const results: any = await Promise.all([
+      this.getWOSinfoByDoi(doi, apiKeyEntity),
       this.getScopusInfoByDoi(doi),
       this.addOpenAccessInfo(doi),
       this.getAltmetricByDoi(doi),

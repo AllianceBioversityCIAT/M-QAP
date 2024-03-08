@@ -1,13 +1,18 @@
 import {
     Column,
     CreateDateColumn,
-    Entity, JoinColumn,
+    Entity,
+    JoinColumn,
+    JoinTable,
+    OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 import {Organization} from './organization.entity';
 import {User} from './user.entity';
+import {ApiKeyUsage} from './api-key-usage.entity';
+import {ApiKeyWosUsage} from './api-key-wos-usage.entity';
 
 @Entity()
 export class ApiKey {
@@ -39,4 +44,20 @@ export class ApiKey {
 
     @Column()
     is_active: boolean;
+
+    @JoinTable()
+    @OneToMany(() => ApiKeyUsage,
+        (usage) => usage.apiKey,
+        {
+            cascade: true,
+        })
+    usage: ApiKeyUsage;
+
+    @JoinTable()
+    @OneToMany(() => ApiKeyWosUsage,
+        (wosUsage) => wosUsage.apiKey,
+        {
+            cascade: true,
+        })
+    wosUsage: ApiKeyWosUsage;
 }

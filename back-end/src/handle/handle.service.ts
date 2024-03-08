@@ -11,6 +11,7 @@ import {RepositoriesService} from 'src/repositories/repositories.service';
 import {Repositories} from 'src/entities/repositories.entity';
 import {RepositoriesSchema} from "../entities/repositories-schema.entity";
 import {lastValueFrom} from 'rxjs';
+import {ApiKey} from '../entities/api-key.entity';
 
 const https = require('https');
 
@@ -334,7 +335,7 @@ export class HandleService {
         return arrayOfObjects;
     }
 
-    async getInfoByHandle(handle) {
+    async getInfoByHandle(handle, apiKeyEntity: ApiKey) {
         let parsedLink = this.IsDOIOrHandle(handle);
         if (!parsedLink?.identifier?.prefix && !parsedLink?.domain?.id) {
             throw new BadRequestException('please provide valid link1');
@@ -419,7 +420,7 @@ export class HandleService {
         if (data?.DOI || repository.identifier_type == 'DOI') {
             let doi = this.doi.isDOI(repository.identifier_type == 'DOI' ? (`${prefix}/${suffix}`) : data.DOI);
             if (doi) {
-                DOI_INFO = await this.doi.getInfoByDOI(doi);
+                DOI_INFO = await this.doi.getInfoByDOI(doi, apiKeyEntity);
                 data['DOI_Info'] = DOI_INFO;
             }
         }

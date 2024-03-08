@@ -2,17 +2,27 @@ import {BadRequestException, Injectable, InternalServerErrorException} from '@ne
 import {TypeOrmCrudService} from '@nestjsx/crud-typeorm';
 import {ApiKey} from '../entities/api-key.entity';
 import {InjectRepository} from '@nestjs/typeorm';
-import {Repository} from 'typeorm';
+import {Between, Repository} from 'typeorm';
 import {paginate, Paginated, PaginateQuery} from 'nestjs-paginate';
 import {CreateApiKeyDto} from './dto/create-api-key.dto';
 import {UpdateApiKeyDto} from './dto/update-api-key.dto';
+import {CreateApiKeyUsageDto} from './dto/create-api-key-usage.dto';
+import {CreateApiKeyWosUsageDto} from './dto/create-api-key-wos-usage.dto';
 import * as crypto from 'crypto';
+import {ApiKeyUsage} from '../entities/api-key-usage.entity';
+import {ApiKeyWosUsage} from '../entities/api-key-wos-usage.entity';
+import {FindManyOptions} from 'typeorm/find-options/FindManyOptions';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
     constructor(
         @InjectRepository(ApiKey)
         public apiKeyRepository: Repository<ApiKey>,
+        @InjectRepository(ApiKeyUsage)
+        public apiKeyUsageRepository: Repository<ApiKeyUsage>,
+        @InjectRepository(ApiKeyWosUsage)
+        public apiKeyWosUsageRepository: Repository<ApiKeyWosUsage>,
     ) {
         super(apiKeyRepository);
     }
@@ -36,7 +46,6 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             const newRepository = this.apiKeyRepository.create({...createApiKeyDto});
             return await this.apiKeyRepository.save(newRepository);
         } catch (error) {
-            console.log(error)
             if (error.errno === 1062) {
                 throw new BadRequestException('Duplicated API-key');
             } else {
@@ -118,5 +127,45 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             }
         }
         return apiKey;
+    }
+
+    async createApiUsage(apiKeyEntity: ApiKey, path) {
+        try {
+            const createApiKeyUsageDto = {
+                apiKey: apiKeyEntity,
+                path
+            } as CreateApiKeyUsageDto;
+            const newRepository = this.apiKeyUsageRepository.create({...createApiKeyUsageDto});
+            return await this.apiKeyUsageRepository.save(newRepository);
+        } catch (error) {
+            throw new InternalServerErrorException('Oops! something went wrong.');
+        }
+    }
+
+    async createApiWosUsage(apiKeyEntity: ApiKey, doi: string) {
+        try {
+            const createApiKeyWosUsageDto = {
+                apiKey: apiKeyEntity,
+                doi
+            } as CreateApiKeyWosUsageDto;
+            const newRepository = this.apiKeyWosUsageRepository.create({...createApiKeyWosUsageDto});
+            return await this.apiKeyWosUsageRepository.save(newRepository);
+        } catch (error) {
+            throw new InternalServerErrorException('Oops! something went wrong.');
+        }
+    }
+
+    async getWosAvailableQuota(apiKeyEntity: ApiKey) {
+        const usage = await this.apiKeyWosUsageRepository.count({
+            where: {
+                apiKey: {id: apiKeyEntity.id},
+                creation_date: Between(dayjs().startOf('year').toDate(), dayjs().endOf('year').toDate())
+            }
+        } as FindManyOptions);
+        return {
+            wos_quota: apiKeyEntity.wos_quota,
+            used: usage,
+            available: Number(apiKeyEntity.wos_quota) - usage
+        };
     }
 }

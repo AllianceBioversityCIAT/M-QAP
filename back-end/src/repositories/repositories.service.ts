@@ -53,7 +53,6 @@ export class RepositoriesService extends TypeOrmCrudService<Repositories> {
 
     async updateSchema(repositoryId: number, createRepositorySchemaDtos: CreateRepositorySchemaDto[]) {
         const repository = await this.repositoriesRepository.findOne({where: {id: repositoryId}});
-        console.log(repositoryId, repository)
         const sources = [];
         const promises: any = createRepositorySchemaDtos.map(async (createRepositorySchemaDto) => {
             sources.push(createRepositorySchemaDto.source);

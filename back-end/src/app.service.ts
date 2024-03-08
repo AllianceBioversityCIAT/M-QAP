@@ -1,8 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import {ApiKeysService} from './api-keys/api-keys.service';
+import {ApiKey} from './entities/api-key.entity';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
-    return 'Hello World!';
-  }
+    constructor(
+        private apiKeysService: ApiKeysService
+    ) {
+    }
+
+    async validateApiKey(apiKey: string, path: string): Promise<ApiKey> {
+        apiKey = apiKey ? apiKey.trim() : null;
+        if (!apiKey) {
+            throw new HttpException(
+                'Invalid API-key',
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
+
+        const apiKeyEntity = await this.apiKeysService.findOne({
+            where: {
+                api_key: apiKey,
+                is_active: true
+            }
+        });
+
+        if (!apiKeyEntity) {
+            throw new HttpException(
+                'Invalid API-key',
+                HttpStatus.UNAUTHORIZED,
+            );
+        } else {
+            this.apiKeysService.createApiUsage(apiKeyEntity, path);
+            return apiKeyEntity;
+        }
+    }
+
+    async getWosAvailableQuota(apiKeyEntity: ApiKey) {
+        return await this.apiKeysService.getWosAvailableQuota(apiKeyEntity);
+    }
 }
