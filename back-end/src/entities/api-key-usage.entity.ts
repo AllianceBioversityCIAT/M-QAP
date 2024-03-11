@@ -13,7 +13,7 @@ export class ApiKeyUsage {
     id: number;
 
     @CreateDateColumn()
-    creation_date: string;
+    creation_date: Date;
 
     @ManyToOne(() => ApiKey, (apiKey) => apiKey.id)
     apiKey: ApiKey;

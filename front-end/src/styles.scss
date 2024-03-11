@@ -142,3 +142,16 @@ ng-select.ng-invalid.ng-touched {
     border-color: var(--mdc-outlined-text-field-error-outline-color) !important;
   }
 }
+
+.border-bottom-light {
+  border-bottom: 3px solid var(--color-main-header-risk-primary) !important;
+}
+
+.primary-hover:hover:after {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  background-color: var(--color-main-nav-link-primary);
+  opacity: .2;
+  transition: background-color .25s ease-in;
+}

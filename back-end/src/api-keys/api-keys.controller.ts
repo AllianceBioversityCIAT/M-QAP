@@ -17,6 +17,29 @@ export class ApiKeysController {
     ) {
     }
 
+    @Get('usage/:year')
+    usage(@Param('year') year: number) {
+        return this.apiKeysService.getApiKeysUsage(+year);
+    }
+
+    @Get('summary/:year')
+    async findAllSummary(
+        @Paginate() query: PaginateQuery,
+        @Param('year') year: number,
+        ) {
+        return await this.apiKeysService.findAllSummary(query, year);
+    }
+
+    @Get('details/:apiKeyId/:type/:year')
+    async findAllDetails(
+        @Paginate() query: PaginateQuery,
+        @Param('apiKeyId') apiKeyId: number,
+        @Param('type') type: string,
+        @Param('year') year: number,
+        ) {
+        return await this.apiKeysService.findAllDetails(query, apiKeyId, type, year);
+    }
+
     @Post()
     create(@Body() createApiKeyDto: CreateApiKeyDto) {
         return this.apiKeysService.create(createApiKeyDto);

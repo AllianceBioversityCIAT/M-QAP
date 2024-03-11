@@ -5,12 +5,10 @@ import {ApiKeysFormComponent} from './api-keys-form/api-keys-form.component';
 import {ApiKeysPageRoutingModule} from './api-keys-page-routing.module';
 import {PagePaseModule} from '../page-pase.module';
 import {NgSelectModule} from '@ng-select/ng-select';
-import {MatTooltipModule} from '@angular/material/tooltip';
-
 
 @NgModule({
   declarations: [ApiKeysPageComponent, ApiKeysTableComponent, ApiKeysFormComponent],
-  imports: [PagePaseModule, ApiKeysPageRoutingModule, NgSelectModule, MatTooltipModule]
+  imports: [PagePaseModule, ApiKeysPageRoutingModule, NgSelectModule]
 })
 export class ApiKeysPageModule {
 }

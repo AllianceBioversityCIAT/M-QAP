@@ -56,7 +56,6 @@ export class ApiKeysTableComponent {
   }
 
   handlePageEvent(e: PageEvent) {
-    console.log(e);
     this.pageSize = e.pageSize;
     this.pageIndex = e.pageIndex;
     this.loadData();

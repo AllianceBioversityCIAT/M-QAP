@@ -4,6 +4,12 @@ import {HttpClient} from '@angular/common/http';
 import {Paginated} from '../share/types/paginate.type';
 import {ApiKeys} from '../share/types/api-keys.model.type';
 import {Upsert} from '../share/types/utilities';
+import {
+  ApiStatistics,
+  ApiStatisticsSummary,
+  ApiUsage,
+  WosApiUsage
+} from 'src/app/share/types/api-statistics.model.type';
 
 @Injectable({
   providedIn: 'root'
@@ -52,5 +58,17 @@ export class ApiKeysService {
 
   regenerate(id: number) {
     return this.http.patch(`${this.api}/regenerate/` + id, {});
+  }
+
+  getStatistics(year: number) {
+    return this.http.get<ApiStatistics>(`${this.api}/usage/${year}`);
+  }
+
+  findSummary(queryString: string, year: number) {
+    return this.http.get<Paginated<ApiStatisticsSummary>>(`${this.api}/summary/${year}?${queryString}`);
+  }
+
+  findDetails(queryString: string, apiKeyId: number, type: string, year: number) {
+    return this.http.get<Paginated<ApiUsage | WosApiUsage>>(`${this.api}/details/${apiKeyId}/${type}/${year}?${queryString}`);
   }
 }

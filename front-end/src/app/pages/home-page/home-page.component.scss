@@ -1,6 +1,4 @@
 div {
-  display: flex;
-  flex-direction: column;
   > * {
     margin-bottom: 2rem;
   }
@@ -11,16 +9,13 @@ div {
     color: #2caffe;
   }
 
-  .avg {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-    app-container {
+  .counters-container, .charts-container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+
+    .counter-container, .chart-container {
       flex: 1;
-      min-width: 190px;
-      width: 100%;
+      min-width: 150px;
     }
   }
 
