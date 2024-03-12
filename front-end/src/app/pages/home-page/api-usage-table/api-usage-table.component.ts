@@ -77,7 +77,7 @@ export class ApiUsageTableComponent {
       });
   }
 
-  openDialog(apiStatisticsSummary: ApiStatisticsSummary, type: string): void {
+  viewDetails(apiStatisticsSummary: ApiStatisticsSummary, type: string): void {
     this.selectedApiKey = apiStatisticsSummary;
     this.selectedApiKeySubject.next(apiStatisticsSummary);
     this.selectedApiKeySummaryType = type;
@@ -91,9 +91,8 @@ export class ApiUsageTableComponent {
     }
   }
 
-  backToMainList(){
+  backToMainList() {
     this.selectedApiKeySubject.next(null);
     this.selectedApiKey = null;
   }
-
 }

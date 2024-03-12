@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {environment} from 'src/environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {Paginated} from '../share/types/paginate.type';
@@ -10,6 +10,8 @@ import {
   ApiUsage,
   WosApiUsage
 } from 'src/app/share/types/api-statistics.model.type';
+import {WosQuota} from '../share/types/wos-quota.model.type';
+import {WosQuotaYear} from '../share/types/wos-quota-year.model.type';
 
 @Injectable({
   providedIn: 'root'
@@ -20,44 +22,88 @@ export class ApiKeysService {
   constructor(private http: HttpClient) {
   }
 
-  find(queryString: string) {
-    return this.http.get<Paginated<ApiKeys>>(`${this.api}?${queryString}`);
+  upsertWosQuota(id: number | null | undefined, data: Upsert<WosQuota>) {
+    return !!id ? this.updateWosQuota(id, data) : this.createWosQuota(data);
   }
 
-  get(id: number) {
-    return this.http.get<ApiKeys>(`${this.api}/` + id);
+  createWosQuota(data: Upsert<WosQuota, 'id'>) {
+    return this.http.post<WosQuota>(`${this.api}/wos-quota`, data);
   }
 
-  search(term: string) {
-    return this.http.get<Array<ApiKeys>>(`${this.api}/search`, {
-      params: {
-        term,
-      },
-    });
+  updateWosQuota(id: number, data: Upsert<WosQuota, 'id'>) {
+    return this.http.patch<WosQuota>(`${this.api}/wos-quota/${id}`, data);
   }
 
-  create(data: Upsert<ApiKeys, 'id'>) {
-    return this.http.post<ApiKeys>(`${this.api}`, data);
+  findWosQuota(queryString: string) {
+    return this.http.get<Paginated<WosQuota>>(`${this.api}/wos-quota?${queryString}`);
+  }
+
+  getWosQuota(id: number) {
+    return this.http.get<WosQuota>(`${this.api}/wos-quota/${id}`);
+  }
+
+  updateStatusWosQuota(id: number, is_active: boolean) {
+    return this.http.patch(`${this.api}/wos-quota/update-status/` + id, {is_active});
+  }
+
+  deleteWosQuota(id: number) {
+    return this.http.delete(`${this.api}/wos-quota/${id}`);
+  }
+
+  upsertWosQuotaYear(id: number | null | undefined, wosQuotaId: number, data: Upsert<WosQuotaYear>) {
+    return !!id ? this.updateWosQuotaYear(id, data) : this.createWosQuotaYear(wosQuotaId, data);
+  }
+
+  createWosQuotaYear(wosQuotaId: number, data: Upsert<WosQuotaYear, 'id'>) {
+    return this.http.post<WosQuotaYear>(`${this.api}/wos-quota-year/${wosQuotaId}`, data);
+  }
+
+  updateWosQuotaYear(id: number, data: Upsert<WosQuotaYear, 'id'>) {
+    return this.http.patch<WosQuotaYear>(`${this.api}/wos-quota-year/${id}`, data);
+  }
+
+  findWosQuotaYear(queryString: string) {
+    return this.http.get<Paginated<WosQuotaYear>>(`${this.api}/wos-quota-year?${queryString}`);
+  }
+
+  getWosQuotaYear(id: number) {
+    return this.http.get<WosQuotaYear>(`${this.api}/wos-quota-year/${id}`);
+  }
+
+  deleteWosQuotaYear(id: number) {
+    return this.http.delete(`${this.api}/wos-quota-year/${id}`);
+  }
+
+  upsert(id: number | null | undefined, wosQuotaId: number, data: Upsert<ApiKeys>) {
+    return !!id ? this.update(id, data) : this.create(wosQuotaId, data);
+  }
+
+  create(wosQuotaId: number, data: Upsert<ApiKeys, 'id'>) {
+    return this.http.post<ApiKeys>(`${this.api}/api-keys/${wosQuotaId}`, data);
   }
 
   update(id: number, data: Upsert<ApiKeys, 'id'>) {
-    return this.http.patch<ApiKeys>(`${this.api}/` + id, data);
+    return this.http.patch<ApiKeys>(`${this.api}/api-keys/` + id, data);
   }
 
-  upsert(id: number | null | undefined, data: Upsert<ApiKeys>) {
-    return !!id ? this.update(id, data) : this.create(data);
+  find(queryString: string, wosQuotaId: number) {
+    return this.http.get<Paginated<ApiKeys>>(`${this.api}/api-keys/${wosQuotaId}?${queryString}`);
   }
 
-  delete(id: number) {
-    return this.http.delete(`${this.api}/` + id);
+  get(id: number) {
+    return this.http.get<ApiKeys>(`${this.api}/api-keys/` + id);
   }
 
   updateStatus(id: number, is_active: boolean) {
-    return this.http.patch(`${this.api}/update-status/` + id, {is_active});
+    return this.http.patch(`${this.api}/api-keys/update-status/` + id, {is_active});
   }
 
   regenerate(id: number) {
-    return this.http.patch(`${this.api}/regenerate/` + id, {});
+    return this.http.patch(`${this.api}/api-keys/regenerate/` + id, {});
+  }
+
+  delete(id: number) {
+    return this.http.delete(`${this.api}/api-keys/` + id);
   }
 
   getStatistics(year: number) {

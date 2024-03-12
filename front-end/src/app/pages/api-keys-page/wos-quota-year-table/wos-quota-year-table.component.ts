@@ -1,27 +1,27 @@
 import {Component, Input} from '@angular/core';
 import {MatTableDataSource} from '@angular/material/table';
-import {ApiKeys} from 'src/app/share/types/api-keys.model.type';
 import {Paginated} from 'src/app/share/types/paginate.type';
 import {FormBuilder, FormGroup} from '@angular/forms';
+import {filter, switchMap} from 'rxjs';
+import {WosQuota} from 'src/app/share/types/wos-quota.model.type';
+import {WosQuotaYear} from 'src/app/share/types/wos-quota-year.model.type';
 import {MatDialog} from '@angular/material/dialog';
+import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 import {LoaderService} from 'src/app/services/loader.service';
-import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {PageEvent} from '@angular/material/paginator';
 import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
-import {filter, switchMap} from 'rxjs';
-import {ApiKeysFormComponent} from '../api-keys-form/api-keys-form.component';
-import {WosQuota} from 'src/app/share/types/wos-quota.model.type';
+import {WosQuotaYearFormComponent} from '../wos-quota-year-form/wos-quota-year-form.component';
 
 @Component({
-  selector: 'app-api-keys-table',
-  templateUrl: './api-keys-table.component.html',
-  styleUrls: ['./api-keys-table.component.scss']
+  selector: 'app-wos-quota-year-table',
+  templateUrl: './wos-quota-year-table.component.html',
+  styleUrls: ['./wos-quota-year-table.component.scss']
 })
-export class ApiKeysTableComponent {
-  columnsToDisplay: string[] = ['id', 'is_active', 'api_key', 'name', 'organization_id', 'creation_date', 'update_date', 'actions'];
-  dataSource!: MatTableDataSource<ApiKeys>;
-  response!: Paginated<ApiKeys>;
+export class WosQuotaYearTableComponent {
+  columnsToDisplay: string[] = ['id', 'year', 'quota', 'creation_date', 'update_date', 'actions'];
+  dataSource!: MatTableDataSource<WosQuotaYear>;
+  response!: Paginated<WosQuotaYear>;
   length = 0;
   pageSize = 50;
   pageIndex = 0;
@@ -41,6 +41,7 @@ export class ApiKeysTableComponent {
   }
 
   ngOnInit() {
+    console.log('initialized!')
     this.initForm();
     this.wosQuotaId = this.selectedWosQuota?.id ? this.selectedWosQuota.id : null;
     if (this.wosQuotaId) {
@@ -73,9 +74,10 @@ export class ApiKeysTableComponent {
       queryString.push(`page=${this.pageIndex + 1}`);
       queryString.push(`sortBy=${this.sortBy}`);
       queryString.push(`search=${this.text}`);
+      queryString.push(`wosQuotaId=${this.wosQuotaId}`);
 
       this.apiKeyService
-        .find(queryString.join('&'), this.wosQuotaId)
+        .findWosQuotaYear(queryString.join('&'))
         .subscribe((response) => {
           this.response = response;
           this.length = response.meta.totalItems;
@@ -84,9 +86,9 @@ export class ApiKeysTableComponent {
     }
   }
 
-  openDialog(id?: number | null, type = 'application'): void {
-    const dialogRef = this.dialog.open(ApiKeysFormComponent, {
-      data: {id, type, wosQuotaId: this.wosQuotaId},
+  openDialog(id?: number): void {
+    const dialogRef = this.dialog.open(WosQuotaYearFormComponent, {
+      data: {id, wosQuotaId: this.wosQuotaId},
       width: '100%',
       maxWidth: '650px',
       maxHeight: '90vh',
@@ -100,14 +102,14 @@ export class ApiKeysTableComponent {
     this.dialog
       .open(DeleteConfirmDialogComponent, {
         data: {
-          message: 'Are you sure you want to delete this API-key?',
+          message: 'Are you sure you want to delete this quota?',
           title: 'Delete',
         },
       })
       .afterClosed()
       .pipe(
         filter((i) => !!i),
-        switchMap(() => this.apiKeyService.delete(id))
+        switchMap(() => this.apiKeyService.deleteWosQuotaYear(id))
       )
       .subscribe({
         next: () => {
@@ -119,54 +121,4 @@ export class ApiKeysTableComponent {
         },
       });
   }
-
-  updateStatus(id: number, is_active: boolean) {
-    const operation = is_active ? 'Activate' : 'Deactivate';
-    this.dialog
-      .open(DeleteConfirmDialogComponent, {
-        data: {
-          message: `Are you sure you want to ${operation} this API-key?`,
-          title: operation,
-        },
-      })
-      .afterClosed()
-      .pipe(
-        filter((i) => !!i),
-        switchMap(() => this.apiKeyService.updateStatus(id, is_active))
-      )
-      .subscribe({
-        next: () => {
-          this.loadData();
-          this.snackBarService.success(`${operation}ed successfully.`);
-        },
-        error: (error) => {
-          this.snackBarService.error(error.error.message);
-        },
-      });
-  }
-
-  regenerate(id: number) {
-    this.dialog
-      .open(DeleteConfirmDialogComponent, {
-        data: {
-          message: `Are you sure you want to regenerate this API-key?`,
-          title: 'Regenerate',
-        },
-      })
-      .afterClosed()
-      .pipe(
-        filter((i) => !!i),
-        switchMap(() => this.apiKeyService.regenerate(id))
-      )
-      .subscribe({
-        next: () => {
-          this.loadData();
-          this.snackBarService.success(`Regenerated successfully.`);
-        },
-        error: (error) => {
-          this.snackBarService.error(error.error.message);
-        },
-      });
-  }
-
 }

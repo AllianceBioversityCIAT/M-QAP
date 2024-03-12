@@ -23,6 +23,7 @@ import { SocketsModule } from './sockets/sockets.module';
 import { RepositoriesModule } from './repositories/repositories.module';
 import { UsersModule } from './users/users.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
+import { PaginatorService } from './paginator/paginator.service';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { ApiKeysModule } from './api-keys/api-keys.module';
     ApiKeysModule,
   ],
   controllers: [AppController, DashboardController],
-  providers: [AppService, DoiService, AI, HandleService, FormatService],
+  providers: [AppService, DoiService, AI, HandleService, FormatService, PaginatorService],
+  exports: [PaginatorService]
 })
 export class AppModule {}

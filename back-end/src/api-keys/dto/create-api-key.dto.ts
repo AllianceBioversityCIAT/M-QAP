@@ -1,10 +1,15 @@
 import {Expose, Type} from 'class-transformer';
 import {Organization} from 'src/entities/organization.entity';
 import {User} from 'src/entities/user.entity';
+import {WosQuota} from 'src/entities/wos-quota.entity';
 
 export class CreateApiKeyDto {
+
     @Expose()
-    name?: string;
+    @Type(() => WosQuota)
+    wosQuota: WosQuota;
+    @Expose()
+    name: string;
 
     @Expose()
     @Type(() => Organization)
@@ -13,9 +18,6 @@ export class CreateApiKeyDto {
     @Expose()
     @Type(() => User)
     user?: User;
-
-    @Expose()
-    quota: number;
 
     @Expose()
     api_key: string;

@@ -1,6 +1,7 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {ApiKeysService} from './api-keys/api-keys.service';
 import {ApiKey} from './entities/api-key.entity';
+import {FindOneOptions} from 'typeorm';
 
 @Injectable()
 export class AppService {
@@ -21,9 +22,16 @@ export class AppService {
         const apiKeyEntity = await this.apiKeysService.findOne({
             where: {
                 api_key: apiKey,
-                is_active: true
-            }
-        });
+                is_active: true,
+                wosQuota: {
+                    is_active: true,
+                    wosQuotaYear: {
+                        year: (new Date().getFullYear())
+                    },
+                },
+            },
+            relations: ['wosQuota', 'wosQuota.wosQuotaYear']
+        } as FindOneOptions);
 
         if (!apiKeyEntity) {
             throw new HttpException(
@@ -36,7 +44,7 @@ export class AppService {
         }
     }
 
-    async getWosAvailableQuota(apiKeyEntity: ApiKey) {
-        return await this.apiKeysService.getWosAvailableQuota(apiKeyEntity);
+    async getWosAvailableQuota(apiKeyEntity: ApiKey, year: number) {
+        return await this.apiKeysService.getWosAvailableQuota(apiKeyEntity, year);
     }
 }

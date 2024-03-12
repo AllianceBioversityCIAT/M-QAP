@@ -1,12 +1,12 @@
 <app-dialog-layout>
-  <h3 header-label>{{ id ? "Edit" : "Add" }} API-key</h3>
+  <h3 header-label>{{ id ? "Edit" : "Add" }} WoS quota</h3>
 
   <button header-action mat-icon-button (click)="dialogRef.close()">
     <mat-icon> close</mat-icon>
   </button>
 
   <form content [formGroup]="form">
-    <app-input *ngIf="type === 'application'">
+    <app-input>
       <mat-label>Name <span class="star">*</span></mat-label>
       <mat-form-field hideRequiredMarker appearance="outline">
         <input matInput formControlName="name"/>
@@ -14,8 +14,8 @@
       </mat-form-field>
     </app-input>
 
-    <app-input *ngIf="type === 'organization'">
-      <mat-label>Organization<span class="star">*</span></mat-label>
+    <app-input>
+      <mat-label>Organization</mat-label>
       <app-organization-input formControlName="organization">
         <app-errors matError [animation]="true" [control]="form.get('organization')"></app-errors>
       </app-organization-input>

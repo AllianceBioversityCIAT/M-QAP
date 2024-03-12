@@ -2,8 +2,9 @@ import {BadRequestException, Injectable, InternalServerErrorException} from '@ne
 import {TypeOrmCrudService} from '@nestjsx/crud-typeorm';
 import {ApiKey} from '../entities/api-key.entity';
 import {InjectRepository} from '@nestjs/typeorm';
-import {Between, DataSource, FindOptionsWhere, Repository} from 'typeorm';
-import {paginate, Paginated, PaginateQuery} from 'nestjs-paginate';
+import {Between, DataSource, FindOneOptions, Repository} from 'typeorm';
+import {PaginatorService} from 'src/paginator/paginator.service';
+import {PaginatedQuery, PaginatorQuery} from 'src/paginator/types';
 import {CreateApiKeyDto} from './dto/create-api-key.dto';
 import {UpdateApiKeyDto} from './dto/update-api-key.dto';
 import {CreateApiKeyUsageDto} from './dto/create-api-key-usage.dto';
@@ -13,6 +14,13 @@ import {ApiKeyUsage} from '../entities/api-key-usage.entity';
 import {ApiKeyWosUsage} from '../entities/api-key-wos-usage.entity';
 import {FindManyOptions} from 'typeorm/find-options/FindManyOptions';
 import * as dayjs from 'dayjs';
+import {CreateWosQuotaDto} from './dto/create-wos-quota.dto';
+import {WosQuota} from '../entities/wos-quota.entity';
+import {UpdateWosQuotaDto} from './dto/update-wos-quota.dto';
+import {WosQuotaYear} from '../entities/wos-quota-year.entity';
+import {FindOptionsWhere} from "typeorm/find-options/FindOptionsWhere";
+import {CreateWosQuotaYearDto} from "./dto/create-wos-quota-year.dto";
+import {UpdateWosQuotaYearDto} from "./dto/update-wos-quota-year.dto";
 
 @Injectable()
 export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
@@ -21,15 +29,145 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         public apiKeyRepository: Repository<ApiKey>,
         @InjectRepository(ApiKeyUsage)
         public apiKeyUsageRepository: Repository<ApiKeyUsage>,
+        @InjectRepository(WosQuota)
+        public wosQuotaRepository: Repository<WosQuota>,
+        @InjectRepository(WosQuotaYear)
+        public wosQuotaYearRepository: Repository<WosQuotaYear>,
         @InjectRepository(ApiKeyWosUsage)
         public apiKeyWosUsageRepository: Repository<ApiKeyWosUsage>,
         private readonly dataSource: DataSource,
+        private readonly paginatorService: PaginatorService,
     ) {
         super(apiKeyRepository);
     }
 
-    async create(createApiKeyDto: Partial<CreateApiKeyDto>) {
+    async createWosQuota(createWosQuotaDto: Partial<CreateWosQuotaDto>) {
         try {
+            createWosQuotaDto.is_active = true;
+
+            const newRepository = this.wosQuotaRepository.create({...createWosQuotaDto});
+            return await this.wosQuotaRepository.save(newRepository);
+        } catch (error) {
+            if (error.errno === 1062) {
+                throw new BadRequestException('Duplicated Quota');
+            } else {
+                throw new InternalServerErrorException('Oops! something went wrong.');
+            }
+        }
+    }
+
+    async updateWosQuota(id: number, updateWosQuotaDto: UpdateWosQuotaDto) {
+        try {
+            delete updateWosQuotaDto.is_active;
+
+            return await this.wosQuotaRepository.update({id}, {...updateWosQuotaDto});
+        } catch (error) {
+            if (error.errno === 1062) {
+                throw new BadRequestException('Duplicated Quota');
+            } else {
+                throw new InternalServerErrorException('Oops! something went wrong.');
+            }
+        }
+    }
+
+    public findAllWosQuota(query: PaginatorQuery): Promise<PaginatedQuery<WosQuota>> {
+        const queryBuilder = this.wosQuotaRepository
+            .createQueryBuilder('wos_quota')
+            .select([
+                'wos_quota.id AS id',
+                'wos_quota.creation_date AS creation_date',
+                'wos_quota.update_date AS update_date',
+                'wos_quota.name AS name',
+                'organization.acronym AS organization',
+                'wos_quota.is_active AS is_active',
+            ])
+            .leftJoin('organization', 'organization', 'organization.id = wos_quota.organization_id');
+
+        return this.paginatorService.paginator(query, queryBuilder, [
+            'wos_quota.id',
+            'wos_quota.creation_date',
+            'wos_quota.update_date',
+            'wos_quota.name',
+            'organization.acronym',
+            'IF(wos_quota.is_active = 1, "Yes", "No")',
+        ], 'wos_quota.id', ['wos_quota.id']);
+    }
+
+    public findOneWosQuota(findOneOptions: FindOneOptions): Promise<WosQuota> {
+        return this.wosQuotaRepository.findOne(findOneOptions);
+    }
+
+    async updateStatusWosQuota(id: number, is_active: boolean) {
+        try {
+            const updateWosQuotaDto = {is_active} as UpdateWosQuotaDto;
+            return await this.wosQuotaRepository.update({id}, {...updateWosQuotaDto});
+        } catch (error) {
+            throw new InternalServerErrorException('Oops! something went wrong.');
+        }
+    }
+
+    removeWosQuota(id: number) {
+        return this.wosQuotaRepository.delete({id});
+    }
+
+    async createWosQuotaYear(wosQuotaId: number, createWosQuotaYearDto: Partial<CreateWosQuotaYearDto>) {
+        try {
+            createWosQuotaYearDto.wosQuota = await this.findOneWosQuota({where: {id: wosQuotaId}});
+            const newRepository = this.wosQuotaYearRepository.create({...createWosQuotaYearDto});
+            return await this.wosQuotaYearRepository.save(newRepository);
+        } catch (error) {
+            if (error.errno === 1062) {
+                throw new BadRequestException('Duplicated Quota');
+            } else {
+                throw new InternalServerErrorException('Oops! something went wrong.');
+            }
+        }
+    }
+
+    async updateWosQuotaYear(id: number, updateWosQuotaYearDto: UpdateWosQuotaYearDto) {
+        try {
+            return await this.wosQuotaYearRepository.update({id}, {...updateWosQuotaYearDto});
+        } catch (error) {
+            if (error.errno === 1062) {
+                throw new BadRequestException('Duplicated Quota');
+            } else {
+                throw new InternalServerErrorException('Oops! something went wrong.');
+            }
+        }
+    }
+
+    public findAllWosQuotaYear(wosQuotaId: number, query: PaginatorQuery): Promise<PaginatedQuery<WosQuotaYear>> {
+        const queryBuilder = this.wosQuotaYearRepository
+            .createQueryBuilder('wos_quota_year')
+            .select([
+                'wos_quota_year.id AS id',
+                'wos_quota_year.creation_date AS creation_date',
+                'wos_quota_year.update_date AS update_date',
+                'wos_quota_year.year AS year',
+                'wos_quota_year.quota AS quota',
+            ])
+            .where('wos_quota_year.wos_quota_id = :wosQuotaId', {wosQuotaId});
+
+        return this.paginatorService.paginator(query, queryBuilder, [
+            'wos_quota_year.id',
+            'wos_quota_year.creation_date',
+            'wos_quota_year.update_date',
+            'wos_quota_year.year',
+            'wos_quota_year.quota',
+        ], 'wos_quota_year.id');
+    }
+
+    public findOneWosQuotaYear(findOneOptions: FindOneOptions): Promise<WosQuotaYear> {
+        return this.wosQuotaYearRepository.findOne(findOneOptions);
+    }
+
+    removeWosQuotaYear(id: number) {
+        return this.wosQuotaYearRepository.delete({id});
+    }
+
+    async create(wosQuotaId: number, createApiKeyDto: Partial<CreateApiKeyDto>) {
+        try {
+            createApiKeyDto.wosQuota = await this.findOneWosQuota({where: {id: wosQuotaId}});
             if (createApiKeyDto.name) {
                 createApiKeyDto.organization = null;
                 createApiKeyDto.user = null;
@@ -55,15 +193,6 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         }
     }
 
-    public findAll(query: PaginateQuery): Promise<Paginated<ApiKey>> {
-        return paginate(query, this.apiKeyRepository, {
-            sortableColumns: ['id', 'name', 'organization.name', 'user.email', 'wos_quota'],
-            searchableColumns: ['id', 'name', 'organization.name', 'organization.acronym', 'user.full_name', 'user.email', 'wos_quota'],
-            relations: ['organization', 'user'],
-            select: [],
-        });
-    }
-
     async update(id: number, updateApiKeyDto: UpdateApiKeyDto) {
         try {
             if (updateApiKeyDto.name) {
@@ -87,6 +216,36 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 throw new InternalServerErrorException('Oops! something went wrong.');
             }
         }
+    }
+
+    public findAll(query: PaginatorQuery, wosQuotaId: number): Promise<PaginatedQuery<ApiKey>> {
+        const queryBuilder = this.apiKeyRepository
+            .createQueryBuilder('api_key')
+            .select([
+                'api_key.id AS id',
+                'api_key.creation_date AS creation_date',
+                'api_key.update_date AS update_date',
+                'api_key.name AS name',
+                'api_key.api_key AS api_key',
+                'organization.acronym AS organization',
+                'user.email AS user_email',
+                'api_key.is_active AS is_active',
+            ])
+            .leftJoin('organization', 'organization', 'organization.id = api_key.organization_id')
+            .leftJoin('user', 'user', 'user.id = api_key.user_id')
+            .where('api_key.wos_quota_id = :wosQuotaId', {wosQuotaId})
+
+        return this.paginatorService.paginator(query, queryBuilder, [
+            'api_key.id',
+            'api_key.creation_date',
+            'api_key.update_date',
+            'api_key.name',
+            'api_key.api_key',
+            'organization.acronym',
+            'user.email',
+            'api_key.is_active',
+            'IF(api_key.is_active = 1, "Yes", "No")',
+        ], 'api_key.id');
     }
 
     async updateStatus(id: number, is_active: boolean) {
@@ -176,8 +335,8 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         }
     }
 
-    async getWosAvailableQuota(apiKeyEntity: ApiKey, year: number = null) {
-        const date = year ? dayjs(`${year}-01-01`) : dayjs();
+    async getWosAvailableQuota(apiKeyEntity: ApiKey, year: number = (new Date()).getFullYear()) {
+        const date = dayjs(`${year}-01-01`);
         const used = await this.apiKeyWosUsageRepository.count({
             where: {
                 apiKey: {id: apiKeyEntity.id},
@@ -185,11 +344,30 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             }
         } as FindManyOptions);
 
-        const available = Number(apiKeyEntity.wos_quota) - used;
-        const usedPercentage = Number(apiKeyEntity.wos_quota > 0 ? (used / apiKeyEntity.wos_quota * 100).toFixed(2) : 0);
+        const quotaYear = await this.findOneWosQuotaYear({
+            where: {
+                year,
+                wosQuota: {
+                    id: apiKeyEntity.wosQuota.id
+                }
+            }
+        });
+
+        if (!quotaYear) {
+            return {
+                wosQuota: 0,
+                used: 0,
+                usedPercentage: 0,
+                available: 0,
+                availablePercentage: 0,
+            };
+        }
+
+        const available = quotaYear.quota - used;
+        const usedPercentage = Number(quotaYear.quota > 0 ? (used / quotaYear.quota * 100).toFixed(2) : 0);
         const availablePercentage = Number((100 - Number(usedPercentage)).toFixed(2));
         return {
-            wosQuota: apiKeyEntity.wos_quota,
+            wosQuota: quotaYear.quota,
             used,
             usedPercentage,
             available,
@@ -309,20 +487,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         return yearMonthsSeriesObject;
     }
 
-    async findAllSummary(query: PaginateQuery, year: number) {
-        const response = {
-            data: [],
-            meta: {
-                itemsPerPage: query?.limit,
-                totalItems: 0,
-                currentPage: query?.page,
-                totalPages: 0,
-                sortBy: query?.sortBy
-            },
-            links: {
-                current: `?page=${query.page}&limit=${query.limit}&sortBy=${query.sortBy}`
-            }
-        };
+    async findAllSummary(query: PaginatorQuery, year: number): Promise<PaginatedQuery<any>> {
         const date = (year ? year : dayjs().get('year')).toString();
         const queryBuilder = this.dataSource
             .createQueryBuilder()
@@ -345,87 +510,57 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             .leftJoin('organization', 'organization', 'organization.id = api_key.organization_id')
             .leftJoin('user', 'user', 'user.id = api_key.user_id')
             .leftJoin('api_key_wos_usage', 'api_key_wos_usage', 'api_key_wos_usage.api_key_id = api_key.id AND YEAR(api_key_wos_usage.creation_date) = :date', {date})
-            .leftJoin('api_key_usage', 'api_key_usage', 'api_key_usage.api_key_id = api_key.id AND YEAR(api_key_usage.creation_date) = :date', {date})
-            .groupBy('api_key.id');
+            .leftJoin('api_key_usage', 'api_key_usage', 'api_key_usage.api_key_id = api_key.id AND YEAR(api_key_usage.creation_date) = :date', {date});
 
-        if (query?.search != null && query.search.trim() !== '') {
-            const where = [];
-            const whereBinds = {};
-            query.search.trim().split(' ').map((value, index) => {
-                value = value.toString().trim();
-                if (value !== '') {
-                    where.push(`CONCAT_WS(' ',
-                        api_key.id,
-                        (CASE WHEN api_key.organization_id IS NOT NULL THEN organization.acronym
+        return this.paginatorService.paginator(query, queryBuilder, [
+            'api_key.id',
+            `(CASE WHEN api_key.organization_id IS NOT NULL THEN organization.acronym
                         WHEN api_key.user_id IS NOT NULL THEN user.email
                         ELSE api_key.name
-                        END),
-                        (CASE WHEN api_key.organization_id IS NOT NULL THEN "Organization"
+                        END)`,
+            `(CASE WHEN api_key.organization_id IS NOT NULL THEN "Organization"
                         WHEN api_key.user_id IS NOT NULL THEN "User"
                         ELSE "Application"
-                        END),
-                        api_key.wos_quota,
-                        (IF(api_key.is_active = 1, "Yes", "No"))
-                        ) LIKE :term_${index}`);
-                    whereBinds[`term_${index}`] = `%${value}%`;
-                }
-            });
-            if (where.length > 0) {
-                queryBuilder.andWhere(where.join(' AND '), whereBinds);
-            }
-        }
-
-        const totalQuery = queryBuilder
-            .clone()
-            .select(['COUNT(api_key.id) AS total']);
-        const totalRecords = await totalQuery.getRawOne();
-
-        query.limit = Number(query?.limit) > 0 ? query.limit : 50;
-        if (query?.page != null) {
-            queryBuilder.offset((query.page - 1) * query.limit);
-        }
-        queryBuilder.limit(query.limit);
-
-        if (query?.sortBy) {
-            query.sortBy.map(sort => {
-                const direction = sort[1] === 'ASC' ? 'ASC' : 'DESC';
-                queryBuilder.orderBy(sort[0], direction);
-            })
-        }
-
-        try {
-            response.data = await queryBuilder.execute();
-            response.meta.totalItems = totalRecords && totalRecords?.total ? Number(totalRecords.total) : 0;
-            return response;
-        } catch (e) {
-            return response;
-        }
+                        END)`,
+            'api_key.wos_quota',
+            '(IF(api_key.is_active = 1, "Yes", "No")'
+        ], 'api_key.id', ['api_key.id']);
     }
 
-    public findAllDetails(query: PaginateQuery, apiKeyId: number, type: string, year: number): Promise<Paginated<ApiKeyUsage | ApiKeyWosUsage>> {
-        const date = year ? dayjs(`${year}-01-01`) : dayjs();
+    public findAllDetails(query: PaginatorQuery, apiKeyId: number, type: string, year: number): Promise<PaginatedQuery<ApiKeyUsage | ApiKeyWosUsage>> {
+        const date = year ? year : dayjs().get('year');
         if (type === 'wos') {
-            return paginate(query, this.apiKeyWosUsageRepository, {
-                sortableColumns: ['id', 'creation_date', 'doi'],
-                searchableColumns: ['id', 'creation_date', 'doi'],
-                relations: [],
-                select: [],
-                where: {
-                    apiKey: {id: apiKeyId},
-                    creation_date: Between(date.startOf('year').toDate(), date.endOf('year').toDate())
-                } as FindOptionsWhere<any>
-            });
+            const queryBuilder = this.apiKeyWosUsageRepository
+                .createQueryBuilder('api_key_wos_usage')
+                .select([
+                    'api_key_wos_usage.id AS id',
+                    'api_key_wos_usage.creation_date AS creation_date',
+                    'api_key_wos_usage.doi AS doi',
+                ])
+                .where('YEAR(api_key_wos_usage.creation_date) = :date', {date})
+                .andWhere('api_key_wos_usage.api_key_id = :apiKeyId', {apiKeyId});
+
+            return this.paginatorService.paginator(query, queryBuilder, [
+                'api_key_wos_usage.id',
+                'api_key_wos_usage.creation_date',
+                'api_key_wos_usage.doi',
+            ], 'api_key_wos_usage.id');
         } else {
-            return paginate(query, this.apiKeyUsageRepository, {
-                sortableColumns: ['id', 'creation_date', 'path'],
-                searchableColumns: ['id', 'creation_date', 'path'],
-                relations: [],
-                select: [],
-                where: {
-                    apiKey: {id: apiKeyId},
-                    creation_date: Between(date.startOf('year').toDate(), date.endOf('year').toDate())
-                } as FindOptionsWhere<any>
-            });
+            const queryBuilder = this.apiKeyUsageRepository
+                .createQueryBuilder('api_key_usage')
+                .select([
+                    'api_key_usage.id AS id',
+                    'api_key_usage.creation_date AS creation_date',
+                    'api_key_usage.path AS path',
+                ])
+                .where('YEAR(api_key_usage.creation_date) = :date', {date})
+                .andWhere('api_key_usage.api_key_id = :apiKeyId', {apiKeyId});
+
+            return this.paginatorService.paginator(query, queryBuilder, [
+                'api_key_wos_usage.id',
+                'api_key_wos_usage.creation_date',
+                'api_key_wos_usage.doi',
+            ], 'api_key_wos_usage.id');
         }
     }
 }

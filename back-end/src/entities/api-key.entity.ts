@@ -3,7 +3,7 @@ import {
     CreateDateColumn,
     Entity,
     JoinColumn,
-    JoinTable,
+    JoinTable, ManyToOne,
     OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
@@ -13,6 +13,7 @@ import {Organization} from './organization.entity';
 import {User} from './user.entity';
 import {ApiKeyUsage} from './api-key-usage.entity';
 import {ApiKeyWosUsage} from './api-key-wos-usage.entity';
+import {WosQuota} from './wos-quota.entity';
 
 @Entity()
 export class ApiKey {
@@ -25,7 +26,11 @@ export class ApiKey {
     @UpdateDateColumn()
     update_date: string;
 
-    @Column({nullable: true, unique: true})
+    @ManyToOne(() => WosQuota, (wosQuota) => wosQuota.wosQuotaYear, {nullable: false})
+    @JoinColumn()
+    wosQuota: WosQuota;
+
+    @Column({nullable: true})
     name: string;
 
     @OneToOne(() => Organization, (organization) => organization.apikey, {nullable: true})
@@ -36,10 +41,7 @@ export class ApiKey {
     @JoinColumn()
     user: User;
 
-    @Column()
-    wos_quota: number;
-
-    @Column({nullable: true, unique: true})
+    @Column({nullable: false, unique: true})
     api_key: string;
 
     @Column()

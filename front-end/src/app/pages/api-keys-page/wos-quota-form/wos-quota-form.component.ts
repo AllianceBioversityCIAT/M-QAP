@@ -1,28 +1,26 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup} from '@angular/forms';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
+import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
-import {ApiKeysService} from "src/app/services/api-keys.service";
 import {vb} from 'src/app/services/validator.service';
 import {z} from 'zod';
 
 export interface DialogData {
   id?: number;
-  wosQuotaId: number;
-  type?: string;
   data?: any;
 }
 
 @Component({
-  selector: 'app-api-keys-form',
-  templateUrl: './api-keys-form.component.html',
-  styleUrls: ['./api-keys-form.component.scss']
+  selector: 'app-wos-quota-form',
+  templateUrl: './wos-quota-form.component.html',
+  styleUrls: ['./wos-quota-form.component.scss']
 })
-export class ApiKeysFormComponent implements OnInit {
+export class WosQuotaFormComponent implements OnInit {
   form!: FormGroup;
 
   constructor(
-    public dialogRef: MatDialogRef<ApiKeysFormComponent>,
+    public dialogRef: MatDialogRef<WosQuotaFormComponent>,
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
     private apiKeysService: ApiKeysService,
     private snackBarService: SnackBarService,
@@ -39,17 +37,9 @@ export class ApiKeysFormComponent implements OnInit {
     return this.data?.id;
   }
 
-  get type() {
-    return this.data?.type;
-  }
-
-  get wosQuotaId() {
-    return this.data.wosQuotaId;
-  }
-
   patchForm() {
     if (this.id) {
-      this.apiKeysService.get(this.id).subscribe((data) => {
+      this.apiKeysService.getWosQuota(this.id).subscribe((data) => {
         this.form.patchValue(data);
       });
     } else if (!!this.data?.data) {
@@ -58,17 +48,10 @@ export class ApiKeysFormComponent implements OnInit {
   }
 
   private async formInit() {
-    if (this.type === 'application') {
-      this.form = this.fb.group({
-        name: ['', vb(z.string().min(2).max(255))],
-      });
-    } else if (this.type === 'organization') {
-      this.form = this.fb.group({
-        organization: [null, vb(z.object({}))],
-      });
-    } else if (this.type === 'user') {
-      this.form = this.fb.group({});
-    }
+    this.form = this.fb.group({
+      name: ['', vb(z.string().min(2).max(255))],
+      organization: [null],
+    });
   }
 
   async submit() {
@@ -76,15 +59,15 @@ export class ApiKeysFormComponent implements OnInit {
     this.form.updateValueAndValidity();
     if (this.form.valid) {
       await this.apiKeysService
-        .upsert(this.id, this.wosQuotaId, this.form.value)
+        .upsertWosQuota(this.id, this.form.value)
         .subscribe({
           next: () => {
             if (this.id) {
               this.snackBarService.success(
-                'API-key updated successfully.'
+                'WoS quota updated successfully.'
               );
             } else {
-              this.snackBarService.success('API-key added successfully.');
+              this.snackBarService.success('WoS quota added successfully.');
             }
             this.dialogRef.close({submitted: true});
           },
@@ -94,4 +77,5 @@ export class ApiKeysFormComponent implements OnInit {
         });
     }
   }
+
 }

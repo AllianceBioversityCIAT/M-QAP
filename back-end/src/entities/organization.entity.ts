@@ -1,12 +1,13 @@
 import {
     Column,
     CreateDateColumn,
-    Entity,
+    Entity, JoinColumn,
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn
 } from 'typeorm';
 import {ApiKey} from './api-key.entity';
+import {WosQuota} from "./wos-quota.entity";
 
 @Entity()
 export class Organization {
@@ -27,6 +28,10 @@ export class Organization {
 
     @Column()
     code: string;
+
+    @OneToOne(() => WosQuota, (wosQuota) => wosQuota.organization)
+    @JoinColumn()
+    wosQuota: WosQuota;
 
     @OneToOne(() => ApiKey, (apiKey) => apiKey.organization)
     apikey: ApiKey;

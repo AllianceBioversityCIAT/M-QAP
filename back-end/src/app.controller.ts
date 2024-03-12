@@ -73,12 +73,14 @@ export class AppController {
         return await this.ai.makePrediction(name);
     }
 
-    @Get('/available-wos-quota')
+    @Get(['/available-wos-quota', '/available-wos-quota/:year'])
     async availableWosQuota(
+        @Param('year') year: number,
         @Query('apiKey') apiKey: string,
         @Request() req: any,
     ) {
         const apiKeyEntity = await this.appService.validateApiKey(apiKey, req.route.path);
-        return await this.appService.getWosAvailableQuota(apiKeyEntity)
+        year = year ? year : (new Date).getFullYear();
+        return await this.appService.getWosAvailableQuota(apiKeyEntity, year)
     }
 }

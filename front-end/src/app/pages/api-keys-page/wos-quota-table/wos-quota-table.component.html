@@ -1,14 +1,31 @@
-<div class="main-container">
+<app-h1 *ngIf="!viewTable">
+  WoS Quota
+</app-h1>
+
+<app-h1 *ngIf="viewTable === 'apiKeys'">
+  <span class="back-to-main-list" matTooltip="Back to main list" (click)="backToMainList()">WoS Quota</span> -
+  <i><b>{{ selectedWosQuota?.name }}</b></i> API-keys
+</app-h1>
+
+<app-h1 *ngIf="viewTable === 'quotas'">
+  <span class="back-to-main-list" matTooltip="Back to main list" (click)="backToMainList()">WoS Quota</span> -
+  <i><b>{{ selectedWosQuota?.name }}</b></i> Quota
+</app-h1>
+
+<app-api-keys-table *ngIf="selectedWosQuota?.id && viewTable === 'apiKeys'"
+                    [selectedWosQuota]="selectedWosQuota"></app-api-keys-table>
+
+<app-wos-quota-year-table *ngIf="selectedWosQuota?.id && viewTable === 'quotas'"
+                          [selectedWosQuota]="selectedWosQuota"></app-wos-quota-year-table>
+
+<div *ngIf="!viewTable" class="main-container">
   <section class="action-button-section">
-    <button (click)="openDialog(null, 'organization')" mat-raised-button color="primary">
+    <button (click)="openDialog()" mat-raised-button color="primary">
       <mat-icon> add_box</mat-icon>
-      Add new Organization API-key
-    </button>
-    <button (click)="openDialog(null, 'application')" mat-raised-button color="primary">
-      <mat-icon> add_box</mat-icon>
-      Add new Application API-key
+      Add new WoS quota
     </button>
   </section>
+
   <form [formGroup]="form">
     <mat-form-field appearance="outline" floatLabel="always">
       <mat-label>Search</mat-label>
@@ -42,26 +59,6 @@
         </td>
       </ng-container>
 
-      <!-- Status Column -->
-      <ng-container matColumnDef="is_active">
-        <th mat-header-cell *matHeaderCellDef class="min-width-2">
-          Is active
-        </th>
-        <td mat-cell *matCellDef="let element" class="min-width-2">
-          {{ element.is_active ? 'Yes' : 'No' }}
-        </td>
-      </ng-container>
-
-      <!-- API-key Column -->
-      <ng-container matColumnDef="api_key">
-        <th mat-header-cell *matHeaderCellDef class="min-width-14">
-          API-key
-        </th>
-        <td mat-cell *matCellDef="let element" class="min-width-14">
-          {{ element.api_key }}
-        </td>
-      </ng-container>
-
       <!-- Name Column -->
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef class="min-width-14 width-fill">
@@ -79,6 +76,16 @@
         </th>
         <td mat-cell *matCellDef="let element" class="width-14">
           {{ element.organization }}
+        </td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="is_active">
+        <th mat-header-cell *matHeaderCellDef class="min-width-2">
+          Is active
+        </th>
+        <td mat-cell *matCellDef="let element" class="min-width-2">
+          {{ element.is_active ? 'Yes' : 'No' }}
         </td>
       </ng-container>
 
@@ -108,19 +115,24 @@
             <button
               mat-icon-button
               matTooltip="Edit"
-              (click)="openDialog(element.id, element?.name ? 'application' : element.organization ? 'organization' : 'user')"
+              (click)="openDialog(element.id)"
             >
               <mat-icon>
                 <app-edit-icon></app-edit-icon>
               </mat-icon>
             </button>
 
-            <button mat-icon-button [matTooltip]="element.is_active ? 'Deactivate' : 'Activate'" (click)="updateStatus(element.id, !element.is_active)">
+            <button mat-icon-button [matTooltip]="element.is_active ? 'Deactivate' : 'Activate'"
+                    (click)="updateStatus(element.id, !element.is_active)">
               <mat-icon>{{ element.is_active ? 'block' : 'done_outline' }}</mat-icon>
             </button>
 
-            <button mat-icon-button matTooltip="Regenerate" (click)="regenerate(element.id)">
-              <mat-icon>swap_horiz</mat-icon>
+            <button mat-icon-button matTooltip="API-keys" (click)="apiKeys(element)">
+              <mat-icon>api</mat-icon>
+            </button>
+
+            <button mat-icon-button matTooltip="Quota" (click)="quotas(element)">
+              <mat-icon>electric_meter</mat-icon>
             </button>
 
             <button mat-icon-button matTooltip="Delete" (click)="delete(element.id)">
