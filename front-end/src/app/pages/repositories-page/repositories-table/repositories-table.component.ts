@@ -23,7 +23,7 @@ export class RepositoriesTableComponent {
   dataSource!: MatTableDataSource<Repository>;
   response!: Paginated<Repository>;
   length = 0;
-  pageSize = 50;
+  pageSize = 10;
   pageIndex = 0;
   sortBy = 'id:ASC';
   text = '';

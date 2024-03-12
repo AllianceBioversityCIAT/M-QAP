@@ -55,7 +55,7 @@ export class WosQuotaYearFormComponent {
   private async formInit() {
     this.form = this.fb.group({
       year: ['', vb(z.number().positive())],
-      quota: ['', vb(z.number().positive())],
+      quota: ['', vb(z.number().min(0))],
     });
   }
 

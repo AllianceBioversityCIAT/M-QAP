@@ -23,7 +23,7 @@ export class TrainingCycleTableComponent {
   form!: FormGroup;
   response!: Paginated<TrainingCycle>;
   length = 0;
-  pageSize = 50;
+  pageSize = 10;
   pageIndex = 0;
   sortBy = 'id:DESC';
   text = '';

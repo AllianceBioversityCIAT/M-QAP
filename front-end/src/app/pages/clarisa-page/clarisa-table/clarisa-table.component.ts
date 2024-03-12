@@ -18,7 +18,7 @@ export class ClarisaTableComponent {
   dataSource!: MatTableDataSource<Organization>;
   response!: Paginated<Organization>;
   length = 0;
-  pageSize = 50;
+  pageSize = 10;
   pageIndex = 0;
   sortBy = 'id:ASC';
   text = '';

@@ -18,9 +18,8 @@ import {CreateWosQuotaDto} from './dto/create-wos-quota.dto';
 import {WosQuota} from '../entities/wos-quota.entity';
 import {UpdateWosQuotaDto} from './dto/update-wos-quota.dto';
 import {WosQuotaYear} from '../entities/wos-quota-year.entity';
-import {FindOptionsWhere} from "typeorm/find-options/FindOptionsWhere";
-import {CreateWosQuotaYearDto} from "./dto/create-wos-quota-year.dto";
-import {UpdateWosQuotaYearDto} from "./dto/update-wos-quota-year.dto";
+import {CreateWosQuotaYearDto} from './dto/create-wos-quota-year.dto';
+import {UpdateWosQuotaYearDto} from './dto/update-wos-quota-year.dto';
 
 @Injectable()
 export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
@@ -81,7 +80,10 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 'organization.acronym AS organization',
                 'wos_quota.is_active AS is_active',
             ])
-            .leftJoin('organization', 'organization', 'organization.id = wos_quota.organization_id');
+            .leftJoin('organization', 'organization', 'organization.id = wos_quota.organization_id')
+            .leftJoin('api_key', 'api_key', 'api_key.wos_quota_id = wos_quota.id')
+            .leftJoin('organization', 'api_key_organization', 'api_key_organization.id = api_key.organization_id')
+            .leftJoin('user', 'api_key_user', 'api_key_user.id = api_key.user_id');
 
         return this.paginatorService.paginator(query, queryBuilder, [
             'wos_quota.id',
@@ -90,6 +92,15 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             'wos_quota.name',
             'organization.acronym',
             'IF(wos_quota.is_active = 1, "Yes", "No")',
+            'api_key.api_key',
+            `(CASE WHEN api_key.organization_id IS NOT NULL THEN api_key_organization.acronym
+                WHEN api_key.user_id IS NOT NULL THEN api_key_user.email
+                ELSE api_key.name
+                END)`,
+            `(CASE WHEN api_key.organization_id IS NOT NULL THEN "Organization"
+                WHEN api_key.user_id IS NOT NULL THEN "User"
+                ELSE "Application"
+                END)`,
         ], 'wos_quota.id', ['wos_quota.id']);
     }
 
@@ -387,7 +398,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
 
     async getApiKeysUsage(year: number = null) {
         const apiKeys = await this.find({
-            relations: ['organization', 'user']
+            relations: ['organization', 'user', 'wosQuota']
         });
 
         const usageData = {
@@ -487,13 +498,13 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         return yearMonthsSeriesObject;
     }
 
-    async findAllSummary(query: PaginatorQuery, year: number): Promise<PaginatedQuery<any>> {
-        const date = (year ? year : dayjs().get('year')).toString();
+    async findAllSummary(query: PaginatorQuery, year: number = (new Date()).getFullYear()): Promise<PaginatedQuery<any>> {
         const queryBuilder = this.dataSource
             .createQueryBuilder()
             .from('api_key', 'api_key')
             .select([
                 'api_key.id AS id',
+                'api_key.api_key AS api_key',
                 `(CASE WHEN api_key.organization_id IS NOT NULL THEN organization.acronym
                 WHEN api_key.user_id IS NOT NULL THEN user.email
                 ELSE api_key.name
@@ -502,33 +513,50 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 WHEN api_key.user_id IS NOT NULL THEN "User"
                 ELSE "Application"
                 END) AS type`,
-                'api_key.wos_quota AS wos_quota',
+                `(CASE WHEN wos_quota.organization_id IS NOT NULL THEN CONCAT(parent_organization.acronym, " (", wos_quota.name, ")")
+                ELSE wos_quota.name
+                END) AS parent_name`,
+                `(CASE WHEN wos_quota.organization_id IS NOT NULL THEN "Organization"
+                ELSE "Application"
+                END) AS parent_type`,
+                'wos_quota_year.quota AS quota',
                 'COUNT(DISTINCT api_key_wos_usage.id) AS used_wos_quota',
                 'COUNT(DISTINCT api_key_usage.id) AS api_requests',
-                'api_key.is_active AS is_active'
+                'wos_quota.is_active AS quota_is_active',
+                'api_key.is_active AS is_active',
             ])
             .leftJoin('organization', 'organization', 'organization.id = api_key.organization_id')
             .leftJoin('user', 'user', 'user.id = api_key.user_id')
-            .leftJoin('api_key_wos_usage', 'api_key_wos_usage', 'api_key_wos_usage.api_key_id = api_key.id AND YEAR(api_key_wos_usage.creation_date) = :date', {date})
-            .leftJoin('api_key_usage', 'api_key_usage', 'api_key_usage.api_key_id = api_key.id AND YEAR(api_key_usage.creation_date) = :date', {date});
+            .innerJoin('wos_quota', 'wos_quota', 'wos_quota.id = api_key.wos_quota_id')
+            .leftJoin('wos_quota_year', 'wos_quota_year', 'wos_quota_year.wos_quota_id = wos_quota.id AND wos_quota_year.year = :year', {year})
+            .leftJoin('organization', 'parent_organization', 'parent_organization.id = wos_quota.organization_id')
+            .leftJoin('api_key_wos_usage', 'api_key_wos_usage', 'api_key_wos_usage.api_key_id = api_key.id AND YEAR(api_key_wos_usage.creation_date) = :year', {year})
+            .leftJoin('api_key_usage', 'api_key_usage', 'api_key_usage.api_key_id = api_key.id AND YEAR(api_key_usage.creation_date) = :year', {year});
 
         return this.paginatorService.paginator(query, queryBuilder, [
             'api_key.id',
+            'api_key.api_key',
             `(CASE WHEN api_key.organization_id IS NOT NULL THEN organization.acronym
-                        WHEN api_key.user_id IS NOT NULL THEN user.email
-                        ELSE api_key.name
-                        END)`,
+                WHEN api_key.user_id IS NOT NULL THEN user.email
+                ELSE api_key.name
+                END)`,
             `(CASE WHEN api_key.organization_id IS NOT NULL THEN "Organization"
-                        WHEN api_key.user_id IS NOT NULL THEN "User"
-                        ELSE "Application"
-                        END)`,
-            'api_key.wos_quota',
-            '(IF(api_key.is_active = 1, "Yes", "No")'
+                WHEN api_key.user_id IS NOT NULL THEN "User"
+                ELSE "Application"
+                END)`,
+            `(CASE WHEN wos_quota.organization_id IS NOT NULL THEN CONCAT(parent_organization.acronym, " (", wos_quota.name, ")")
+                ELSE wos_quota.name
+                END)`,
+            `(CASE WHEN wos_quota.organization_id IS NOT NULL THEN "Organization"
+                ELSE "Application"
+                END)`,
+            'wos_quota_year.quota',
+            'IF(wos_quota.is_active = 1, "Yes", "No")',
+            'IF(api_key.is_active = 1, "Yes", "No")'
         ], 'api_key.id', ['api_key.id']);
     }
 
-    public findAllDetails(query: PaginatorQuery, apiKeyId: number, type: string, year: number): Promise<PaginatedQuery<ApiKeyUsage | ApiKeyWosUsage>> {
-        const date = year ? year : dayjs().get('year');
+    public findAllDetails(query: PaginatorQuery, apiKeyId: number, type: string, year: number = (new Date()).getFullYear()): Promise<PaginatedQuery<ApiKeyUsage | ApiKeyWosUsage>> {
         if (type === 'wos') {
             const queryBuilder = this.apiKeyWosUsageRepository
                 .createQueryBuilder('api_key_wos_usage')
@@ -537,7 +565,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                     'api_key_wos_usage.creation_date AS creation_date',
                     'api_key_wos_usage.doi AS doi',
                 ])
-                .where('YEAR(api_key_wos_usage.creation_date) = :date', {date})
+                .where('YEAR(api_key_wos_usage.creation_date) = :year', {year})
                 .andWhere('api_key_wos_usage.api_key_id = :apiKeyId', {apiKeyId});
 
             return this.paginatorService.paginator(query, queryBuilder, [
@@ -553,14 +581,14 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                     'api_key_usage.creation_date AS creation_date',
                     'api_key_usage.path AS path',
                 ])
-                .where('YEAR(api_key_usage.creation_date) = :date', {date})
+                .where('YEAR(api_key_usage.creation_date) = :year', {year})
                 .andWhere('api_key_usage.api_key_id = :apiKeyId', {apiKeyId});
 
             return this.paginatorService.paginator(query, queryBuilder, [
-                'api_key_wos_usage.id',
-                'api_key_wos_usage.creation_date',
-                'api_key_wos_usage.doi',
-            ], 'api_key_wos_usage.id');
+                'api_key_usage.id',
+                'api_key_usage.creation_date',
+                'api_key_usage.path',
+            ], 'api_key_usage.id');
         }
     }
 }

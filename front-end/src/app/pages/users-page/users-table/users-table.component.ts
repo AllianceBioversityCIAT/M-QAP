@@ -22,7 +22,7 @@ export class UsersTableComponent {
   dataSource!: MatTableDataSource<User>;
   response!: Paginated<User>;
   length = 0;
-  pageSize = 50;
+  pageSize = 10;
   pageIndex = 0;
   sortBy = 'id:ASC';
   text = '';

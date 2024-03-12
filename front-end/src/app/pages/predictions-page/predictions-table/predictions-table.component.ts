@@ -29,7 +29,7 @@ export class PredictionsTableComponent {
   dataSource!: MatTableDataSource<Prediction>;
   response!: Paginated<Prediction>;
   length = 0;
-  pageSize = 50;
+  pageSize = 10;
   pageIndex = 0;
   sortBy = 'text:ASC';
   text = '';

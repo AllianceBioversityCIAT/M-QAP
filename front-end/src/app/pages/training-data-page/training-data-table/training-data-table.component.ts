@@ -33,7 +33,7 @@ export class TrainingDataTableComponent {
   dataSource!: MatTableDataSource<TrainingData>;
   trainingData!: Paginated<TrainingData>;
   length = 0;
-  pageSize = 50;
+  pageSize = 10;
   pageIndex = 0;
   sortBy = 'text:ASC';
   text = '';

@@ -19,13 +19,13 @@ export class ApiUsageDetailsTableComponent implements OnInit {
   dataSource!: MatTableDataSource<ApiUsage | WosApiUsage>;
   response!: Paginated<ApiUsage | WosApiUsage>;
   length = 0;
-  pageSize = 50;
+  pageSize = 10;
   pageIndex = 0;
   sortBy = 'id:DESC';
   text = '';
   form!: FormGroup;
 
-  @Input() selectedApiKeySubject = new BehaviorSubject<ApiStatisticsSummary | null>(null);
+  @Input() selectedApiKey: ApiStatisticsSummary | null = null;
   @Input() selectedApiKeySummaryType = '';
   apiKeyId: number | null = null;
 
@@ -38,12 +38,10 @@ export class ApiUsageDetailsTableComponent implements OnInit {
 
   ngOnInit() {
     this.initForm();
-    this.selectedApiKeySubject.subscribe((value) => {
-      this.apiKeyId = value?.id ? value.id : null;
-      if (value) {
-        this.loadData();
-      }
-    });
+    this.apiKeyId = this.selectedApiKey?.id ? this.selectedApiKey.id : null;
+    if (this.apiKeyId) {
+      this.loadData();
+    }
   }
 
   initForm() {

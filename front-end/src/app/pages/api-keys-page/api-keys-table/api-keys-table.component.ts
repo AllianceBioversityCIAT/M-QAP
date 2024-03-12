@@ -23,7 +23,7 @@ export class ApiKeysTableComponent {
   dataSource!: MatTableDataSource<ApiKeys>;
   response!: Paginated<ApiKeys>;
   length = 0;
-  pageSize = 50;
+  pageSize = 10;
   pageIndex = 0;
   sortBy = 'id:ASC';
   text = '';

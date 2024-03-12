@@ -7,8 +7,7 @@
   <i><b>{{ selectedApiKey?.name }}</b></i>
   - {{ selectedApiKeySummaryType === 'wos' ? 'WoS' : 'API' }} requests details
 </app-h1>
-<app-api-usage-details-table *ngIf="selectedApiKey?.id"
-                             [selectedApiKeySubject]="selectedApiKeySubject"
+<app-api-usage-details-table *ngIf="selectedApiKey?.id" [selectedApiKey]="selectedApiKey"
                              [selectedApiKeySummaryType]="selectedApiKeySummaryType"></app-api-usage-details-table>
 
 <div *ngIf="!selectedApiKey?.id" class="main-container">
@@ -21,16 +20,24 @@
     <mat-form-field appearance="outline" floatLabel="always">
       <mat-label>Order</mat-label>
       <mat-select formControlName="sortBy">
+        <mat-option value="api_key:DESC">API-key / DESC</mat-option>
+        <mat-option value="api_key:ASC">API-key / ACS</mat-option>
+        <mat-option value="parent_name:DESC">Quota name / DESC</mat-option>
+        <mat-option value="parent_name:ASC">Quota name / ACS</mat-option>
+        <mat-option value="parent_type:DESC">Quota type / DESC</mat-option>
+        <mat-option value="parent_type:ASC">Quota type / ACS</mat-option>
         <mat-option value="name:DESC">Name / DESC</mat-option>
         <mat-option value="name:ASC">Name / ACS</mat-option>
         <mat-option value="type:DESC">Type / DESC</mat-option>
         <mat-option value="type:ASC">Type / ACS</mat-option>
         <mat-option value="api_requests:DESC">API requests / DESC</mat-option>
         <mat-option value="api_requests:ASC">API requests / ACS</mat-option>
-        <mat-option value="wos_quota:DESC">WoS Quota / DESC</mat-option>
-        <mat-option value="wos_quota:ASC">WoS Quota / ACS</mat-option>
+        <mat-option value="quota:DESC">WoS Quota / DESC</mat-option>
+        <mat-option value="quota:ASC">WoS Quota / ACS</mat-option>
         <mat-option value="used_wos_quota:DESC">Used WoS Quota / DESC</mat-option>
         <mat-option value="used_wos_quota:ASC">Used WoS Quota / ACS</mat-option>
+        <mat-option value="parent_is_active:DESC">Quota is active / DESC</mat-option>
+        <mat-option value="parent_is_active:ASC">Quota is active / ACS</mat-option>
         <mat-option value="is_active:DESC">Is active / DESC</mat-option>
         <mat-option value="is_active:ASC">Is active / ACS</mat-option>
       </mat-select>
@@ -39,6 +46,36 @@
 
   <div class="table-box">
     <table mat-table [dataSource]="dataSource">
+      <!-- API-key Column -->
+      <ng-container matColumnDef="api_key">
+        <th mat-header-cell *matHeaderCellDef class="width-22">
+          API-key
+        </th>
+        <td mat-cell *matCellDef="let element" class="width-22">
+          {{ element.api_key }}
+        </td>
+      </ng-container>
+
+      <!-- Parent name Column -->
+      <ng-container matColumnDef="parent_name">
+        <th mat-header-cell *matHeaderCellDef class="width-22">
+          Quota name
+        </th>
+        <td mat-cell *matCellDef="let element" class="width-22">
+          {{ element.parent_name }}
+        </td>
+      </ng-container>
+
+      <!-- Parent type Column -->
+      <ng-container matColumnDef="parent_type">
+        <th mat-header-cell *matHeaderCellDef class="width-8">
+          Quota type
+        </th>
+        <td mat-cell *matCellDef="let element" class="width-8">
+          {{ element.parent_type }}
+        </td>
+      </ng-container>
+
       <!-- Name Column -->
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef class="min-width-22 width-fill">
@@ -70,12 +107,12 @@
       </ng-container>
 
       <!-- Quota Column -->
-      <ng-container matColumnDef="wos_quota">
+      <ng-container matColumnDef="quota">
         <th mat-header-cell *matHeaderCellDef class="min-width-10">
           WoS quota
         </th>
         <td mat-cell *matCellDef="let element" class="min-width-10">
-          {{ element.wos_quota | number }}
+          {{ element.quota | number }}
         </td>
       </ng-container>
 
@@ -86,7 +123,17 @@
         </th>
         <td mat-cell *matCellDef="let element" class="min-width-10">
           {{ element.used_wos_quota | number }}
-          ({{ calculatePercentage(element.used_wos_quota, element.wos_quota) | number: '1.1-2' }}%)
+          ({{ calculatePercentage(element.used_wos_quota, element.quota) | number: '1.1-2' }}%)
+        </td>
+      </ng-container>
+
+      <!-- Parent status Column -->
+      <ng-container matColumnDef="parent_is_active">
+        <th mat-header-cell *matHeaderCellDef class="min-width-2">
+          Parent is active
+        </th>
+        <td mat-cell *matCellDef="let element" class="min-width-2">
+          {{ element.parent_is_active === 1 ? 'Yes' : 'No' }}
         </td>
       </ng-container>
 
@@ -132,7 +179,7 @@
     </table>
 
     <mat-paginator
-      [pageSizeOptions]="[50, 100, 150, 200]"
+      [pageSizeOptions]="[5, 10, 20, 30]"
       [length]="length"
       [pageSize]="pageSize"
       [pageIndex]="pageIndex"

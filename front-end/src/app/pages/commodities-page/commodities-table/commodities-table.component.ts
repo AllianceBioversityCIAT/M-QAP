@@ -26,7 +26,7 @@ export class CommoditiesTableComponent {
   dataSource!: MatTableDataSource<Commodity>;
   response!: Paginated<Commodity>;
   length = 0;
-  pageSize = 50;
+  pageSize = 10;
   pageIndex = 0;
   sortBy = 'id:ASC';
   text = '';
