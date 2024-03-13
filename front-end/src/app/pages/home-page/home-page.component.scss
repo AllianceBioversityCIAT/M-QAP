@@ -1,5 +1,5 @@
 div {
-  > * {
+  > counters-container, .charts-container, hr, .years-navigator {
     margin-bottom: 2rem;
   }
 
@@ -32,5 +32,22 @@ div {
     border-bottom: 2px solid #2caffe;
     padding-bottom: 1rem;
     font-weight: 100;
+  }
+
+  .years-navigator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    button {
+      margin-bottom: 0;
+      font-size: xx-large;
+      font-weight: bold;
+    }
+
+    button:not(.years-navigator-active) {
+      font-size: large;
+      font-weight: 300;
+    }
   }
 }

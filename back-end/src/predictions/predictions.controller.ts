@@ -1,6 +1,7 @@
 import {Body, Controller, Delete, Get, Param, Post, UseGuards} from '@nestjs/common';
 import {PredictionsService} from './predictions.service';
-import {Paginate, PaginateQuery} from 'nestjs-paginate';
+import {Paginator} from 'src/paginator/paginator.decorator';
+import {PaginatorQuery} from 'src/paginator/types';
 import {JwtAuthGuard} from '../auth/jwt-auth.guard';
 import {RolesGuard} from '../auth/roles.guard';
 import {Roles} from '../auth/roles.decorator';
@@ -20,7 +21,7 @@ export class PredictionsController {
     }
 
     @Get('')
-    findAll(@Paginate() query: PaginateQuery) {
+    findAll(@Paginator() query: PaginatorQuery) {
         return this.predictionsService.findAll(query);
     }
 

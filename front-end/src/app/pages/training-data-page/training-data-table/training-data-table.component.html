@@ -28,10 +28,8 @@
         <mat-option value="id:ASC">Id / ACS</mat-option>
         <mat-option value="text:DESC">Name / DESC</mat-option>
         <mat-option value="text:ASC">Name / ACS</mat-option>
-        <mat-option value="clarisa.(name):DESC">
-          CLARISA Name / DESC</mat-option
-        >
-        <mat-option value="clarisa.(name):ASC"> CLARISA Name / ACS</mat-option>
+        <mat-option value="organization_name:DESC">CLARISA Name / DESC</mat-option>
+        <mat-option value="organization_name:ASC"> CLARISA Name / ACS</mat-option>
       </mat-select>
     </mat-form-field>
   </form>
@@ -62,7 +60,7 @@
           CLARISA Name
         </th>
         <td mat-cell *matCellDef="let element" class="min-width-22 width-fill">
-          {{ element.clarisa.name }}
+          {{ element.organization_name }}
         </td>
       </ng-container>
 
@@ -72,7 +70,7 @@
           CLARISA Acronym
         </th>
         <td mat-cell *matCellDef="let element" class="width-12">
-          {{ element.clarisa.acronym }}
+          {{ element.organization_acronym }}
         </td>
       </ng-container>
 

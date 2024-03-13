@@ -1,166 +1,131 @@
-import { Injectable } from '@nestjs/common';
-import { Expose, Transform, Type, plainToInstance } from 'class-transformer';
-import { PaginateQuery } from 'nestjs-paginate';
-import { CommoditiesService } from 'src/commodities/commodities.service';
-import { OrganizationsService } from 'src/organizations/organizations.service';
-import { PredictionsService } from 'src/predictions/predictions.service';
-import { TrainingCycleService } from 'src/training-cycle/training-cycle.service';
-import { TrainingDataService } from 'src/training-data/training-data.service';
+import {Injectable} from '@nestjs/common';
+import {Expose, Transform, Type, plainToInstance} from 'class-transformer';
+import {CommoditiesService} from 'src/commodities/commodities.service';
+import {OrganizationsService} from 'src/organizations/organizations.service';
+import {PredictionsService} from 'src/predictions/predictions.service';
+import {TrainingCycleService} from 'src/training-cycle/training-cycle.service';
+import {TrainingDataService} from 'src/training-data/training-data.service';
 
 export class PredictionsForEachCycle {
-  @Expose()
-  cycle_id: number;
+    @Expose()
+    cycle_id: number;
 
-  @Expose()
-  predictions_count: number;
+    @Expose()
+    predictions_count: number;
 }
 
 export class PredictionsAverageForEachCycle {
-  @Expose()
-  cycle_id: number;
+    @Expose()
+    cycle_id: number;
 
-  @Expose()
-  @Transform(({ value }) => {
-    return !!value ? value : 0;
-  })
-  predictions_average: number = 0;
+    @Expose()
+    @Transform(({value}) => {
+        return !!value ? value : 0;
+    })
+    predictions_average: number = 0;
 }
 
 export class Statistics {
-  @Expose()
-  totalCommodities: number;
+    @Expose()
+    totalCommodities: number;
 
-  @Expose()
-  totalOrganization: number;
+    @Expose()
+    totalOrganization: number;
 
-  @Expose()
-  totalTrainingCycle: number;
+    @Expose()
+    totalTrainingCycle: number;
 
-  @Expose()
-  totalTrainingData: number;
+    @Expose()
+    totalTrainingData: number;
 
-  @Expose()
-  totalPrediction: number;
+    @Expose()
+    totalPrediction: number;
 
-  @Expose()
-  @Type(() => PredictionsForEachCycle)
-  predictionCountPerCycle: PredictionsForEachCycle[];
+    @Expose()
+    @Type(() => PredictionsForEachCycle)
+    predictionCountPerCycle: PredictionsForEachCycle[];
 
-  @Expose()
-  @Type(() => PredictionsAverageForEachCycle)
-  averagePredictionPerCycle: PredictionsAverageForEachCycle[];
+    @Expose()
+    @Type(() => PredictionsAverageForEachCycle)
+    averagePredictionPerCycle: PredictionsAverageForEachCycle[];
 }
 
 @Injectable()
 export class StatisticsService {
-  constructor(
-    private organizationsService: OrganizationsService,
-    private predictionsService: PredictionsService,
-    private trainingCycleService: TrainingCycleService,
-    private trainingDataService: TrainingDataService,
-    private commoditiesService: CommoditiesService,
-  ) {}
+    constructor(
+        private organizationsService: OrganizationsService,
+        private predictionsService: PredictionsService,
+        private trainingCycleService: TrainingCycleService,
+        private trainingDataService: TrainingDataService,
+        private commoditiesService: CommoditiesService,
+    ) {
+    }
 
-  async findAll(): Promise<Statistics> {
-    const statistics = new Statistics();
-    statistics.totalCommodities = await this.findTotalCommodities();
-    statistics.totalOrganization = await this.findTotalOrganization();
-    statistics.totalTrainingCycle = await this.findTotalTrainingCycle();
-    statistics.totalTrainingData = await this.findTotalTrainingData();
-    statistics.totalPrediction = await this.findTotalPrediction();
-    statistics.predictionCountPerCycle = await this.findTrainingCycleData();
-    statistics.averagePredictionPerCycle =
-      await this.findTrainingCyclePredictionsAverage();
-    return statistics;
-  }
+    async findAll(): Promise<Statistics> {
+        const statistics = new Statistics();
+        statistics.totalCommodities = await this.findTotalCommodities();
+        statistics.totalOrganization = await this.findTotalOrganization();
+        statistics.totalTrainingCycle = await this.findTotalTrainingCycle();
+        statistics.totalTrainingData = await this.findTotalTrainingData();
+        statistics.totalPrediction = await this.findTotalPrediction();
+        statistics.predictionCountPerCycle = await this.findTrainingCycleData();
+        statistics.averagePredictionPerCycle =
+            await this.findTrainingCyclePredictionsAverage();
+        return statistics;
+    }
 
-  findTotalCommodities() {
-    const query: PaginateQuery = {
-      path: '',
-      limit: 0,
-      page: 1,
-    };
-    return this.commoditiesService
-      .findAll(query)
-      .then((result) => result.meta.totalItems);
-  }
+    findTotalCommodities() {
+        return this.commoditiesService.count();
+    }
 
-  findTotalOrganization() {
-    const query: PaginateQuery = {
-      path: '',
-      limit: 0,
-      page: 1,
-    };
-    return this.organizationsService
-      .findAll(query)
-      .then((result) => result.meta.totalItems);
-  }
+    findTotalOrganization() {
+        return this.organizationsService.organizationRepository.count();
+    }
 
-  findTotalTrainingCycle() {
-    const query: PaginateQuery = {
-      path: '',
-      limit: 0,
-      page: 1,
-    };
-    return this.trainingCycleService
-      .findAll(query)
-      .then((result) => result.meta.totalItems);
-  }
+    findTotalTrainingCycle() {
+        return this.trainingCycleService.trainingCycleRepository.count();
+    }
 
-  findTotalTrainingData() {
-    const query: PaginateQuery = {
-      path: '',
-      limit: 0,
-      page: 1,
-    };
-    return this.trainingDataService
-      .findAll(query)
-      .then((result) => result.meta.totalItems);
-  }
+    findTotalTrainingData() {
+        return this.trainingDataService.count();
+    }
 
-  findTotalPrediction() {
-    const query: PaginateQuery = {
-      path: '',
-      limit: 0,
-      page: 1,
-    };
-    return this.predictionsService
-      .findAll(query)
-      .then((result) => result.meta.totalItems);
-  }
+    findTotalPrediction() {
+        return this.predictionsService.predictionsRepository.count();
+    }
 
-  async findTrainingCycleData() {
-    const q: PredictionsForEachCycle[] =
-      await this.trainingCycleService.trainingCycleRepository
-        .createQueryBuilder('cycle')
-        .select('cycle.id', 'cycle_id')
-        .addSelect('COUNT(prediction.id) as predictions_count')
-        .leftJoin('cycle.predictions', 'prediction')
-        .groupBy('cycle.id')
-        .orderBy('cycle_id', 'DESC')
-        .execute();
+    async findTrainingCycleData() {
+        const q: PredictionsForEachCycle[] =
+            await this.trainingCycleService.trainingCycleRepository
+                .createQueryBuilder('cycle')
+                .select('cycle.id', 'cycle_id')
+                .addSelect('COUNT(prediction.id) as predictions_count')
+                .leftJoin('cycle.predictions', 'prediction')
+                .groupBy('cycle.id')
+                .orderBy('cycle_id', 'DESC')
+                .execute();
 
-    return plainToInstance(PredictionsForEachCycle, q, {
-      enableImplicitConversion: true,
-      enableCircularCheck: true,
-    });
-  }
+        return plainToInstance(PredictionsForEachCycle, q, {
+            enableImplicitConversion: true,
+            enableCircularCheck: true,
+        });
+    }
 
-  async findTrainingCyclePredictionsAverage() {
-    const q: PredictionsAverageForEachCycle[] =
-      await this.trainingCycleService.trainingCycleRepository
-        .createQueryBuilder('cycle')
-        .select('cycle.id', 'cycle_id')
-        .addSelect('AVG(prediction.confidant) as predictions_average')
-        .leftJoin('cycle.predictions', 'prediction')
-        .groupBy('cycle.id')
-        .orderBy('cycle_id', 'DESC')
-        .execute();
+    async findTrainingCyclePredictionsAverage() {
+        const q: PredictionsAverageForEachCycle[] =
+            await this.trainingCycleService.trainingCycleRepository
+                .createQueryBuilder('cycle')
+                .select('cycle.id', 'cycle_id')
+                .addSelect('AVG(prediction.confidant) as predictions_average')
+                .leftJoin('cycle.predictions', 'prediction')
+                .groupBy('cycle.id')
+                .orderBy('cycle_id', 'DESC')
+                .execute();
 
-    return plainToInstance(PredictionsAverageForEachCycle, q, {
-      enableImplicitConversion: true,
-      enableCircularCheck: true,
-      exposeDefaultValues: true,
-    });
-  }
+        return plainToInstance(PredictionsAverageForEachCycle, q, {
+            enableImplicitConversion: true,
+            enableCircularCheck: true,
+            exposeDefaultValues: true,
+        });
+    }
 }

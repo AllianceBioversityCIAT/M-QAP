@@ -1,4 +1,4 @@
-import {Component, Output} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {HeaderServiceService} from '../../header-service.service';
 import {Chart} from 'angular-highcharts';
 import {StatisticsService} from 'src/app/services/statistics.service';
@@ -6,6 +6,7 @@ import {Statistics} from 'src/app/share/types/statistics.model.type';
 import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {Router} from '@angular/router';
 import {AuthService} from '../auth/auth.service';
+import {BehaviorSubject} from "rxjs";
 
 @Component({
   selector: 'app-home-page',
@@ -19,6 +20,7 @@ export class HomePageComponent {
   statistics!: Statistics;
 
   apiYear: number = (new Date()).getFullYear();
+  @Input() apiYearSubject = new BehaviorSubject<number>((new Date()).getFullYear());
   apiCounters: any = [];
   wosUsageOverTimeChart!: Chart;
   apiUsageOverTimeChart!: Chart;
@@ -46,7 +48,7 @@ export class HomePageComponent {
 
     this.router.events.subscribe(() => {
       this.isAdmin = this.authService.isAdmin();
-      this.getApiStatistics((new Date()).getFullYear());
+      this.getApiStatistics();
     });
     this.getAiStatistics();
   }
@@ -144,7 +146,9 @@ export class HomePageComponent {
     });
   }
 
-  getApiStatistics(year: number) {
+  getApiStatistics(year: number = this.apiYear) {
+    this.apiYear = year;
+    this.apiYearSubject.next(year);
     this.apiKeysService.getStatistics(year).subscribe((response) => {
 
       this.apiYear = response.year;

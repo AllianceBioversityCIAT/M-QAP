@@ -5,11 +5,12 @@ import {
     Get,
     Param,
     Patch,
-    Post, UseGuards,
+    Post, Query, UseGuards,
 } from '@nestjs/common';
 
 import {CommoditiesService} from './commodities.service';
-import {Paginate, PaginateQuery} from 'nestjs-paginate';
+import {Paginator} from 'src/paginator/paginator.decorator';
+import {PaginatorQuery} from 'src/paginator/types';
 import {CreateCommoditiesDto} from './dto/create-commodities.dto';
 import {UpdateCommoditiesDto} from './dto/update-commodities.dto';
 import {RolesGuard} from '../auth/roles.guard';
@@ -35,8 +36,12 @@ export class CommoditiesController {
     }
 
     @Get('')
-    findAll(@Paginate() query: PaginateQuery) {
-        return this.commoditiesService.findAll(query);
+    findAll(
+        @Query('parent') parent: boolean,
+        @Paginator() query: PaginatorQuery,
+    ) {
+        query.sortBy = query?.sortBy ? query.sortBy : [['name', 'ASC']];
+        return this.commoditiesService.findAll(query, parent);
     }
 
     @Get(':id')

@@ -1,9 +1,9 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { map } from 'rxjs';
-import { Paginated } from '../share/types/paginate.type';
-import { environment } from 'src/environments/environment';
-import { Organization } from '../share/types/organization.model.type';
+import {HttpClient} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {map} from 'rxjs';
+import {Paginated} from '../share/types/paginate.type';
+import {environment} from 'src/environments/environment';
+import {Organization} from '../share/types/organization.model.type';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +11,8 @@ import { Organization } from '../share/types/organization.model.type';
 export class OrganizationsService {
   private api: string = `${environment.api_url}/organizations`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+  }
 
   find(queryString: string) {
     return this.http.get<Paginated<Organization>>(`${this.api}?${queryString}`);
@@ -19,13 +20,5 @@ export class OrganizationsService {
 
   get(id: number) {
     return this.http.get<Organization>(`${this.api}/` + id);
-  }
-
-  searchOrganization(term: string) {
-    return this.http.get<Array<Organization>>(`${this.api}/search`, {
-      params: {
-        term,
-      },
-    });
   }
 }

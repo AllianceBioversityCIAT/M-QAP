@@ -1,19 +1,19 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {MatTableDataSource} from '@angular/material/table';
 import {ApiStatisticsSummary, ApiUsage, WosApiUsage} from 'src/app/share/types/api-statistics.model.type';
 import {Paginated} from 'src/app/share/types/paginate.type';
 import {LoaderService} from '../../../services/loader.service';
-import {PageEvent} from "@angular/material/paginator";
-import {BehaviorSubject} from "rxjs";
+import {PageEvent} from '@angular/material/paginator';
+import {BehaviorSubject, Subscription} from "rxjs";
 
 @Component({
   selector: 'app-api-usage-details-table',
   templateUrl: './api-usage-details-table.component.html',
   styleUrls: ['./api-usage-details-table.component.scss']
 })
-export class ApiUsageDetailsTableComponent implements OnInit {
+export class ApiUsageDetailsTableComponent implements OnInit, OnDestroy {
   columnsToDisplay: string[] = ['id', 'creation_date', 'path'];
   columnsToDisplayWos: string[] = ['id', 'creation_date', 'doi'];
   dataSource!: MatTableDataSource<ApiUsage | WosApiUsage>;
@@ -28,6 +28,8 @@ export class ApiUsageDetailsTableComponent implements OnInit {
   @Input() selectedApiKey: ApiStatisticsSummary | null = null;
   @Input() selectedApiKeySummaryType = '';
   apiKeyId: number | null = null;
+  @Input() yearSubject = new BehaviorSubject<number>((new Date()).getFullYear());
+  yearSubjectSubscription: Subscription | null = null;
 
   constructor(
     private apiKeyService: ApiKeysService,
@@ -40,7 +42,15 @@ export class ApiUsageDetailsTableComponent implements OnInit {
     this.initForm();
     this.apiKeyId = this.selectedApiKey?.id ? this.selectedApiKey.id : null;
     if (this.apiKeyId) {
-      this.loadData();
+      this.yearSubjectSubscription = this.yearSubject.subscribe((value) => {
+        this.loadData(value);
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.yearSubjectSubscription) {
+      this.yearSubjectSubscription.unsubscribe();
     }
   }
 

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -16,21 +16,21 @@ import {
   NG_VALUE_ACCESSOR,
   Validators,
 } from '@angular/forms';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { NgSelectModule } from '@ng-select/ng-select';
-import { concat, Observable, of, Subject } from 'rxjs';
+import {MatDialog, MatDialogModule} from '@angular/material/dialog';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatIconModule} from '@angular/material/icon';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {NgSelectModule} from '@ng-select/ng-select';
+import {concat, Observable, of, Subject} from 'rxjs';
 import {
   catchError,
   distinctUntilChanged,
-  filter,
+  filter, map,
   switchMap,
   tap,
 } from 'rxjs/operators';
-import { OrganizationsService } from 'src/app/services/organizations.service';
-import { Organization } from '../types/organization.model.type';
+import {OrganizationsService} from 'src/app/services/organizations.service';
+import {Organization} from '../types/organization.model.type';
 
 @Component({
   selector: 'app-organization-input',
@@ -55,8 +55,7 @@ import { Organization } from '../types/organization.model.type';
   ],
 })
 export class OrganizationInputComponent
-  implements ControlValueAccessor, OnDestroy, OnInit
-{
+  implements ControlValueAccessor, OnDestroy, OnInit {
   @Output() add = new EventEmitter();
   @Output() focus = new EventEmitter();
   @Output() blur = new EventEmitter();
@@ -78,6 +77,7 @@ export class OrganizationInputComponent
   compareObjects: (v1: any, v2: any) => boolean = (v1, v2): boolean => {
     return v1.id === v2;
   };
+
   trackByFn(item: Organization) {
     return item.id;
   }
@@ -85,7 +85,8 @@ export class OrganizationInputComponent
   constructor(
     private organizationsService: OrganizationsService,
     public dialogService: MatDialog
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
     this.initializeSelect([]);
@@ -106,9 +107,15 @@ export class OrganizationInputComponent
         }),
         tap(() => (this.loading = true)),
         switchMap((term) => {
-          return this.organizationsService.searchOrganization(term).pipe(
-            catchError(() => of([])),
-            tap(() => (this.loading = false))
+          const queryString = [];
+          queryString.push(`limit=20`);
+          queryString.push(`page=1`);
+          queryString.push(`sortBy=name:ASC`);
+          queryString.push(`search=${term}`);
+          return this.organizationsService.find(queryString.join('&')).pipe(
+            catchError(() => of({ data: [] })),
+            tap(() => (this.loading = false)),
+            map((response) => response.data)
           );
         })
       )
@@ -128,13 +135,13 @@ export class OrganizationInputComponent
       this.initializeSelect([value]);
       this.value = value;
       this.selectedItem = value;
-      this.control.patchValue(value, { emitEvent: false });
+      this.control.patchValue(value, {emitEvent: false});
     } else if (typeof value == 'number') {
       this.organizationsService.get(value).subscribe((org) => {
         this.initializeSelect([org]);
         this.value = org;
         this.selectedItem = org;
-        this.control.patchValue(org, { emitEvent: false });
+        this.control.patchValue(org, {emitEvent: false});
       });
     }
   }
@@ -142,9 +149,14 @@ export class OrganizationInputComponent
   registerOnChange(fn: any): void {
     this.onChange = fn;
   }
+
   registerOnTouched(fn: any): void {
     this.onTouched = fn;
   }
-  setDisabledState?(_isDisabled: boolean): void {}
-  ngOnDestroy(): void {}
+
+  setDisabledState?(_isDisabled: boolean): void {
+  }
+
+  ngOnDestroy(): void {
+  }
 }

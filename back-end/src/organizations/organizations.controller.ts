@@ -1,8 +1,8 @@
-import {Controller, Get, Param, Query, UseGuards} from '@nestjs/common';
+import {Controller, Get, Param, UseGuards} from '@nestjs/common';
 import {OrganizationsService} from './organizations.service';
 import {ApiTags} from '@nestjs/swagger';
-import {OrganizationQueryParamsDTO} from './dto/search-organization-query.dto';
-import {Paginate, PaginateQuery} from 'nestjs-paginate';
+import {Paginator} from 'src/paginator/paginator.decorator';
+import {PaginatorQuery} from 'src/paginator/types';
 import {JwtAuthGuard} from '../auth/jwt-auth.guard';
 import {RolesGuard} from '../auth/roles.guard';
 import {Roles} from '../auth/roles.decorator';
@@ -17,13 +17,9 @@ export class OrganizationsController {
     }
 
     @Get('')
-    findAll(@Paginate() query: PaginateQuery) {
+    findAll(@Paginator() query: PaginatorQuery) {
+        query.sortBy = query?.sortBy ? query.sortBy : [['name', 'ASC']];
         return this.organizationsService.findAll(query);
-    }
-
-    @Get('/search')
-    search(@Query() query: OrganizationQueryParamsDTO) {
-        return this.organizationsService.searchOrganization(query);
     }
 
     @Get(':id')

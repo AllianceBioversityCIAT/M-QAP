@@ -9,7 +9,8 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import {TrainingDataService} from './training-data.service';
-import {Paginate, PaginateQuery} from 'nestjs-paginate';
+import {Paginator} from 'src/paginator/paginator.decorator';
+import {PaginatorQuery} from 'src/paginator/types';
 import {UpdateTrainingDataDto} from './dto/update-training-data.dto';
 import {CreateTrainingDataDto} from './dto/create-training-data.dto';
 import {JwtAuthGuard} from '../auth/jwt-auth.guard';
@@ -35,7 +36,7 @@ export class TrainingDataController {
     }
 
     @Get('')
-    findAll(@Paginate() query: PaginateQuery) {
+    findAll(@Paginator() query: PaginatorQuery) {
         return this.trainingDataService.findAll(query);
     }
 

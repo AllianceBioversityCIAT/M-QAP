@@ -16,7 +16,8 @@ import {TrainingCycleService} from './training-cycle.service';
 import {FileInterceptor} from '@nestjs/platform-express';
 import * as fs from 'fs';
 import * as path from 'path';
-import {Paginate, PaginateQuery} from 'nestjs-paginate';
+import {Paginator} from 'src/paginator/paginator.decorator';
+import {PaginatorQuery} from 'src/paginator/types';
 import {UpdateTrainingCycleDto} from './dto/update-training-cycle.dto';
 import {AiTrainingService} from '../ai/ai-training.service';
 import {JwtAuthGuard} from '../auth/jwt-auth.guard';
@@ -66,7 +67,7 @@ export class TrainingCycleController {
     }
 
     @Get('')
-    findAll(@Paginate() query: PaginateQuery) {
+    findAll(@Paginator() query: PaginatorQuery) {
         return this.trainingCycleService.findAll(query);
     }
 

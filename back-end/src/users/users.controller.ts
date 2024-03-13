@@ -29,7 +29,8 @@ import {JwtAuthGuard} from '../auth/jwt-auth.guard';
 import {RolesGuard} from '../auth/roles.guard';
 import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
-import {Paginate, PaginateQuery} from 'nestjs-paginate';
+import {Paginator} from 'src/paginator/paginator.decorator';
+import {PaginatorQuery} from 'src/paginator/types';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.Admin)
@@ -54,7 +55,7 @@ export class UsersController {
     }
 
     @Get('')
-    findAll(@Paginate() query: PaginateQuery) {
+    findAll(@Paginator() query: PaginatorQuery) {
         return this.usersService.findAll(query);
     }
 

@@ -36,7 +36,26 @@
     </div>
 
     <ng-container *ngIf="isAdmin">
-      <app-h1>Api Usage statistics - <small><i><b>{{ apiYear }}</b></i></small></app-h1>
+      <hr>
+      <app-h1>Api Usage statistics</app-h1>
+      <div class="years-navigator">
+        <button mat-icon-button color="primary" matTooltip="Previous year" (click)="getApiStatistics(apiYear - 1)">
+          <mat-icon>navigate_before</mat-icon>
+        </button>
+        <button mat-button (click)="getApiStatistics(apiYear - 1)">
+          {{ apiYear - 1 }}
+        </button>
+        <button class="years-navigator-active" mat-button (click)="getApiStatistics(apiYear)">
+          {{ apiYear }}
+        </button>
+        <button mat-button (click)="getApiStatistics(apiYear + 1)">
+          {{ apiYear + 1 }}
+        </button>
+        <button mat-icon-button color="primary" matTooltip="Next year" (click)="getApiStatistics(apiYear + 1)">
+          <mat-icon>navigate_next</mat-icon>
+        </button>
+      </div>
+
       <section *ngIf="apiCounters" class="counters-container">
         <div *ngFor="let counter of apiCounters" class="counter-container">
           <app-counter [title]="counter.title" [count]="counter.count" [icon]="counter.icon" [toolTip]="counter.toolTip"
@@ -56,7 +75,7 @@
         </div>
       </div>
 
-      <app-api-usage-table></app-api-usage-table>
+      <app-api-usage-table [yearSubject]="apiYearSubject"></app-api-usage-table>
     </ng-container>
   </div>
 </app-page-container>

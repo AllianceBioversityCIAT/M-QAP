@@ -1,13 +1,13 @@
-<app-h1 *ngIf="!selectedApiKey?.id">
+<h4 *ngIf="!selectedApiKey?.id">
   API-keys
-</app-h1>
+</h4>
 
-<app-h1 *ngIf="selectedApiKey?.id">
+<h4 *ngIf="selectedApiKey?.id">
   <span class="back-to-main-list" matTooltip="Back to main list" (click)="backToMainList()">API-keys</span> -
   <i><b>{{ selectedApiKey?.name }}</b></i>
   - {{ selectedApiKeySummaryType === 'wos' ? 'WoS' : 'API' }} requests details
-</app-h1>
-<app-api-usage-details-table *ngIf="selectedApiKey?.id" [selectedApiKey]="selectedApiKey"
+</h4>
+<app-api-usage-details-table *ngIf="selectedApiKey?.id" [yearSubject]="yearSubject" [selectedApiKey]="selectedApiKey"
                              [selectedApiKeySummaryType]="selectedApiKeySummaryType"></app-api-usage-details-table>
 
 <div *ngIf="!selectedApiKey?.id" class="main-container">

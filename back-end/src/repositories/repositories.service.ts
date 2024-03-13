@@ -4,7 +4,8 @@ import {Repositories} from 'src/entities/repositories.entity';
 import {RepositoriesSchema} from 'src/entities/repositories-schema.entity';
 import {InjectRepository} from '@nestjs/typeorm';
 import {FindOneOptions, In, Not, Repository} from 'typeorm';
-import {paginate, Paginated, PaginateQuery} from 'nestjs-paginate';
+import {PaginatorService} from 'src/paginator/paginator.service';
+import {PaginatedQuery, PaginatorQuery} from 'src/paginator/types';
 import {CreateRepositoriesDto} from './dto/create-repositories.dto';
 import {UpdateRepositoriesDto} from './dto/update-repositories.dto';
 import {FindManyOptions} from 'typeorm/find-options/FindManyOptions';
@@ -18,6 +19,7 @@ export class RepositoriesService extends TypeOrmCrudService<Repositories> {
         public repositoriesRepository: Repository<Repositories>,
         @InjectRepository(RepositoriesSchema)
         public RepositoriesSchemaRepository: Repository<RepositoriesSchema>,
+        private readonly paginatorService: PaginatorService,
     ) {
         super(repositoriesRepository);
     }
@@ -27,12 +29,32 @@ export class RepositoriesService extends TypeOrmCrudService<Repositories> {
         return this.repositoriesRepository.save(newRepository);
     }
 
-    public findAll(query: PaginateQuery): Promise<Paginated<Repositories>> {
-        return paginate(query, this.repositoriesRepository, {
-            sortableColumns: ['id', 'name', 'type'],
-            searchableColumns: ['id', 'name', 'type', 'base_url', 'api_path', 'identifier_type', 'prefix'],
-            select: [],
-        });
+    public findAll(query: PaginatorQuery): Promise<PaginatedQuery<Repositories>> {
+        const queryBuilder = this.repositoriesRepository
+            .createQueryBuilder('repositories')
+            .select([
+                'repositories.id AS id',
+                'repositories.creation_date AS creation_date',
+                'repositories.update_date AS update_date',
+                'repositories.name AS name',
+                'repositories.type AS type',
+                'repositories.base_url AS base_url',
+                'repositories.api_path AS api_path',
+                'repositories.identifier_type AS identifier_type',
+                'repositories.prefix AS prefix',
+            ]);
+
+        return this.paginatorService.paginator(query, queryBuilder, [
+            'repositories.id',
+            'repositories.creation_date',
+            'repositories.update_date',
+            'repositories.name',
+            'repositories.type',
+            'repositories.base_url',
+            'repositories.api_path',
+            'repositories.identifier_type',
+            'repositories.prefix',
+        ], 'repositories.id');
     }
 
     update(id: number, updateRepositoriesDto: UpdateRepositoriesDto) {

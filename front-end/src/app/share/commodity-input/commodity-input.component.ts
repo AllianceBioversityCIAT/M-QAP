@@ -109,7 +109,7 @@ export class CommodityInputComponent
           queryString.push(`limit=15`);
           queryString.push(`page=1`);
           queryString.push(`search=${term}`);
-          queryString.push(`filter.parent_id=$null`);
+          queryString.push(`parent=true`);
           return this.commoditiesService.find(queryString.join('&')).pipe(
             catchError(() => of({ data: [] })),
             tap(() => (this.loading = false)),

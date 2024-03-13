@@ -1,13 +1,15 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
+import {Module} from '@nestjs/common';
+import {TypeOrmModule} from '@nestjs/typeorm';
+import {User} from 'src/entities/user.entity';
+import {UsersController} from './users.controller';
+import {UsersService} from './users.service';
+import {PaginatorService} from '../paginator/paginator.service';
 
 @Module({
-  providers: [UsersService],
-  imports:[TypeOrmModule.forFeature([User])],
-  exports: [UsersService],
-  controllers: [UsersController],
+    providers: [UsersService, PaginatorService],
+    imports: [TypeOrmModule.forFeature([User])],
+    exports: [UsersService],
+    controllers: [UsersController],
 })
-export class UsersModule {}
+export class UsersModule {
+}

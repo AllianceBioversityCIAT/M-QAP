@@ -17,17 +17,9 @@ export class PaginatorService {
         } as PaginatedQuery<T>;
 
         if (query?.search != null && query.search.trim() !== '') {
-            const where = [];
-            const whereBinds = {};
-            query.search.trim().split(' ').map((value, index) => {
-                value = value.toString().trim();
-                if (value !== '') {
-                    where.push(`CONCAT_WS(' ', ${searchableColumns.join(',')}) LIKE :term_${index}`);
-                    whereBinds[`term_${index}`] = `%${value}%`;
-                }
-            });
-            if (where.length > 0) {
-                selectQueryBuilder.andWhere(where.join(' AND '), whereBinds);
+            const searchQuery = this.buildSearchQuery(query.search, searchableColumns);
+            if (searchQuery.where !== '' && Object.keys(searchQuery.binds).length > 0) {
+                selectQueryBuilder.andWhere(searchQuery.where, searchQuery.binds);
             }
         }
 
@@ -59,11 +51,24 @@ export class PaginatorService {
             })
         }
 
-        try {
-            response.data = await selectQueryBuilder.execute();
-            response.meta.totalItems = totalRecords && totalRecords?.total ? Number(totalRecords.total) : 0;
-        } catch (e) {
-        }
+        response.data = await selectQueryBuilder.execute();
+        response.meta.totalItems = totalRecords && totalRecords?.total ? Number(totalRecords.total) : 0;
         return response;
+    }
+
+    buildSearchQuery(search: string, searchableColumns: string[]) {
+        const where = [];
+        const whereBinds = {};
+        search.trim().split(' ').map((value, index) => {
+            value = value.toString().trim();
+            if (value !== '') {
+                where.push(`CONCAT_WS(' ', ${searchableColumns.join(',')}) LIKE :term_${index}`);
+                whereBinds[`term_${index}`] = `%${value}%`;
+            }
+        });
+        return {
+            where: where.join(' AND '),
+            binds: whereBinds,
+        }
     }
 }

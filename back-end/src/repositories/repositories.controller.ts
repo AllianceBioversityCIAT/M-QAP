@@ -4,7 +4,8 @@ import {RolesGuard} from '../auth/roles.guard';
 import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
 import {RepositoriesService} from './repositories.service';
-import {Paginate, PaginateQuery} from 'nestjs-paginate';
+import {Paginator} from 'src/paginator/paginator.decorator';
+import {PaginatorQuery} from 'src/paginator/types';
 import {CreateRepositoriesDto} from './dto/create-repositories.dto';
 import {UpdateRepositoriesDto} from './dto/update-repositories.dto';
 import {CreateRepositorySchemaDto} from './dto/create-repositorySchema.dto';
@@ -25,7 +26,7 @@ export class RepositoriesController {
     }
 
     @Get('')
-    findAll(@Paginate() query: PaginateQuery) {
+    findAll(@Paginator() query: PaginatorQuery) {
         return this.repositoriesService.findAll(query);
     }
 

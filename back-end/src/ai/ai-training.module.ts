@@ -7,10 +7,11 @@ import {HttpModule} from '@nestjs/axios';
 import {AiTrainingService} from './ai-training.service';
 import {TrainingDataService} from '../training-data/training-data.service';
 import {SocketsGateway} from '../sockets/sockets.gateway';
+import {PaginatorService} from '../paginator/paginator.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([TrainingCycle, TrainingData]), HttpModule],
-    providers: [TrainingCycleService, AiTrainingService, TrainingDataService, SocketsGateway],
+    providers: [TrainingCycleService, AiTrainingService, TrainingDataService, SocketsGateway, PaginatorService],
     exports: [AiTrainingService]
 })
 export class AiTrainingModule {
