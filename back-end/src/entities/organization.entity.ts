@@ -1,13 +1,13 @@
 import {
     Column,
     CreateDateColumn,
-    Entity, JoinColumn,
+    Entity,
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn
 } from 'typeorm';
 import {ApiKey} from './api-key.entity';
-import {WosQuota} from "./wos-quota.entity";
+import {WosQuota} from './wos-quota.entity';
 
 @Entity()
 export class Organization {
@@ -29,8 +29,22 @@ export class Organization {
     @Column()
     code: string;
 
+    @Column({default: null, nullable: true})
+    hq_location: string;
+
+    @Column({default: null, nullable: true})
+    hq_location_iso_alpha2: string;
+
+    @Column({default: null, nullable: true})
+    institution_type: string;
+
+    @Column({default: null, nullable: true})
+    institution_type_id: string;
+
+    @Column({default: null, nullable: true})
+    website_link: string;
+
     @OneToOne(() => WosQuota, (wosQuota) => wosQuota.organization)
-    @JoinColumn()
     wosQuota: WosQuota;
 
     @OneToOne(() => ApiKey, (apiKey) => apiKey.organization)

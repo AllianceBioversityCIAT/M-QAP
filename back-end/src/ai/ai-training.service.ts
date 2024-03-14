@@ -15,6 +15,7 @@ import {SocketsGateway} from '../sockets/sockets.gateway';
 import {UpdateTrainingCycleDto} from '../training-cycle/dto/update-training-cycle.dto';
 import {Worker} from 'worker_threads';
 import workerThreadFilePath from './worker-threads/config';
+import {OrganizationsService} from '../organizations/organizations.service';
 
 @Injectable()
 export class AiTrainingService {
@@ -32,6 +33,7 @@ export class AiTrainingService {
         private trainingCycleService: TrainingCycleService,
         private trainingDataService: TrainingDataService,
         private socketsGateway: SocketsGateway,
+        private organizationService: OrganizationsService,
     ) {
         this.init();
     }
@@ -73,7 +75,7 @@ export class AiTrainingService {
     async getClarisaDataPartners(trainingFolderPath) {
         const clarisaData = await firstValueFrom(
             this.httpService
-                .get(process.env.CLARISA_API + '/institutionsSimple')
+                .get(process.env.CLARISA_API + '/institutions/simple')
                 .pipe(
                     map((d: any) => d.data),
                     catchError((e) => {
@@ -168,6 +170,7 @@ export class AiTrainingService {
                         };
 
                         await this.trainingCycleService.update(activeCycle.id, updateTrainingCycleDto);
+                        await this.organizationService.importPartners(controlledListData);
                         await this.init();
                         this.socketsGateway.emitTrainingProgress(0, 'Finished', false);
                     } else {

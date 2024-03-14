@@ -38,11 +38,13 @@ export class PaginatorService {
             });
         }
 
-        query.limit = Number(query?.limit) > 0 ? query.limit : 50;
-        if (query?.page != null) {
-            selectQueryBuilder.offset((query.page - 1) * query.limit);
+        if (query.limit != -1) {
+            query.limit = Number(query?.limit) > 0 ? query.limit : 50;
+            if (query?.page != null) {
+                selectQueryBuilder.offset((query.page - 1) * query.limit);
+            }
+            selectQueryBuilder.limit(query.limit);
         }
-        selectQueryBuilder.limit(query.limit);
 
         if (query?.sortBy) {
             query.sortBy.map(sort => {

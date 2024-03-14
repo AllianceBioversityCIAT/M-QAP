@@ -7,7 +7,7 @@
 
   <form content [formGroup]="form">
     <app-input>
-      <mat-label>Text <span class="star">*</span> </mat-label>
+      <mat-label>Institution name <span class="star">*</span> </mat-label>
       <mat-form-field hideRequiredMarker appearance="outline">
         <input matInput formControlName="text" />
         <app-errors matError [control]="form.get('text')"></app-errors>
@@ -15,7 +15,7 @@
     </app-input>
 
     <app-input>
-      <mat-label>Clarisa<span class="star">*</span></mat-label>
+      <mat-label>CLARISA institution<span class="star">*</span></mat-label>
       <app-organization-input formControlName="clarisa">
         <app-errors matError [animation]="true" [control]="form.get('clarisa')"></app-errors>
       </app-organization-input>

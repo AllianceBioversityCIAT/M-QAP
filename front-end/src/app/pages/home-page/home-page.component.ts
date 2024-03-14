@@ -60,7 +60,7 @@ export class HomePageComponent {
           formatter: function () {
             return `
             <div>
-              <p >The average confidant rate for </p>
+              <p>The average confidence rate for </p>
               <br>
               <p><b> Cycle ${this.x} </b> is <b>${this.y?.toFixed(2)} %</b></p>
             </div>`;
@@ -90,7 +90,7 @@ export class HomePageComponent {
         },
         series: [
           {
-            name: 'Average confidant rate / Cycle',
+            name: 'Average confidence rate / Cycle',
             data: response.averagePredictionPerCycle.map((i) => ({
               name: 'Average',
               y: i.predictions_average,
@@ -171,13 +171,23 @@ export class HomePageComponent {
           icon: 'data_usage',
           count: response.apiRequests,
         }, {
-          title: 'WoS quota',
-          toolTip: 'Total WoS quota',
-          icon: 'electric_meter',
-          count: response.wosQuota,
+          title: 'DOIs',
+          toolTip: 'Total number of unique processed DOIs',
+          icon: 'link',
+          count: response.dois,
         }, {
           title: 'Available WoS quota',
           toolTip: 'Total available WoS quota',
+          icon: 'electric_meter',
+          count: response.remainingWosQuota,
+        }, {
+          title: 'Assigned WoS quota',
+          toolTip: 'Total assigned WoS quota',
+          icon: 'assignment_add',
+          count: response.wosQuota,
+        }, {
+          title: 'Assigned available WoS quota',
+          toolTip: 'Total assigned available WoS quota',
           icon: 'event_available',
           count: response.wosAvailable,
           percentage: response.wosAvailablePercentage,
@@ -187,11 +197,6 @@ export class HomePageComponent {
           icon: 'event_busy',
           count: response.wosRequests,
           percentage: response.wosUsedPercentage,
-        }, {
-          title: 'DOIs',
-          toolTip: 'Total number of unique processed DOIs',
-          icon: 'link',
-          count: response.dois,
         }
       ];
 

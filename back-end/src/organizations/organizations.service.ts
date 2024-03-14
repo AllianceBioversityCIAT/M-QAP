@@ -28,6 +28,11 @@ export class OrganizationsService {
                 'organization.name AS name',
                 'organization.acronym AS acronym',
                 'organization.code AS code',
+                'organization.hq_location AS hq_location',
+                'organization.hq_location_iso_alpha2 AS hq_location_iso_alpha2',
+                'organization.institution_type AS institution_type',
+                'organization.institution_type_id AS institution_type_id',
+                'organization.website_link AS website_link',
             ]);
 
         return this.paginatorService.paginator(query, queryBuilder, [
@@ -37,6 +42,11 @@ export class OrganizationsService {
             'organization.name',
             'organization.acronym',
             'organization.code',
+            'organization.hq_location',
+            'organization.hq_location_iso_alpha2',
+            'organization.institution_type',
+            'organization.institution_type_id',
+            'organization.website_link',
         ], 'organization.id');
     }
 
@@ -48,29 +58,38 @@ export class OrganizationsService {
         return this.organizationRepository.delete({id});
     }
 
-    async importPartners() {
-        const partnersData = await firstValueFrom(
-            this.httpService
-                .get('https://api.clarisa.cgiar.org/api/institutions')
-                .pipe(
-                    map((d: any) => d.data),
-                    catchError((error: AxiosError) => {
-                        throw new InternalServerErrorException();
-                    }),
-                ),
-        );
-        for (let partner of partnersData) {
-            let {added, institutionType, countryOfficeDTO, ...data} = partner;
-            const entity = await this.organizationRepository.findOneBy({
+    async importPartners(partnersData = null) {
+        if (!partnersData) {
+            partnersData = await firstValueFrom(
+                this.httpService
+                    .get(process.env.CLARISA_API + '/institutions/simple')
+                    .pipe(
+                        map((d: any) => d.data),
+                        catchError((e) => {
+                            return [];
+                        }),
+                    ));
+        }
+        for (const partner of partnersData) {
+            const partnerRecord = {
+                name: partner.name,
+                acronym: partner.acronym,
                 code: partner.code,
+                hq_location: partner.hqLocation,
+                hq_location_iso_alpha2: partner.hqLocationISOalpha2,
+                institution_type: partner.institutionType,
+                institution_type_id: partner.institutionTypeId,
+                website_link: partner.websiteLink,
+            };
+            const entity = await this.organizationRepository.findOneBy({
+                code: partnerRecord.code,
             });
             if (entity != null) {
-                this.organizationRepository.update(entity.id, {...data});
+                this.organizationRepository.update(entity.id, {...partnerRecord});
             } else {
                 const newPartner = this.organizationRepository.create(
-                    data as Organization,
+                    partnerRecord as Organization,
                 );
-                newPartner.id = partner.code;
                 this.organizationRepository.save(newPartner);
             }
         }

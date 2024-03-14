@@ -3,34 +3,30 @@
   <div>
     <section *ngIf="statistics" class="counters-container">
       <div class="counter-container">
-        <app-counter title="Prediction" [count]="statistics.totalPrediction" icon="online_prediction"
-                     toolTip="Total number of prediction"></app-counter>
+        <app-counter title="Organization predictions" [count]="statistics.totalPrediction" icon="online_prediction"
+                     toolTip="Total number of Organization predictions"></app-counter>
       </div>
       <div class="counter-container">
-        <app-counter [title]="'Organization'" [count]="statistics.totalOrganization" icon="group_work"
-                     toolTip="Total number of CLarisa partners"></app-counter>
+        <app-counter title="Organizations in CLARISA " [count]="statistics.totalOrganization" icon="group_work"
+                     toolTip="Total number of Organizations in CLARISA"></app-counter>
       </div>
       <div class="counter-container">
-        <app-counter [title]="'Training cycle'" [count]="statistics.totalTrainingCycle" icon="model_training"
+        <app-counter title="Training cycles" [count]="statistics.totalTrainingCycle" icon="model_training"
                      toolTip="Total number of trained cycles"></app-counter>
       </div>
       <div class="counter-container">
-        <app-counter [title]="'Training data'" [count]="statistics.totalTrainingData" icon="database"
+        <app-counter title="Training data" [count]="statistics.totalTrainingData" icon="database"
                      toolTip="Total number of training records"></app-counter>
-      </div>
-      <div class="counter-container">
-        <app-counter [title]="'Commodities'" [count]="statistics.totalCommodities" icon="category"
-                     toolTip="Total number of commodities"></app-counter>
       </div>
     </section>
 
     <div class="charts-container">
       <div class="chart-container">
-        <h4>Predictions count per cycle</h4>
+        <h4>Prediction count for each training cycle</h4>
         <div [chart]="countChart"></div>
       </div>
       <div class="chart-container">
-        <h4>Average prediction confidence per Cycle</h4>
+        <h4>Average prediction confidence for each training cycle </h4>
         <div [chart]="averageChart"></div>
       </div>
     </div>
@@ -57,7 +53,7 @@
       </div>
 
       <section *ngIf="apiCounters" class="counters-container">
-        <div *ngFor="let counter of apiCounters" class="counter-container">
+        <div *ngFor="let counter of apiCounters" class="counter-container wide-counter">
           <app-counter [title]="counter.title" [count]="counter.count" [icon]="counter.icon" [toolTip]="counter.toolTip"
                        [percentage]="counter.percentage">
           </app-counter>

@@ -14,7 +14,7 @@ import { LoaderService } from 'src/app/services/loader.service';
   styleUrls: ['./clarisa-table.component.scss'],
 })
 export class ClarisaTableComponent {
-  columnsToDisplay: string[] = ['id', 'name', 'acronym', 'code'];
+  columnsToDisplay: string[] = ['id', 'name', 'acronym', 'code', 'hq_location', 'institution_type', 'website_link'];
   dataSource!: MatTableDataSource<Organization>;
   response!: Paginated<Organization>;
   length = 0;

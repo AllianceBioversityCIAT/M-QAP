@@ -115,7 +115,9 @@ export class OrganizationInputComponent
           return this.organizationsService.find(queryString.join('&')).pipe(
             catchError(() => of({ data: [] })),
             tap(() => (this.loading = false)),
-            map((response) => response.data)
+            map((response) => {
+              return response.data.map(org => this.prepareOption(org));
+            })
           );
         })
       )
@@ -130,14 +132,29 @@ export class OrganizationInputComponent
     return option && option.name ? option.name : '';
   }
 
+  prepareOption(option: Organization): Organization {
+    const nameParts = [];
+    if (option && option?.name) {
+      nameParts.push(option.name);
+      if (option?.acronym) {
+        nameParts.push(option.acronym);
+      }
+    }
+    option.name = nameParts.join(' - ');
+
+    return option;
+  }
+
   async writeValue(value: any) {
     if (value?.id) {
+      value = this.prepareOption(value);
       this.initializeSelect([value]);
       this.value = value;
       this.selectedItem = value;
       this.control.patchValue(value, {emitEvent: false});
     } else if (typeof value == 'number') {
       this.organizationsService.get(value).subscribe((org) => {
+        org = this.prepareOption(org);
         this.initializeSelect([org]);
         this.value = org;
         this.selectedItem = org;

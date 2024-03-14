@@ -72,7 +72,7 @@ export class PredictionsTableComponent {
         data: {
           text: prediction.text,
           source: 'system/prediction',
-          clarisa: prediction.clarisa,
+          clarisa: prediction.clarisa_id,
         },
       },
       width: '100%',

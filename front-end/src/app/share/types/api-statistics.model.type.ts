@@ -18,6 +18,7 @@ export type ApiStatistics = {
     apiUsageOverTime: [];
     categories: string[];
   },
+  remainingWosQuota: number;
   wosQuota: number;
   wosRequests: number;
   wosUsedPercentage: number;

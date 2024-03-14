@@ -102,7 +102,7 @@ export class CommoditiesTableComponent {
   }
 
   downloadFile() {
-    this.mediaService.downloadFile('Commodities.xlsx', 'Commodities');
+    this.mediaService.downloadFile('M-QAP_Commodities.xlsx', 'M-QAP_Commodities');
   }
 
   delete(id: number) {

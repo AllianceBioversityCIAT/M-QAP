@@ -41,7 +41,6 @@ export class WosQuotaYearTableComponent {
   }
 
   ngOnInit() {
-    console.log('initialized!')
     this.initForm();
     this.wosQuotaId = this.selectedWosQuota?.id ? this.selectedWosQuota.id : null;
     if (this.wosQuotaId) {

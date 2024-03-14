@@ -31,7 +31,7 @@
       <!-- Text Column -->
       <ng-container matColumnDef="text">
         <th mat-header-cell *matHeaderCellDef class="min-width-22 width-fill">
-          Text
+          Institution name
         </th>
         <td mat-cell *matCellDef="let element" class="min-width-22 width-fill">
           {{ element.text }}
@@ -81,12 +81,8 @@
         </th>
         <td mat-cell *matCellDef="let element" class="width-4 action-column">
           <div class="action-container">
-            <button
-              mat-icon-button
-              matTooltip="Edit"
-              (click)="openDialog(element)"
-            >
-              <mat-icon><app-edit-icon></app-edit-icon> </mat-icon>
+            <button mat-icon-button matTooltip="Match/Confirm" (click)="openDialog(element)">
+              <mat-icon>sync_alt</mat-icon>
             </button>
           </div>
         </td>

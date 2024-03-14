@@ -70,7 +70,7 @@ export class TrainingDataService extends TypeOrmCrudService<TrainingData> {
             excelToJson({
                 sourceFile: filePath,
             })?.Foglio1 ?? [];
-        result.pop(); //remove columns readers.
+        result.shift(); //remove columns readers.
 
         for await (const item of result) {
             const record = this.trainingDataRepository.create({

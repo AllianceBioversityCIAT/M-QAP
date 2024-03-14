@@ -109,8 +109,8 @@ export class TrainingDataTableComponent {
 
   downloadFile() {
     this.mediaService.downloadFile(
-      'Matched_partners_PRMS.xlsx',
-      'Matched_partners_PRMS'
+      'M-QAP_Matched_institutions.xlsx',
+      'M-QAP_Matched_institutions'
     );
   }
 

@@ -62,8 +62,8 @@ export class CommoditiesService extends TypeOrmCrudService<Commodity> {
         const filePath = resolve(process.cwd(), 'media', fileName);
 
         const recordsList: Array<{ A: string; B: string }> =
-            excelToJson({sourceFile: filePath})?.Sheet1 ?? [];
-        recordsList.pop();
+            excelToJson({sourceFile: filePath})?.Foglio1 ?? [];
+        recordsList.shift();
         for await (const item of recordsList) {
             const commodity = await this.create({
                 name: item.A,

@@ -100,12 +100,13 @@ export class DoiService {
       .pipe(
         map((data_from_wos: any) => {
           if (data_from_wos && data_from_wos.status == 200) {
-            this.apiKeysService.createApiWosUsage(apiKeyEntity, doi);
 
             let finaldata: DoiInfo;
             try {
               const records = data_from_wos?.data?.Data?.Records?.records;
               if (records != '') {
+                this.apiKeysService.createApiWosUsage(apiKeyEntity, doi);
+
                 records.REC.forEach((REC) => {
                   const doiData = this.newDoiInfo();
                   const summary = REC.static_data.summary;

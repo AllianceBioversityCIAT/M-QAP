@@ -1,5 +1,5 @@
 export declare class PaginatedQuery<T> {
-    data: [];
+    data: T[];
     meta: {
         itemsPerPage: number;
         totalItems: number;

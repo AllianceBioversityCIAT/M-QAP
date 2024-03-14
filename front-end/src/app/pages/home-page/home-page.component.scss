@@ -17,6 +17,10 @@ div {
       flex: 1;
       min-width: 150px;
     }
+
+    .counter-container.wide-counter {
+      min-width: 300px;
+    }
   }
 
   h5 {

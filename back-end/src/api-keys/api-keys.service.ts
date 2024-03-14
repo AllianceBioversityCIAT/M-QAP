@@ -20,10 +20,13 @@ import {UpdateWosQuotaDto} from './dto/update-wos-quota.dto';
 import {WosQuotaYear} from '../entities/wos-quota-year.entity';
 import {CreateWosQuotaYearDto} from './dto/create-wos-quota-year.dto';
 import {UpdateWosQuotaYearDto} from './dto/update-wos-quota-year.dto';
+import {lastValueFrom} from 'rxjs';
+import {HttpService} from '@nestjs/axios';
 
 @Injectable()
 export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
     constructor(
+        private http: HttpService,
         @InjectRepository(ApiKey)
         public apiKeyRepository: Repository<ApiKey>,
         @InjectRepository(ApiKeyUsage)
@@ -410,6 +413,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 apiUsageOverTime: [],
                 categories: [],
             },
+            remainingWosQuota: await this.getAvailableWosQuota(),
             wosQuota: 0,
             wosRequests: 0,
             wosUsedPercentage: 0,
@@ -590,5 +594,16 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 'api_key_usage.path',
             ], 'api_key_usage.id');
         }
+    }
+
+    async getAvailableWosQuota() {
+        const response: any = await lastValueFrom(this.http
+            .get(`${process.env.WOS_API_URL}?databaseId=WOS&usrQuery=AU=Garfield&count=0&firstRecord=1`, {
+                headers: {
+                    'X-ApiKey': `${process.env.WOS_API_KEY}`,
+                },
+            })
+        ).catch((e) => e);
+        return response?.headers?.['x-rec-amtperyear-remaining'] ? response.headers['x-rec-amtperyear-remaining'] : 0;
     }
 }

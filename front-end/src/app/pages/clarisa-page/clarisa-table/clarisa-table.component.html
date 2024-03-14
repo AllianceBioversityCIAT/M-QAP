@@ -8,10 +8,20 @@
     <mat-form-field appearance="outline" floatLabel="always">
       <mat-label>Order</mat-label>
       <mat-select formControlName="sortBy">
-        <mat-option value="id:DESC">Id / DESC</mat-option>
-        <mat-option value="id:ASC">Id / ACS</mat-option>
+        <mat-option value="id:DESC">ID / DESC</mat-option>
+        <mat-option value="id:ASC">ID / ACS</mat-option>
         <mat-option value="name:DESC">Name / DESC</mat-option>
         <mat-option value="name:ASC">Name / ACS</mat-option>
+        <mat-option value="acronym:DESC">Acronym / DESC</mat-option>
+        <mat-option value="acronym:ASC">Acronym / ACS</mat-option>
+        <mat-option value="code:DESC">CLARISA code / DESC</mat-option>
+        <mat-option value="code:ASC">CLARISA code / ACS</mat-option>
+        <mat-option value="hq_location:DESC">HQ location / DESC</mat-option>
+        <mat-option value="hq_location:ASC">HQ location / ACS</mat-option>
+        <mat-option value="institution_type:DESC">Institution type / DESC</mat-option>
+        <mat-option value="institution_type:ASC">Institution type / ACS</mat-option>
+        <mat-option value="website_link:DESC">Website / DESC</mat-option>
+        <mat-option value="website_link:ASC">Website / ACS</mat-option>
       </mat-select>
     </mat-form-field>
   </form>
@@ -51,6 +61,30 @@
         <th mat-header-cell *matHeaderCellDef class="width-9">CLARISA Code</th>
         <td mat-cell *matCellDef="let element" class="width-9">
           {{ element.code }}
+        </td>
+      </ng-container>
+
+      <!-- HQ location Column -->
+      <ng-container matColumnDef="hq_location">
+        <th mat-header-cell *matHeaderCellDef class="width-15">HQ location</th>
+        <td mat-cell *matCellDef="let element" class="width-15">
+          {{ element.hq_location }}
+        </td>
+      </ng-container>
+
+      <!-- Institution type Column -->
+      <ng-container matColumnDef="institution_type">
+        <th mat-header-cell *matHeaderCellDef class="width-15">Institution type</th>
+        <td mat-cell *matCellDef="let element" class="width-15">
+          {{ element.institution_type }}
+        </td>
+      </ng-container>
+
+      <!-- Website Column -->
+      <ng-container matColumnDef="website_link">
+        <th mat-header-cell *matHeaderCellDef class="width-15">Website</th>
+        <td mat-cell *matCellDef="let element" class="width-15">
+          {{ element.website_link }}
         </td>
       </ng-container>
 
