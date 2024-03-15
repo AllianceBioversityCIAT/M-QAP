@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {MatTableDataSource} from '@angular/material/table';
 import {User} from 'src/app/share/types/user.model.type';
 import {Paginated} from 'src/app/share/types/paginate.type';
@@ -11,6 +11,7 @@ import {PageEvent} from '@angular/material/paginator';
 import {UsersFormComponent} from '../users-form/users-form.component';
 import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
 import {filter, switchMap} from 'rxjs';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 
 @Component({
   selector: 'app-users-table',
@@ -39,7 +40,6 @@ export class UsersTableComponent {
 
   ngOnInit() {
     this.initForm();
-    this.loaderService.open();
     this.loadData();
   }
 
@@ -48,21 +48,27 @@ export class UsersTableComponent {
       text: [''],
       sortBy: ['id:ASC'],
     });
-    this.form.valueChanges.subscribe((value) => {
-      this.text = value.text;
-      this.sortBy = value.sortBy;
-      this.loadData();
+
+    this.form.valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(500)
+    ).subscribe({
+      next: (value: any) => {
+        this.text = value.text;
+        this.sortBy = value.sortBy;
+        this.loadData();
+      }
     });
   }
 
   handlePageEvent(e: PageEvent) {
-    console.log(e);
     this.pageSize = e.pageSize;
     this.pageIndex = e.pageIndex;
     this.loadData();
   }
 
   async loadData() {
+    this.loaderService.open();
     const queryString = [];
     queryString.push(`limit=${this.pageSize}`);
     queryString.push(`page=${this.pageIndex + 1}`);
@@ -80,6 +86,9 @@ export class UsersTableComponent {
   }
 
   openDialog(id?: number): void {
+    if (id) {
+      this.loaderService.open();
+    }
     const dialogRef = this.dialog.open(UsersFormComponent, {
       data: {id},
       width: '100%',
@@ -102,15 +111,19 @@ export class UsersTableComponent {
       .afterClosed()
       .pipe(
         filter((i) => !!i),
-        switchMap(() => this.usersService.delete(id))
+        switchMap(() => {
+          this.loaderService.open();
+          return this.usersService.delete(id);
+        })
       )
       .subscribe({
         next: () => {
-          console.log('arrived')
+          this.loaderService.close();
           this.loadData();
           this.snackBarService.success('Deleted successfully.');
         },
         error: (error) => {
+          this.loaderService.close();
           this.snackBarService.error(error.error.message);
         },
       });

@@ -9,8 +9,9 @@ import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {LoaderService} from 'src/app/services/loader.service';
 import {PageEvent} from '@angular/material/paginator';
 import {WosQuotaFormComponent} from '../wos-quota-form/wos-quota-form.component';
-import {DeleteConfirmDialogComponent} from '../../../share/delete-confirm-dialog/delete-confirm-dialog.component';
-import {SnackBarService} from '../../../share/snack-bar/snack-bar.service';
+import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
+import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
+import {debounceTime, distinctUntilChanged} from "rxjs/operators";
 
 @Component({
   selector: 'app-wos-quota-table',
@@ -42,7 +43,6 @@ export class WosQuotaTableComponent {
 
   ngOnInit() {
     this.initForm();
-    this.loaderService.open();
     this.loadData();
   }
 
@@ -51,10 +51,16 @@ export class WosQuotaTableComponent {
       text: [''],
       sortBy: ['id:ASC'],
     });
-    this.form.valueChanges.subscribe((value) => {
-      this.text = value.text;
-      this.sortBy = value.sortBy;
-      this.loadData();
+
+    this.form.valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(500)
+    ).subscribe({
+      next: (value: any) => {
+        this.text = value.text;
+        this.sortBy = value.sortBy;
+        this.loadData();
+      }
     });
   }
 
@@ -65,6 +71,7 @@ export class WosQuotaTableComponent {
   }
 
   async loadData() {
+    this.loaderService.open();
     const queryString = [];
     queryString.push(`limit=${this.pageSize}`);
     queryString.push(`page=${this.pageIndex + 1}`);
@@ -82,6 +89,9 @@ export class WosQuotaTableComponent {
   }
 
   openDialog(id?: number): void {
+    if (id) {
+      this.loaderService.open();
+    }
     const dialogRef = this.dialog.open(WosQuotaFormComponent, {
       data: {id},
       width: '100%',
@@ -105,14 +115,19 @@ export class WosQuotaTableComponent {
       .afterClosed()
       .pipe(
         filter((i) => !!i),
-        switchMap(() => this.apiKeyService.updateStatusWosQuota(id, is_active))
+        switchMap(() => {
+          this.loaderService.open();
+          return this.apiKeyService.updateStatusWosQuota(id, is_active);
+        })
       )
       .subscribe({
         next: () => {
+          this.loaderService.close();
           this.loadData();
           this.snackBarService.success(`${operation}ed successfully.`);
         },
         error: (error) => {
+          this.loaderService.close();
           this.snackBarService.error(error.error.message);
         },
       });
@@ -144,15 +159,19 @@ export class WosQuotaTableComponent {
       .afterClosed()
       .pipe(
         filter((i) => !!i),
-        switchMap(() => this.apiKeyService.deleteWosQuota(id))
+        switchMap(() => {
+          this.loaderService.open();
+          return this.apiKeyService.deleteWosQuota(id);
+        })
       )
       .subscribe({
         next: () => {
-          console.log('arrived')
+          this.loaderService.close();
           this.loadData();
           this.snackBarService.success('Deleted successfully.');
         },
         error: (error) => {
+          this.loaderService.close();
           this.snackBarService.error(error.error.message);
         },
       });

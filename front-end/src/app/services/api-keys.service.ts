@@ -91,7 +91,7 @@ export class ApiKeysService {
   }
 
   get(id: number) {
-    return this.http.get<ApiKeys>(`${this.api}/api-keys/` + id);
+    return this.http.get<ApiKeys>(`${this.api}/api-key/` + id);
   }
 
   updateStatus(id: number, is_active: boolean) {

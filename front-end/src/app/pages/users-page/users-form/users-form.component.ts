@@ -3,6 +3,7 @@ import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {UsersService} from 'src/app/services/users.service';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
+import {LoaderService} from 'src/app/services/loader.service';
 
 export interface DialogData {
   id: number;
@@ -28,7 +29,8 @@ export class UsersFormComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
     private usersService: UsersService,
     private snackBrService: SnackBarService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private loaderService: LoaderService,
   ) {
   }
 
@@ -45,6 +47,7 @@ export class UsersFormComponent implements OnInit {
     if (this.id) {
       this.usersService.get(this.id).subscribe((repository) => {
         this.form.patchValue(repository);
+        this.loaderService.close();
       });
     }
   }
@@ -62,14 +65,20 @@ export class UsersFormComponent implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity();
     if (this.form.valid) {
+      this.loaderService.open();
       this.usersService.upsert(this.id, this.form.value).subscribe({
         next: () => {
+          console.log('this.id => ', this.id)
+          this.loaderService.close();
           if (this.id)
-            this.snackBrService.success('User added successfully');
-          else this.snackBrService.success('User updated successfully');
+            this.snackBrService.success('User updated successfully');
+          else this.snackBrService.success('User added successfully');
           this.dialogRef.close({submitted: true});
         },
-        error: (error: any) => this.snackBrService.error(error.error.message),
+        error: (error: any) => {
+          this.loaderService.close();
+          this.snackBrService.error(error.error.message);
+        },
       });
     }
   }

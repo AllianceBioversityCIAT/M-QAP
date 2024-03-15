@@ -1,20 +1,21 @@
-import { Component } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { PageEvent } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
-import { DeleteConfirmDialogComponent } from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
+import {Component} from '@angular/core';
+import {MatDialog} from '@angular/material/dialog';
+import {PageEvent} from '@angular/material/paginator';
+import {MatTableDataSource} from '@angular/material/table';
+import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
 import {
   MediaService,
   UploadFileResponse,
 } from 'src/app/services/media.service';
-import { Paginated } from 'src/app/share/types/paginate.type';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { CommoditiesService } from 'src/app/services/commodities.service';
-import { CommoditiesFormComponent } from '../commodities-form/commodities-form.component';
-import { Commodity } from 'src/app/share/types/commodity.model.type';
-import { Organization } from 'src/app/share/types/organization.model.type';
-import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
-import { LoaderService } from 'src/app/services/loader.service';
+import {Paginated} from 'src/app/share/types/paginate.type';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {CommoditiesService} from 'src/app/services/commodities.service';
+import {CommoditiesFormComponent} from '../commodities-form/commodities-form.component';
+import {Commodity} from 'src/app/share/types/commodity.model.type';
+import {Organization} from 'src/app/share/types/organization.model.type';
+import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
+import {LoaderService} from 'src/app/services/loader.service';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 
 @Component({
   selector: 'app-commodities-table',
@@ -32,6 +33,7 @@ export class CommoditiesTableComponent {
   text = '';
   organizations: Organization[] = [];
   form!: FormGroup;
+
   constructor(
     public dialog: MatDialog,
     private commoditiesService: CommoditiesService,
@@ -39,11 +41,11 @@ export class CommoditiesTableComponent {
     private mediaService: MediaService,
     private loaderService: LoaderService,
     private fb: FormBuilder
-  ) {}
+  ) {
+  }
 
   ngOnInit() {
     this.initForm();
-    this.loaderService.open();
     this.loadData();
   }
 
@@ -53,21 +55,26 @@ export class CommoditiesTableComponent {
       sortBy: ['id:ASC'],
     });
 
-    this.form.valueChanges.subscribe((value) => {
-      this.text = value.text;
-      this.sortBy = value.sortBy;
-      this.loadData();
+    this.form.valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(500)
+    ).subscribe({
+      next: (value: any) => {
+        this.text = value.text;
+        this.sortBy = value.sortBy;
+        this.loadData();
+      }
     });
   }
 
   handlePageEvent(e: PageEvent) {
-    console.log(e);
     this.pageSize = e.pageSize;
     this.pageIndex = e.pageIndex;
     this.loadData();
   }
 
   async loadData() {
+    this.loaderService.open();
     const queryString = [];
     queryString.push(`limit=${this.pageSize}`);
     queryString.push(`page=${this.pageIndex + 1}`);
@@ -85,8 +92,11 @@ export class CommoditiesTableComponent {
   }
 
   openDialog(id?: number): void {
+    if (id) {
+      this.loaderService.open();
+    }
     const dialogRef = this.dialog.open(CommoditiesFormComponent, {
-      data: { id },
+      data: {id},
       width: '100%',
       maxWidth: '650px',
     });
@@ -96,7 +106,9 @@ export class CommoditiesTableComponent {
   }
 
   fileUploaded(e: UploadFileResponse) {
+    this.loaderService.open();
     this.commoditiesService.processSheet(e.fileName).subscribe(() => {
+      this.loaderService.close();
       this.loadData();
     });
   }
@@ -116,12 +128,15 @@ export class CommoditiesTableComponent {
       .afterClosed()
       .subscribe(async (dialogResult) => {
         if (dialogResult == true) {
+          this.loaderService.open();
           await this.commoditiesService.delete(id).subscribe({
             next: () => {
+              this.loaderService.close();
               this.loadData();
-              this.snackBarService.success('Deleted successfully');
+              this.snackBarService.success('Deleted successfully.');
             },
             error: (error) => {
+              this.loaderService.close();
               this.snackBarService.error(error.error.message);
             },
           });

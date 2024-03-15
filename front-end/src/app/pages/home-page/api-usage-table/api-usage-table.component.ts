@@ -7,7 +7,8 @@ import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {LoaderService} from 'src/app/services/loader.service';
 import {PageEvent} from '@angular/material/paginator';
 import {ApiStatisticsSummary} from 'src/app/share/types/api-statistics.model.type';
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject} from 'rxjs';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 
 @Component({
   selector: 'app-api-usage-table',
@@ -40,8 +41,6 @@ export class ApiUsageTableComponent {
 
   ngOnInit() {
     this.initForm();
-    this.loaderService.open();
-
     this.yearSubject.subscribe((value) => {
       this.loadData(value);
     });
@@ -52,10 +51,16 @@ export class ApiUsageTableComponent {
       text: [''],
       sortBy: ['name:ASC'],
     });
-    this.form.valueChanges.subscribe((value) => {
-      this.text = value.text;
-      this.sortBy = value.sortBy;
-      this.loadData();
+
+    this.form.valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(500)
+    ).subscribe({
+      next: (value: any) => {
+        this.text = value.text;
+        this.sortBy = value.sortBy;
+        this.loadData();
+      }
     });
   }
 
@@ -66,6 +71,7 @@ export class ApiUsageTableComponent {
   }
 
   async loadData(year: number = this.year) {
+    this.loaderService.open();
     this.year = year;
     const queryString = [];
     queryString.push(`limit=${this.pageSize}`);

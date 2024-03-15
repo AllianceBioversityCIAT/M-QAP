@@ -12,6 +12,7 @@ import {LoaderService} from 'src/app/services/loader.service';
 import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 import {SchemaFormComponent} from '../schema-form/schema-form.component';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 
 @Component({
   selector: 'app-repositories-table',
@@ -40,7 +41,6 @@ export class RepositoriesTableComponent {
 
   ngOnInit() {
     this.initForm();
-    this.loaderService.open();
     this.loadData();
   }
 
@@ -49,21 +49,27 @@ export class RepositoriesTableComponent {
       text: [''],
       sortBy: ['id:ASC'],
     });
-    this.form.valueChanges.subscribe((value) => {
-      this.text = value.text;
-      this.sortBy = value.sortBy;
-      this.loadData();
+
+    this.form.valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(500)
+    ).subscribe({
+      next: (value: any) => {
+        this.text = value.text;
+        this.sortBy = value.sortBy;
+        this.loadData();
+      }
     });
   }
 
   handlePageEvent(e: PageEvent) {
-    console.log(e);
     this.pageSize = e.pageSize;
     this.pageIndex = e.pageIndex;
     this.loadData();
   }
 
   async loadData() {
+    this.loaderService.open();
     const queryString = [];
     queryString.push(`limit=${this.pageSize}`);
     queryString.push(`page=${this.pageIndex + 1}`);
@@ -81,6 +87,9 @@ export class RepositoriesTableComponent {
   }
 
   openDialog(id?: number): void {
+    if (id) {
+      this.loaderService.open();
+    }
     const dialogRef = this.dialog.open(RepositoriesFormComponent, {
       data: {id},
       width: '100%',
@@ -93,6 +102,7 @@ export class RepositoriesTableComponent {
   }
 
   openDialogSchema(repository_id?: number): void {
+    this.loaderService.open();
     this.dialog.open(SchemaFormComponent, {
       data: {repository_id},
       width: '90%',
@@ -111,15 +121,19 @@ export class RepositoriesTableComponent {
       .afterClosed()
       .pipe(
         filter((i) => !!i),
-        switchMap(() => this.repositoriesService.delete(id))
+        switchMap(() => {
+          this.loaderService.open();
+          return this.repositoriesService.delete(id);
+        })
       )
       .subscribe({
         next: () => {
-          console.log('arrived')
+          this.loaderService.close();
           this.loadData();
           this.snackBarService.success('Deleted successfully.');
         },
         error: (error) => {
+          this.loaderService.close();
           this.snackBarService.error(error.error.message);
         },
       });

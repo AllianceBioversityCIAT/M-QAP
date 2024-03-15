@@ -5,8 +5,8 @@ import {
     Delete,
     Get,
     Param,
+    Patch,
     Post,
-    Put,
     Query,
     StreamableFile,
     UseGuards,
@@ -23,7 +23,7 @@ import {UsersService} from './users.service';
 import {createReadStream} from 'fs';
 import {join} from 'path';
 import {unlink} from 'fs/promises';
-import {In} from 'typeorm';
+import {In, Not} from 'typeorm';
 import {CreateAndUpdateUsers, ExportToExcel} from 'src/users/dto/users.dto';
 import {JwtAuthGuard} from '../auth/jwt-auth.guard';
 import {RolesGuard} from '../auth/roles.guard';
@@ -64,23 +64,33 @@ export class UsersController {
         return this.usersService.findOne({where: {id}});
     }
 
-    @Put()
+    @Patch(':id')
     @ApiBody({type: CreateAndUpdateUsers})
     @ApiCreatedResponse({
         description: '',
         type: CreateAndUpdateUsers,
     })
-    async updateUser(@Body() data: any) {
-        const emailExist = await this.usersService.userRepository.findOne({
-            where: {email: data.email},
+    async updateUser(@Body() data: any, @Param('id') id: number) {
+        const user = await this.usersService.userRepository.findOne({
+            where: {id},
         });
-        if (emailExist == null || emailExist.id == data.id) {
-            const user = this.usersService.userRepository.create();
-            if (data?.email) data['email'] = data?.email.toLowerCase();
-            Object.assign(user, data);
-            return this.usersService.userRepository.save(user, {reload: true});
+        if (user) {
+            const emailExist = await this.usersService.userRepository.findOne({
+                where: {
+                    email: data.email,
+                    id: Not(user.id)
+                },
+            });
+            if (emailExist == null || emailExist.id === user.id) {
+                if (data?.email) {
+                    data['email'] = data?.email.toLowerCase();
+                }
+                return this.usersService.userRepository.update({id}, {...data});
+            } else {
+                throw new BadRequestException('The email is already used.');
+            }
         } else {
-            throw new BadRequestException('The email is already used');
+            throw new BadRequestException('User not found.');
         }
     }
 

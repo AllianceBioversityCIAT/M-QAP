@@ -12,6 +12,7 @@ import {LoaderService} from 'src/app/services/loader.service';
 import {PageEvent} from '@angular/material/paginator';
 import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
 import {WosQuotaYearFormComponent} from '../wos-quota-year-form/wos-quota-year-form.component';
+import {debounceTime, distinctUntilChanged} from "rxjs/operators";
 
 @Component({
   selector: 'app-wos-quota-year-table',
@@ -53,10 +54,16 @@ export class WosQuotaYearTableComponent {
       text: [''],
       sortBy: ['id:ASC'],
     });
-    this.form.valueChanges.subscribe((value) => {
-      this.text = value.text;
-      this.sortBy = value.sortBy;
-      this.loadData();
+
+    this.form.valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(500)
+    ).subscribe({
+      next: (value: any) => {
+        this.text = value.text;
+        this.sortBy = value.sortBy;
+        this.loadData();
+      }
     });
   }
 
@@ -68,6 +75,7 @@ export class WosQuotaYearTableComponent {
 
   async loadData() {
     if (this.wosQuotaId) {
+      this.loaderService.open();
       const queryString = [];
       queryString.push(`limit=${this.pageSize}`);
       queryString.push(`page=${this.pageIndex + 1}`);
@@ -81,11 +89,15 @@ export class WosQuotaYearTableComponent {
           this.response = response;
           this.length = response.meta.totalItems;
           this.dataSource = new MatTableDataSource(response.data);
+          this.loaderService.close();
         });
     }
   }
 
   openDialog(id?: number): void {
+    if (id) {
+      this.loaderService.open();
+    }
     const dialogRef = this.dialog.open(WosQuotaYearFormComponent, {
       data: {id, wosQuotaId: this.wosQuotaId},
       width: '100%',
@@ -108,14 +120,19 @@ export class WosQuotaYearTableComponent {
       .afterClosed()
       .pipe(
         filter((i) => !!i),
-        switchMap(() => this.apiKeyService.deleteWosQuotaYear(id))
+        switchMap(() => {
+          this.loaderService.open();
+          return this.apiKeyService.deleteWosQuotaYear(id);
+        })
       )
       .subscribe({
         next: () => {
+          this.loaderService.close();
           this.loadData();
           this.snackBarService.success('Deleted successfully.');
         },
         error: (error) => {
+          this.loaderService.close();
           this.snackBarService.error(error.error.message);
         },
       });

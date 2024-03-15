@@ -134,7 +134,7 @@ export class ApiKeysController {
         return this.apiKeysService.findAll(query, wosQuotaId);
     }
 
-    @Get('api-keys/:id')
+    @Get('api-key/:id')
     findOne(@Param('id') id: number) {
         return this.apiKeysService.findOne({where: {id}, relations: ['organization', 'user']});
     }

@@ -10,6 +10,7 @@ import {
   MediaService,
   UploadFileResponse,
 } from 'src/app/services/media.service';
+import {LoaderService} from 'src/app/services/loader.service';
 
 export const FileExtension = {
   word: '.doc, .docx',
@@ -36,9 +37,13 @@ export const FileExtension = {
 export class UploadFileMaterialComponent {
   @Output() uploaded = new EventEmitter<UploadFileResponse>();
   @Output() accept = [FileExtension.xcel].join(', ');
-  constructor(private mediaService: MediaService) {}
+  constructor(
+    private mediaService: MediaService,
+    private loaderService: LoaderService,
+  ) {}
 
   fileSelected(input: any) {
+    this.loaderService.open();
     const { files } = input.srcElement;
 
     const formData = new FormData();
@@ -51,6 +56,7 @@ export class UploadFileMaterialComponent {
       this.uploaded.emit(file);
       console.log('Called');
       input.srcElement.value = ''; // to reset the input and emit the event when select the same file more than ones.;
+      this.loaderService.close();
     });
   }
 }

@@ -1,10 +1,11 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { TrainingDataService } from 'src/app/services/training-data.service';
-import { vb } from 'src/app/services/validator.service';
-import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
-import { z } from 'zod';
+import {Component, Inject, OnInit} from '@angular/core';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {TrainingDataService} from 'src/app/services/training-data.service';
+import {vb} from 'src/app/services/validator.service';
+import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
+import {z} from 'zod';
+import {LoaderService} from 'src/app/services/loader.service';
 
 export interface DialogData {
   id?: number;
@@ -24,8 +25,10 @@ export class TrainingDataFormComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
     private trainingDataService: TrainingDataService,
     private snackBarService: SnackBarService,
-    private fb: FormBuilder
-  ) {}
+    private fb: FormBuilder,
+    private loaderService: LoaderService,
+  ) {
+  }
 
   async ngOnInit() {
     this.formInit();
@@ -40,6 +43,7 @@ export class TrainingDataFormComponent implements OnInit {
     if (this.id) {
       this.trainingDataService.get(this.id).subscribe((data) => {
         this.form.patchValue(data);
+        this.loaderService.close();
       });
     } else if (!!this.data?.data) {
       this.form.patchValue(this.data.data);
@@ -57,28 +61,29 @@ export class TrainingDataFormComponent implements OnInit {
   async submit() {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity();
-    console.log(this.form.get('text')?.errors);
     if (this.form.valid) {
+      this.loaderService.open();
       await this.trainingDataService
         .upsert(this.id, this.form.value)
         .subscribe({
           next: () => {
+            this.loaderService.close();
             if (this.id) {
               this.snackBarService.success(
-                'Training data updated successfully'
+                'Training data updated successfully.'
               );
             } else {
-              this.snackBarService.success('Training data added successfully');
+              this.snackBarService.success('Training data added successfully.');
             }
-            this.dialogRef.close({ submitted: true });
+            this.dialogRef.close({submitted: true});
           },
           error: (error) => {
-            console.log(error);
+            this.loaderService.close();
             if (this.id) {
-              this.snackBarService.error('Training data failed to update');
+              this.snackBarService.error('Training data failed to update.');
             } else if (this.data?.data) {
               this.snackBarService.error(
-                'Training data failed to add (Duplicated Data)'
+                'Training data failed to add (Duplicated Data).'
               );
             } else {
               this.snackBarService.error(error.error.message);

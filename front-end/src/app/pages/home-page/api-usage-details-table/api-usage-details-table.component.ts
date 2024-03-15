@@ -4,9 +4,10 @@ import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {MatTableDataSource} from '@angular/material/table';
 import {ApiStatisticsSummary, ApiUsage, WosApiUsage} from 'src/app/share/types/api-statistics.model.type';
 import {Paginated} from 'src/app/share/types/paginate.type';
-import {LoaderService} from '../../../services/loader.service';
+import {LoaderService} from 'src/app/services/loader.service';
 import {PageEvent} from '@angular/material/paginator';
-import {BehaviorSubject, Subscription} from "rxjs";
+import {BehaviorSubject, Subscription} from 'rxjs';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 
 @Component({
   selector: 'app-api-usage-details-table',
@@ -59,10 +60,16 @@ export class ApiUsageDetailsTableComponent implements OnInit, OnDestroy {
       text: [''],
       sortBy: ['id:DESC'],
     });
-    this.form.valueChanges.subscribe((value) => {
-      this.text = value.text;
-      this.sortBy = value.sortBy;
-      this.loadData();
+
+    this.form.valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(500)
+    ).subscribe({
+      next: (value: any) => {
+        this.text = value.text;
+        this.sortBy = value.sortBy;
+        this.loadData();
+      }
     });
   }
 
@@ -74,6 +81,7 @@ export class ApiUsageDetailsTableComponent implements OnInit, OnDestroy {
 
   async loadData(year: number = (new Date()).getFullYear()) {
     if (this.apiKeyId) {
+      this.loaderService.open();
       const queryString = [];
       queryString.push(`limit=${this.pageSize}`);
       queryString.push(`page=${this.pageIndex + 1}`);
@@ -86,6 +94,7 @@ export class ApiUsageDetailsTableComponent implements OnInit, OnDestroy {
           this.response = response;
           this.length = response.meta.totalItems;
           this.dataSource = new MatTableDataSource(response.data);
+          this.loaderService.close();
         });
     }
   }

@@ -51,7 +51,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             return await this.wosQuotaRepository.save(newRepository);
         } catch (error) {
             if (error.errno === 1062) {
-                throw new BadRequestException('Duplicated Quota');
+                throw new BadRequestException('Duplicated Quota.');
             } else {
                 throw new InternalServerErrorException('Oops! something went wrong.');
             }
@@ -65,7 +65,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             return await this.wosQuotaRepository.update({id}, {...updateWosQuotaDto});
         } catch (error) {
             if (error.errno === 1062) {
-                throw new BadRequestException('Duplicated Quota');
+                throw new BadRequestException('Duplicated Quota.');
             } else {
                 throw new InternalServerErrorException('Oops! something went wrong.');
             }
@@ -131,7 +131,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             return await this.wosQuotaYearRepository.save(newRepository);
         } catch (error) {
             if (error.errno === 1062) {
-                throw new BadRequestException('Duplicated Quota');
+                throw new BadRequestException('Duplicated Quota.');
             } else {
                 throw new InternalServerErrorException('Oops! something went wrong.');
             }
@@ -143,7 +143,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             return await this.wosQuotaYearRepository.update({id}, {...updateWosQuotaYearDto});
         } catch (error) {
             if (error.errno === 1062) {
-                throw new BadRequestException('Duplicated Quota');
+                throw new BadRequestException('Duplicated Quota.');
             } else {
                 throw new InternalServerErrorException('Oops! something went wrong.');
             }
@@ -200,7 +200,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             return await this.apiKeyRepository.save(newRepository);
         } catch (error) {
             if (error.errno === 1062) {
-                throw new BadRequestException('Duplicated API-key');
+                throw new BadRequestException('Duplicated API-key.');
             } else {
                 throw new InternalServerErrorException('Oops! something went wrong.');
             }
@@ -225,7 +225,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             return await this.apiKeyRepository.update({id}, {...updateApiKeyDto});
         } catch (error) {
             if (error.errno === 1062) {
-                throw new BadRequestException('Duplicated API-key');
+                throw new BadRequestException('Duplicated API-key.');
             } else {
                 throw new InternalServerErrorException('Oops! something went wrong.');
             }

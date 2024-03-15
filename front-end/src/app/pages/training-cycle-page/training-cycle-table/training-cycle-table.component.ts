@@ -1,16 +1,17 @@
 import {Component, Input} from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { PageEvent } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
-import { TrainingCycleService } from 'src/app/services/training-cycle.service';
-import { TrainingCycleAddDialogComponent } from '../training-cycle-add-dialog/training-cycle-add-dialog.component';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { Paginated } from 'src/app/share/types/paginate.type';
-import { DeleteConfirmDialogComponent } from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
-import { TrainingCycle } from 'src/app/share/types/training-cycle.model.type';
-import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
-import { LoaderService } from 'src/app/services/loader.service';
-import { filter, switchMap } from 'rxjs';
+import {MatDialog} from '@angular/material/dialog';
+import {PageEvent} from '@angular/material/paginator';
+import {MatTableDataSource} from '@angular/material/table';
+import {TrainingCycleService} from 'src/app/services/training-cycle.service';
+import {TrainingCycleAddDialogComponent} from '../training-cycle-add-dialog/training-cycle-add-dialog.component';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {Paginated} from 'src/app/share/types/paginate.type';
+import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
+import {TrainingCycle} from 'src/app/share/types/training-cycle.model.type';
+import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
+import {LoaderService} from 'src/app/services/loader.service';
+import {filter, switchMap} from 'rxjs';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 
 @Component({
   selector: 'app-training-cycle-table',
@@ -31,17 +32,18 @@ export class TrainingCycleTableComponent {
   trainingProgress = 0;
   trainingStatus = '';
   trainingInProgress = false;
+
   constructor(
     public dialog: MatDialog,
     private trainingCycleService: TrainingCycleService,
     private snackBarService: SnackBarService,
     private loaderService: LoaderService,
     private fb: FormBuilder
-  ) {}
+  ) {
+  }
 
   ngOnInit() {
     this.initForm();
-    this.loaderService.open();
     this.loadData();
 
     if (this.trainingProgressSocket) {
@@ -62,14 +64,21 @@ export class TrainingCycleTableComponent {
       text: [''],
       sortBy: ['id:DESC'],
     });
-    this.form.valueChanges.subscribe((value) => {
-      this.text = value.text;
-      this.sortBy = value.sortBy;
-      this.loadData();
+
+    this.form.valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(500)
+    ).subscribe({
+      next: (value: any) => {
+        this.text = value.text;
+        this.sortBy = value.sortBy;
+        this.loadData();
+      }
     });
   }
 
   async loadData() {
+    this.loaderService.open();
     const queryString = [];
     queryString.push(`limit=${this.pageSize}`);
     queryString.push(`page=${this.pageIndex + 1}`);
@@ -87,8 +96,9 @@ export class TrainingCycleTableComponent {
   }
 
   openDialog(id: number = 0): void {
+    this.loaderService.open();
     const dialogRef = this.dialog.open(TrainingCycleAddDialogComponent, {
-      data: { id: id },
+      data: {id: id},
       width: '100%',
       maxWidth: '650px',
     });
@@ -99,7 +109,6 @@ export class TrainingCycleTableComponent {
   }
 
   handlePageEvent(e: PageEvent) {
-    console.log(e);
     this.pageSize = e.pageSize;
     this.pageIndex = e.pageIndex;
     this.loadData();
@@ -116,11 +125,13 @@ export class TrainingCycleTableComponent {
       .afterClosed()
       .pipe(
         filter((i) => !!i),
-        switchMap(() => this.trainingCycleService.delete(id))
+        switchMap(() => {
+          this.loaderService.open();
+          return this.trainingCycleService.delete(id)
+        })
       )
       .subscribe({
         next: () => {
-          console.log('arrived')
           this.loadData();
           this.snackBarService.success('Deleted successfully.');
         },

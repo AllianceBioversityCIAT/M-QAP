@@ -84,7 +84,6 @@ export class OrganizationInputComponent
 
   constructor(
     private organizationsService: OrganizationsService,
-    public dialogService: MatDialog
   ) {
   }
 

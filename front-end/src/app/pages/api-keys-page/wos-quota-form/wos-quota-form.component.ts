@@ -5,6 +5,7 @@ import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 import {vb} from 'src/app/services/validator.service';
 import {z} from 'zod';
+import {LoaderService} from 'src/app/services/loader.service';
 
 export interface DialogData {
   id?: number;
@@ -24,7 +25,8 @@ export class WosQuotaFormComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
     private apiKeysService: ApiKeysService,
     private snackBarService: SnackBarService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private loaderService: LoaderService,
   ) {
   }
 
@@ -41,9 +43,8 @@ export class WosQuotaFormComponent implements OnInit {
     if (this.id) {
       this.apiKeysService.getWosQuota(this.id).subscribe((data) => {
         this.form.patchValue(data);
+        this.loaderService.close();
       });
-    } else if (!!this.data?.data) {
-      this.form.patchValue(this.data.data);
     }
   }
 
@@ -58,10 +59,12 @@ export class WosQuotaFormComponent implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity();
     if (this.form.valid) {
+      this.loaderService.open();
       await this.apiKeysService
         .upsertWosQuota(this.id, this.form.value)
         .subscribe({
           next: () => {
+            this.loaderService.close();
             if (this.id) {
               this.snackBarService.success(
                 'WoS quota updated successfully.'
@@ -72,6 +75,7 @@ export class WosQuotaFormComponent implements OnInit {
             this.dialogRef.close({submitted: true});
           },
           error: (error) => {
+            this.loaderService.close();
             this.snackBarService.error(error.error.message);
           },
         });

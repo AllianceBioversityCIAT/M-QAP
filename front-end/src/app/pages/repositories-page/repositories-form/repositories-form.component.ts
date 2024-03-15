@@ -5,6 +5,7 @@ import {RepositoriesService} from 'src/app/services/repositories.service';
 import {vb} from 'src/app/services/validator.service';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 import {z} from 'zod';
+import {LoaderService} from 'src/app/services/loader.service';
 
 export interface DialogData {
   id: number;
@@ -39,7 +40,8 @@ export class RepositoriesFormComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
     private repositoriesService: RepositoriesService,
     private snackBrService: SnackBarService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private loaderService: LoaderService,
   ) {
   }
 
@@ -56,6 +58,7 @@ export class RepositoriesFormComponent implements OnInit {
     if (this.id) {
       this.repositoriesService.get(this.id).subscribe((repository) => {
         this.form.patchValue(repository);
+        this.loaderService.close();
       });
     }
   }
@@ -75,14 +78,19 @@ export class RepositoriesFormComponent implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity();
     if (this.form.valid) {
+      this.loaderService.open();
       this.repositoriesService.upsert(this.id, this.form.value).subscribe({
         next: () => {
+          this.loaderService.close();
           if (this.id)
             this.snackBrService.success('Repository added successfully');
           else this.snackBrService.success('Repository updated successfully');
           this.dialogRef.close({submitted: true});
         },
-        error: (error: any) => this.snackBrService.error(error.error.message),
+        error: (error: any) => {
+          this.loaderService.close();
+          this.snackBrService.error(error.error.message);
+        },
       });
     }
   }

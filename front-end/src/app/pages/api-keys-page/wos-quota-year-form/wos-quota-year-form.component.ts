@@ -5,6 +5,7 @@ import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 import {vb} from 'src/app/services/validator.service';
 import {z} from 'zod';
+import {LoaderService} from "../../../services/loader.service";
 
 export interface DialogData {
   id?: number;
@@ -25,7 +26,8 @@ export class WosQuotaYearFormComponent {
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
     private apiKeysService: ApiKeysService,
     private snackBarService: SnackBarService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private loaderService: LoaderService,
   ) {
   }
 
@@ -46,9 +48,8 @@ export class WosQuotaYearFormComponent {
     if (this.id) {
       this.apiKeysService.getWosQuotaYear(this.id).subscribe((data) => {
         this.form.patchValue(data);
+        this.loaderService.close();
       });
-    } else if (!!this.data?.data) {
-      this.form.patchValue(this.data.data);
     }
   }
 
@@ -63,10 +64,12 @@ export class WosQuotaYearFormComponent {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity();
     if (this.form.valid) {
+      this.loaderService.open();
       await this.apiKeysService
         .upsertWosQuotaYear(this.id, this.wosQuotaId, this.form.value)
         .subscribe({
           next: () => {
+            this.loaderService.close();
             if (this.id) {
               this.snackBarService.success(
                 'Quota updated successfully.'
@@ -77,6 +80,7 @@ export class WosQuotaYearFormComponent {
             this.dialogRef.close({submitted: true});
           },
           error: (error) => {
+            this.loaderService.close();
             this.snackBarService.error(error.error.message);
           },
         });

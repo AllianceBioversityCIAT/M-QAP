@@ -1,20 +1,21 @@
-import { Component } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { PageEvent } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
-import { TrainingDataService } from 'src/app/services/training-data.service';
-import { TrainingDataFormComponent } from '../training-data-form/training-data-form.component';
+import {Component, EventEmitter} from '@angular/core';
+import {MatDialog} from '@angular/material/dialog';
+import {PageEvent} from '@angular/material/paginator';
+import {MatTableDataSource} from '@angular/material/table';
+import {TrainingDataService} from 'src/app/services/training-data.service';
+import {TrainingDataFormComponent} from '../training-data-form/training-data-form.component';
 import {
   MediaService,
   UploadFileResponse,
 } from 'src/app/services/media.service';
-import { Paginated } from 'src/app/share/types/paginate.type';
-import { TrainingData } from 'src/app/share/types/training-data.model.type';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { DeleteDialogService } from 'src/app/share/delete-confirm-dialog/delete-dialog.service';
-import { filter, switchMap } from 'rxjs';
-import { SnackBarService } from 'src/app/share/snack-bar/snack-bar.service';
-import { LoaderService } from 'src/app/services/loader.service';
+import {Paginated} from 'src/app/share/types/paginate.type';
+import {TrainingData} from 'src/app/share/types/training-data.model.type';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {DeleteDialogService} from 'src/app/share/delete-confirm-dialog/delete-dialog.service';
+import {filter, switchMap} from 'rxjs';
+import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
+import {LoaderService} from 'src/app/services/loader.service';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 
 @Component({
   selector: 'app-training-data-table',
@@ -38,6 +39,7 @@ export class TrainingDataTableComponent {
   sortBy = 'text:ASC';
   text = '';
   form!: FormGroup;
+
   constructor(
     public dialog: MatDialog,
     private deleteDialogService: DeleteDialogService,
@@ -46,11 +48,11 @@ export class TrainingDataTableComponent {
     private mediaService: MediaService,
     private loaderService: LoaderService,
     private fb: FormBuilder
-  ) {}
+  ) {
+  }
 
   ngOnInit() {
     this.initForm();
-    this.loaderService.open();
     this.loadData();
   }
 
@@ -59,21 +61,27 @@ export class TrainingDataTableComponent {
       text: [''],
       sortBy: ['text:ASC'],
     });
-    this.form.valueChanges.subscribe((value) => {
-      this.text = value.text;
-      this.sortBy = value.sortBy;
-      this.loadData();
+
+    this.form.valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(500)
+    ).subscribe({
+      next: (value: any) => {
+        this.text = value.text;
+        this.sortBy = value.sortBy;
+        this.loadData();
+      }
     });
   }
 
   handlePageEvent(e: PageEvent) {
-    console.log(e);
     this.pageSize = e.pageSize;
     this.pageIndex = e.pageIndex;
     this.loadData();
   }
 
   loadData() {
+    this.loaderService.open();
     const queryString = [];
     queryString.push(`limit=${this.pageSize}`);
     queryString.push(`page=${this.pageIndex + 1}`);
@@ -90,8 +98,11 @@ export class TrainingDataTableComponent {
   }
 
   openDialog(id?: number): void {
+    if (id) {
+      this.loaderService.open();
+    }
     const dialogRef = this.dialog.open(TrainingDataFormComponent, {
-      data: { id },
+      data: {id},
       width: '100%',
       maxWidth: '650px',
     });
@@ -102,7 +113,9 @@ export class TrainingDataTableComponent {
   }
 
   fileUploaded(e: UploadFileResponse) {
+    this.loaderService.open();
     this.trainingDataService.processSheet(e.fileName).subscribe(() => {
+      this.loaderService.close();
       this.loadData();
     });
   }
@@ -119,12 +132,14 @@ export class TrainingDataTableComponent {
       .create()
       .pipe(
         filter((answer) => answer),
-        switchMap(() => this.trainingDataService.delete(id))
+        switchMap(() => {
+          this.loaderService.open();
+          return this.trainingDataService.delete(id)
+        })
       )
       .subscribe(() => {
         this.loadData();
-        console.log('>>>>>>>>>>>>>>>>>>>>>.');
-        this.snackBarService.success('Deleted successfully');
+        this.snackBarService.success('Deleted successfully.');
       });
   }
 }

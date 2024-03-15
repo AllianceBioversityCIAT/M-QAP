@@ -12,6 +12,7 @@ import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/
 import {filter, switchMap} from 'rxjs';
 import {ApiKeysFormComponent} from '../api-keys-form/api-keys-form.component';
 import {WosQuota} from 'src/app/share/types/wos-quota.model.type';
+import {debounceTime, distinctUntilChanged} from "rxjs/operators";
 
 @Component({
   selector: 'app-api-keys-table',
@@ -53,10 +54,16 @@ export class ApiKeysTableComponent {
       text: [''],
       sortBy: ['id:ASC'],
     });
-    this.form.valueChanges.subscribe((value) => {
-      this.text = value.text;
-      this.sortBy = value.sortBy;
-      this.loadData();
+
+    this.form.valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(500)
+    ).subscribe({
+      next: (value: any) => {
+        this.text = value.text;
+        this.sortBy = value.sortBy;
+        this.loadData();
+      }
     });
   }
 
@@ -68,6 +75,7 @@ export class ApiKeysTableComponent {
 
   async loadData() {
     if (this.wosQuotaId) {
+      this.loaderService.open();
       const queryString = [];
       queryString.push(`limit=${this.pageSize}`);
       queryString.push(`page=${this.pageIndex + 1}`);
@@ -80,11 +88,15 @@ export class ApiKeysTableComponent {
           this.response = response;
           this.length = response.meta.totalItems;
           this.dataSource = new MatTableDataSource(response.data);
+          this.loaderService.close();
         });
     }
   }
 
   openDialog(id?: number | null, type = 'application'): void {
+    if (id) {
+      this.loaderService.open();
+    }
     const dialogRef = this.dialog.open(ApiKeysFormComponent, {
       data: {id, type, wosQuotaId: this.wosQuotaId},
       width: '100%',
@@ -107,14 +119,19 @@ export class ApiKeysTableComponent {
       .afterClosed()
       .pipe(
         filter((i) => !!i),
-        switchMap(() => this.apiKeyService.delete(id))
+        switchMap(() => {
+          this.loaderService.open();
+          return this.apiKeyService.delete(id);
+        })
       )
       .subscribe({
         next: () => {
+          this.loaderService.close();
           this.loadData();
           this.snackBarService.success('Deleted successfully.');
         },
         error: (error) => {
+          this.loaderService.close();
           this.snackBarService.error(error.error.message);
         },
       });
@@ -132,14 +149,19 @@ export class ApiKeysTableComponent {
       .afterClosed()
       .pipe(
         filter((i) => !!i),
-        switchMap(() => this.apiKeyService.updateStatus(id, is_active))
+        switchMap(() => {
+          this.loaderService.open();
+          return this.apiKeyService.updateStatus(id, is_active);
+        })
       )
       .subscribe({
         next: () => {
+          this.loaderService.close();
           this.loadData();
           this.snackBarService.success(`${operation}ed successfully.`);
         },
         error: (error) => {
+          this.loaderService.close();
           this.snackBarService.error(error.error.message);
         },
       });
@@ -156,14 +178,19 @@ export class ApiKeysTableComponent {
       .afterClosed()
       .pipe(
         filter((i) => !!i),
-        switchMap(() => this.apiKeyService.regenerate(id))
+        switchMap(() => {
+          this.loaderService.open();
+          return this.apiKeyService.regenerate(id);
+        })
       )
       .subscribe({
         next: () => {
+          this.loaderService.close();
           this.loadData();
           this.snackBarService.success(`Regenerated successfully.`);
         },
         error: (error) => {
+          this.loaderService.close();
           this.snackBarService.error(error.error.message);
         },
       });

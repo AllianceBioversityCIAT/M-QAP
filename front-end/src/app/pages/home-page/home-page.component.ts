@@ -6,7 +6,8 @@ import {Statistics} from 'src/app/share/types/statistics.model.type';
 import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {Router} from '@angular/router';
 import {AuthService} from '../auth/auth.service';
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject} from 'rxjs';
+import {LoaderService} from 'src/app/services/loader.service';
 
 @Component({
   selector: 'app-home-page',
@@ -24,6 +25,7 @@ export class HomePageComponent {
   apiCounters: any = [];
   wosUsageOverTimeChart!: Chart;
   apiUsageOverTimeChart!: Chart;
+  private loaders: string[] = [];
 
   constructor(
     public headerService: HeaderServiceService,
@@ -31,6 +33,7 @@ export class HomePageComponent {
     private authService: AuthService,
     private statisticsService: StatisticsService,
     private apiKeysService: ApiKeysService,
+    private loaderService: LoaderService,
   ) {
   }
 
@@ -54,6 +57,7 @@ export class HomePageComponent {
   }
 
   getAiStatistics() {
+    this.openLoader('getAiStatistics');
     this.statisticsService.find().subscribe((response) => {
       this.averageChart = new Chart({
         tooltip: {
@@ -143,10 +147,13 @@ export class HomePageComponent {
         ],
       });
       this.statistics = response;
+
+      this.closeLoader('getAiStatistics');
     });
   }
 
   getApiStatistics(year: number = this.apiYear) {
+    this.openLoader('getApiStatistics');
     this.apiYear = year;
     this.apiYearSubject.next(year);
     this.apiKeysService.getStatistics(year).subscribe((response) => {
@@ -271,6 +278,22 @@ export class HomePageComponent {
           }
         },
       });
+
+      this.closeLoader('getApiStatistics');
     });
+  }
+
+  openLoader(loader: string) {
+    if(this.loaders.length === 0) {
+      this.loaderService.open();
+    }
+    this.loaders.push(loader);
+  }
+
+  closeLoader(loader: string) {
+    this.loaders.splice(this.loaders.indexOf(loader), 1);
+    if (this.loaders.length === 0) {
+      this.loaderService.close();
+    }
   }
 }
