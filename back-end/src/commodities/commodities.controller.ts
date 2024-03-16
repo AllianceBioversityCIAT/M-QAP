@@ -19,17 +19,21 @@ import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Admin)
+@Roles([Role.Admin, Role.User])
 @Controller('commodities')
 export class CommoditiesController {
     constructor(private commoditiesService: CommoditiesService) {
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Post()
     create(@Body() createUserDto: CreateCommoditiesDto) {
         return this.commoditiesService.create(createUserDto);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Get('process-sheet/:fileName')
     processSheet(@Param('fileName') fileName: string) {
         return this.commoditiesService.processSheet(fileName);
@@ -49,11 +53,15 @@ export class CommoditiesController {
         return this.commoditiesService.findOne({where: {id}, relations: ['parent']});
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Patch(':id')
     update(@Param('id') id: string, @Body() updateUserDto: UpdateCommoditiesDto) {
         return this.commoditiesService.update(+id, updateUserDto);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Delete(':id')
     remove(@Param('id') id: string) {
         return this.commoditiesService.remove(+id);

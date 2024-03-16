@@ -16,7 +16,7 @@ import {
   NG_VALUE_ACCESSOR,
   Validators,
 } from '@angular/forms';
-import {MatDialog, MatDialogModule} from '@angular/material/dialog';
+import {MatDialogModule} from '@angular/material/dialog';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
@@ -24,6 +24,7 @@ import {NgSelectModule} from '@ng-select/ng-select';
 import {concat, Observable, of, Subject} from 'rxjs';
 import {
   catchError,
+  debounceTime,
   distinctUntilChanged,
   filter, map,
   switchMap,
@@ -67,7 +68,6 @@ export class OrganizationInputComponent
   value?: Organization | null;
   filteredOptions$: Observable<any> = of([]);
   partnerInput$ = new Subject<string>();
-  searchControl = new FormControl();
   loading = false;
   selectedItem?: any;
   control = new FormControl<Organization | null>(null, Validators.required);
@@ -101,6 +101,7 @@ export class OrganizationInputComponent
       of(presetValues),
       this.partnerInput$.pipe(
         distinctUntilChanged(),
+        debounceTime(500),
         filter((term) => {
           return typeof term == 'string' && term.length >= 2;
         }),

@@ -4,6 +4,7 @@ import {
   MatSnackBarHorizontalPosition,
   MatSnackBarVerticalPosition,
 } from '@angular/material/snack-bar';
+import {SnackBarComponent} from './snack-bar.component';
 
 @Injectable()
 export class SnackBarService {
@@ -13,8 +14,11 @@ export class SnackBarService {
   constructor(private _snackBar: MatSnackBar) {}
 
   success(message: string = 'Successfully') {
-    this._snackBar.open(message, undefined, {
-      duration: 1000,
+    this._snackBar.openFromComponent(SnackBarComponent, {
+      data: {
+        html: message
+      },
+      duration: 5000,
       horizontalPosition: this.horizontalPosition,
       verticalPosition: this.verticalPosition,
       panelClass: 'snack-bar-success-panel',
@@ -22,8 +26,11 @@ export class SnackBarService {
   }
 
   error(message: string = 'Failed') {
-    this._snackBar.open(message, undefined, {
-      duration: 1000,
+    this._snackBar.openFromComponent(SnackBarComponent, {
+      data: {
+        html: message
+      },
+      duration: 5000,
       horizontalPosition: this.horizontalPosition,
       verticalPosition: this.verticalPosition,
       panelClass: 'snack-bar-error-panel',

@@ -110,11 +110,11 @@ export class ApiKeysService {
     return this.http.get<ApiStatistics>(`${this.api}/usage/${year}`);
   }
 
-  findSummary(queryString: string, year: number) {
-    return this.http.get<Paginated<ApiStatisticsSummary>>(`${this.api}/summary/${year}?${queryString}`);
+  findQuotaSummary(queryString: string, year: number) {
+    return this.http.get<Paginated<ApiStatisticsSummary>>(`${this.api}/quota-summary/${year}?${queryString}`);
   }
 
-  findDetails(queryString: string, apiKeyId: number, type: string, year: number) {
-    return this.http.get<Paginated<ApiUsage | WosApiUsage>>(`${this.api}/details/${apiKeyId}/${type}/${year}?${queryString}`);
+  findDetails(queryString: string, quotaId: number, type: string, year: number) {
+    return this.http.get<Paginated<ApiUsage | WosApiUsage>>(`${this.api}/details/${quotaId}/${type}/${year}?${queryString}`);
   }
 }

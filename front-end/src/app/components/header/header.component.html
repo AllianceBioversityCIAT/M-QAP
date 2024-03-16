@@ -75,48 +75,51 @@
           <span>Home</span>
         </a>
       </li>
-      <ng-container *ngIf="isAdmin">
-        <li>
-          <a routerLink="training-data" routerLinkActive="active" mat-button>
-            <span>Training Data</span>
-          </a>
-        </li>
-        <li>
-          <a routerLink="training-cycle" routerLinkActive="active" mat-button>
-            <span>Training Cycles</span>
-          </a>
-        </li>
-        <li>
-          <a routerLink="predictions" routerLinkActive="active" mat-button>
-            <span>Predictions</span>
-          </a>
-        </li>
-        <li>
-          <a routerLink="clarisa" routerLinkActive="active" mat-button>
-            <span>CLARISA Institution List</span>
-          </a>
-        </li>
-        <li>
-          <a routerLink="commodities" routerLinkActive="active" mat-button>
-            <span>Commodities</span>
-          </a>
-        </li>
-        <li>
-          <a routerLink="repositories" routerLinkActive="active" mat-button>
-            <span>CGIAR Repositories</span>
-          </a>
-        </li>
-        <li>
-          <a routerLink="users" routerLinkActive="active" mat-button>
-            <span>Admin Panel</span>
-          </a>
-        </li>
-        <li>
-          <a routerLink="api-keys" routerLinkActive="active" mat-button>
-            <span>Api-keys</span>
-          </a>
-        </li>
-      </ng-container>
+      <li *ngIf="isAdmin">
+        <a routerLink="training-data" routerLinkActive="active" mat-button>
+          <span>Training Data</span>
+        </a>
+      </li>
+      <li *ngIf="isAdmin">
+        <a routerLink="training-cycle" routerLinkActive="active" mat-button>
+          <span>Training Cycles</span>
+        </a>
+      </li>
+      <li *ngIf="isAdmin">
+        <a routerLink="predictions" routerLinkActive="active" mat-button>
+          <span>Predictions</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="clarisa" routerLinkActive="active" mat-button>
+          <span>CLARISA Institution List</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="commodities" routerLinkActive="active" mat-button>
+          <span>Commodities</span>
+        </a>
+      </li>
+      <li *ngIf="isAdmin">
+        <a routerLink="repositories" routerLinkActive="active" mat-button>
+          <span>CGIAR Repositories</span>
+        </a>
+      </li>
+      <li *ngIf="isAdmin">
+        <a routerLink="users" routerLinkActive="active" mat-button>
+          <span>Admin Panel</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="api-keys" routerLinkActive="active" mat-button>
+          <span>Api-keys</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="api-usage" routerLinkActive="active" mat-button>
+          <span>Api-usage</span>
+        </a>
+      </li>
     </ul>
   </nav>
 </header>

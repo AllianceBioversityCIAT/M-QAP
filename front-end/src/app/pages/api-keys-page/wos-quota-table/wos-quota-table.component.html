@@ -15,11 +15,11 @@
 <app-api-keys-table *ngIf="selectedWosQuota?.id && viewTable === 'apiKeys'"
                     [selectedWosQuota]="selectedWosQuota"></app-api-keys-table>
 
-<app-wos-quota-year-table *ngIf="selectedWosQuota?.id && viewTable === 'quotas'"
+<app-wos-quota-year-table *ngIf="selectedWosQuota?.id && viewTable === 'quotas'" [isAdmin]="isAdmin"
                           [selectedWosQuota]="selectedWosQuota"></app-wos-quota-year-table>
 
 <div *ngIf="!viewTable" class="main-container">
-  <section class="action-button-section">
+  <section *ngIf="isAdmin" class="action-button-section">
     <button (click)="openDialog()" mat-raised-button color="primary">
       <mat-icon> add_box</mat-icon>
       Add new WoS quota
@@ -41,6 +41,8 @@
         <mat-option value="name:ASC">Name / ACS</mat-option>
         <mat-option value="organization:DESC">Organization / DESC</mat-option>
         <mat-option value="organization:ASC">Organization / ACS</mat-option>
+        <mat-option value="responsible:DESC">Responsible / DESC</mat-option>
+        <mat-option value="responsible:ASC">Responsible / ACS</mat-option>
         <mat-option value="is_active:DESC">Is active / DESC</mat-option>
         <mat-option value="is_active:ASC">Is active / ACS</mat-option>
       </mat-select>
@@ -79,6 +81,16 @@
         </td>
       </ng-container>
 
+      <!-- Responsible Column -->
+      <ng-container matColumnDef="responsible_id">
+        <th mat-header-cell *matHeaderCellDef class="width-14">
+          Responsible
+        </th>
+        <td mat-cell *matCellDef="let element" class="width-14">
+          {{ element.responsible }}
+        </td>
+      </ng-container>
+
       <!-- Status Column -->
       <ng-container matColumnDef="is_active">
         <th mat-header-cell *matHeaderCellDef class="min-width-2">
@@ -112,17 +124,13 @@
         </th>
         <td mat-cell *matCellDef="let element" class="width-4 action-column">
           <div class="action-container">
-            <button
-              mat-icon-button
-              matTooltip="Edit"
-              (click)="openDialog(element.id)"
-            >
+            <button *ngIf="isAdmin" mat-icon-button matTooltip="Edit" (click)="openDialog(element.id)">
               <mat-icon>
                 <app-edit-icon></app-edit-icon>
               </mat-icon>
             </button>
 
-            <button mat-icon-button [matTooltip]="element.is_active ? 'Deactivate' : 'Activate'"
+            <button *ngIf="isAdmin" mat-icon-button [matTooltip]="element.is_active ? 'Deactivate' : 'Activate'"
                     (click)="updateStatus(element.id, !element.is_active)">
               <mat-icon>{{ element.is_active ? 'block' : 'done_outline' }}</mat-icon>
             </button>
@@ -135,7 +143,7 @@
               <mat-icon>electric_meter</mat-icon>
             </button>
 
-            <button mat-icon-button matTooltip="Delete" (click)="delete(element.id)">
+            <button *ngIf="isAdmin" mat-icon-button matTooltip="Delete" (click)="delete(element.id)">
               <mat-icon>
                 <app-delete-icon></app-delete-icon>
               </mat-icon>

@@ -2,11 +2,12 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    OneToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 import {ApiKey} from './api-key.entity';
+import {WosQuota} from './wos-quota.entity';
 
 export enum userRole {
     USER = 'user',
@@ -43,6 +44,9 @@ export class User {
     })
     full_name: string;
 
-    @OneToOne(() => ApiKey, (apiKey) => apiKey.user)
+    @OneToMany(() => WosQuota, (wosQuota) => wosQuota.responsible)
+    wosQuota: WosQuota;
+
+    @OneToMany(() => ApiKey, (apiKey) => apiKey.user)
     apikey: ApiKey;
 }

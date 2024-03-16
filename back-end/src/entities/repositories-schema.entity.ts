@@ -11,7 +11,9 @@ export class RepositoriesSchema {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Repositories, (Repositories) => Repositories.schemas)
+    @ManyToOne(() => Repositories, (Repositories) => Repositories.schemas, {
+        onDelete: 'CASCADE',
+    })
     repository: Repositories;
 
     @Column()

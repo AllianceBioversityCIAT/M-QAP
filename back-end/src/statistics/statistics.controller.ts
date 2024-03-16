@@ -6,7 +6,7 @@ import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Admin, Role.User)
+@Roles([Role.Admin, Role.User])
 
 @Controller('statistics')
 export class StatisticsController {

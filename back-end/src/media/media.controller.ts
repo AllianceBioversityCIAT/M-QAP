@@ -21,7 +21,7 @@ export class MediaController {
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.Admin)
+    @Roles([Role.Admin])
     @Post()
     @UseInterceptors(
         AnyFilesInterceptor({
@@ -55,7 +55,7 @@ export class MediaController {
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.Admin)
+    @Roles([Role.Admin])
     @Delete(':id')
     async deleteImage(@Param('id') id) {
         // if (!isNumber(+id)) throw new BadRequestException();

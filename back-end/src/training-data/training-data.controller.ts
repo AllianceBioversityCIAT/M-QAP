@@ -19,7 +19,7 @@ import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Admin)
+@Roles([Role.Admin])
 @Controller('training-data')
 export class TrainingDataController {
     constructor(private trainingDataService: TrainingDataService) {

@@ -16,6 +16,7 @@ import {DialogLayoutComponent} from '../share/dialog-layout/dialog-layout.compon
 import {EditIconComponent} from '../share/edit-icon/edit-icon.component';
 import {InputComponent} from '../share/input/input.component';
 import {OrganizationInputComponent} from '../share/organization-input/organization-input.component';
+import {UserInputComponent} from '../share/user-input/user-input.component';
 import {SnackBarModule} from '../share/snack-bar/snack-bar.module';
 import {ErrorsComponent} from '../share/errors/errors.component';
 import {MatTooltipModule} from '@angular/material/tooltip';
@@ -40,6 +41,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     DeleteIconComponent,
     InputComponent,
     OrganizationInputComponent,
+    UserInputComponent,
     MatFormFieldModule,
     MatInputModule,
     DialogLayoutComponent,
@@ -65,6 +67,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     DeleteIconComponent,
     InputComponent,
     OrganizationInputComponent,
+    UserInputComponent,
     MatFormFieldModule,
     MatInputModule,
     DialogLayoutComponent,
@@ -73,5 +76,5 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     MatTooltipModule,
   ],
 })
-export class PagePaseModule {
+export class PageBaseModule {
 }

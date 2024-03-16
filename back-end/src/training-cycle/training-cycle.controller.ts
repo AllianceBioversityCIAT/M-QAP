@@ -26,7 +26,7 @@ import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Admin)
+@Roles([Role.Admin])
 @Controller('training-cycle')
 export class TrainingCycleController {
     constructor(
@@ -102,7 +102,7 @@ export class TrainingCycleController {
             return result;
         } catch (e) {
             throw new HttpException(
-                'This cycle is linked to predictions and cannot be deleted.',
+                e.message,
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }

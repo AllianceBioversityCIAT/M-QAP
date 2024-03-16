@@ -9,14 +9,16 @@ import {PageEvent} from '@angular/material/paginator';
 import {ApiStatisticsSummary} from 'src/app/share/types/api-statistics.model.type';
 import {BehaviorSubject} from 'rxjs';
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
+import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 
 @Component({
   selector: 'app-api-usage-table',
   templateUrl: './api-usage-table.component.html',
   styleUrls: ['./api-usage-table.component.scss']
 })
+
 export class ApiUsageTableComponent {
-  columnsToDisplay: string[] = ['api_key', 'parent_name', 'parent_type', 'name', 'type', 'api_requests', 'quota', 'used_wos_quota', 'parent_is_active', 'is_active', 'actions'];
+  columnsToDisplay: string[] = ['id', 'name', 'type', 'api_keys', 'api_requests', 'quota', 'used_wos_quota', 'is_active', 'actions'];
   dataSource!: MatTableDataSource<ApiStatisticsSummary>;
   response!: Paginated<ApiStatisticsSummary>;
   length = 0;
@@ -25,7 +27,7 @@ export class ApiUsageTableComponent {
   sortBy = 'name:ASC';
   text = '';
   form!: FormGroup;
-  selectedApiKey: ApiStatisticsSummary | null = null;
+  selectedQuota: ApiStatisticsSummary | null = null;
   selectedApiKeySummaryType = '';
   year = (new Date()).getFullYear();
   @Input() yearSubject = new BehaviorSubject<number>((new Date()).getFullYear());
@@ -35,7 +37,8 @@ export class ApiUsageTableComponent {
     public dialog: MatDialog,
     private apiKeyService: ApiKeysService,
     private loaderService: LoaderService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private snackBarService: SnackBarService,
   ) {
   }
 
@@ -80,17 +83,23 @@ export class ApiUsageTableComponent {
     queryString.push(`search=${this.text}`);
 
     this.apiKeyService
-      .findSummary(queryString.join('&'), year)
-      .subscribe((response) => {
-        this.response = response;
-        this.length = response.meta.totalItems;
-        this.dataSource = new MatTableDataSource(response.data);
-        this.loaderService.close();
+      .findQuotaSummary(queryString.join('&'), year)
+      .subscribe({
+        next: (response) => {
+          this.response = response;
+          this.length = response.meta.totalItems;
+          this.dataSource = new MatTableDataSource(response.data);
+          this.loaderService.close();
+        },
+        error: (error) => {
+          this.loaderService.close();
+          this.snackBarService.error(error.error.message);
+        },
       });
   }
 
   viewDetails(apiStatisticsSummary: ApiStatisticsSummary, type: string): void {
-    this.selectedApiKey = apiStatisticsSummary;
+    this.selectedQuota = apiStatisticsSummary;
     this.selectedApiKeySummaryType = type;
   }
 
@@ -103,6 +112,6 @@ export class ApiUsageTableComponent {
   }
 
   backToMainList() {
-    this.selectedApiKey = null;
+    this.selectedQuota = null;
   }
 }

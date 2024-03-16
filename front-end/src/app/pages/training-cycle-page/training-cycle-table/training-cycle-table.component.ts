@@ -87,11 +87,17 @@ export class TrainingCycleTableComponent {
 
     this.trainingCycleService
       .find(queryString.join('&'))
-      .subscribe((response) => {
-        this.response = response;
-        this.length = response.meta.totalItems;
-        this.dataSource = new MatTableDataSource(response.data);
-        this.loaderService.close();
+      .subscribe({
+        next: (response) => {
+          this.response = response;
+          this.length = response.meta.totalItems;
+          this.dataSource = new MatTableDataSource(response.data);
+          this.loaderService.close();
+        },
+        error: (error) => {
+          this.loaderService.close();
+          this.snackBarService.error(error.error.message);
+        },
       });
   }
 
@@ -132,10 +138,12 @@ export class TrainingCycleTableComponent {
       )
       .subscribe({
         next: () => {
+          this.loaderService.close();
           this.loadData();
           this.snackBarService.success('Deleted successfully.');
         },
         error: (error) => {
+          this.loaderService.close();
           this.snackBarService.error(error.error.message);
         },
       });

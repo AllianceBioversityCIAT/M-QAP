@@ -1,0 +1,23 @@
+<div>
+  <ng-select
+    appearance="outline"
+    [placeholder]="placeholder"
+    [readonly]="readonly"
+    [multiple]="multiple"
+    (change)="selected()"
+    [(ngModel)]="selectedItem"
+    [items]="filteredOptions$ | async"
+    [trackByFn]="trackByFn"
+    [loading]="loading"
+    [minTermLength]="2"
+    bindLabel="full_name"
+    [compareWith]="compareObjects"
+    [typeahead]="userInput$"
+    (open)="this.focus.emit($event)"
+    (close)="this.blur.emit($event)"
+  >
+  </ng-select>
+</div>
+<section class="error-section">
+  <ng-content></ng-content>
+</section>

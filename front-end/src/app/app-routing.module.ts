@@ -1,7 +1,7 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { AdminGuard } from './guards/admin.guard';
-import { AuthGuard } from './guards/auth.guard';
+import {NgModule} from '@angular/core';
+import {RouterModule, Routes} from '@angular/router';
+import {AuthGuard} from './guards/auth.guard';
+import {ComponentGuard} from './guards/component.guard';
 
 const routes: Routes = [
   {
@@ -25,31 +25,34 @@ const routes: Routes = [
       ),
   },
   {
-    canActivate: [AdminGuard],
+    canActivate: [ComponentGuard],
     path: 'training-data',
+    data: {roles: ['admin']},
     loadChildren: () =>
       import('./pages/training-data-page/training-data-page.module').then(
         (m) => m.TrainingDataPageModule
       ),
   },
   {
-    canActivate: [AdminGuard],
+    canActivate: [ComponentGuard],
     path: 'training-cycle',
+    data: {roles: ['admin']},
     loadChildren: () =>
       import('./pages/training-cycle-page/training-cycle-page.module').then(
         (m) => m.TrainingCyclePageModule
       ),
   },
   {
-    canActivate: [AdminGuard],
+    canActivate: [ComponentGuard],
     path: 'predictions',
+    data: {roles: ['admin']},
     loadChildren: () =>
       import('./pages/predictions-page/predictions-page.module').then(
         (m) => m.PredictionsPageModule
       ),
   },
   {
-    canActivate: [AdminGuard],
+    canActivate: [AuthGuard],
     path: 'clarisa',
     loadChildren: () =>
       import('./pages/clarisa-page/clarisa-page.module').then(
@@ -57,7 +60,7 @@ const routes: Routes = [
       ),
   },
   {
-    canActivate: [AdminGuard],
+    canActivate: [AuthGuard],
     path: 'commodities',
     loadChildren: () =>
       import('./pages/commodities-page/commodities-page.module').then(
@@ -65,27 +68,41 @@ const routes: Routes = [
       ),
   },
   {
-    canActivate: [AdminGuard],
+    canActivate: [ComponentGuard],
     path: 'repositories',
+    data: {roles: ['admin']},
     loadChildren: () =>
       import('./pages/repositories-page/repositories-page.module').then(
         (m) => m.RepositoriesPageModule
       ),
   },
   {
-    canActivate: [AdminGuard],
+    canActivate: [ComponentGuard],
     path: 'users',
+    data: {roles: ['admin']},
     loadChildren: () =>
       import('./pages/users-page/users-page.module').then(
         (m) => m.UsersPageModule
       ),
   },
   {
-    canActivate: [AdminGuard],
+    canActivate: [AuthGuard],
+    // canActivate: [ComponentGuard],
     path: 'api-keys',
+    // data: {roles: ['admin'], responsibilities: ['quotaResponsible']},
     loadChildren: () =>
       import('./pages/api-keys-page/api-keys-page.module').then(
         (m) => m.ApiKeysPageModule
+      ),
+  },
+  {
+    canActivate: [AuthGuard],
+    // canActivate: [ComponentGuard],
+    path: 'api-usage',
+    // data: {roles: ['admin'], responsibilities: ['quotaResponsible']},
+    loadChildren: () =>
+      import('./pages/api-usage/api-usage.module').then(
+        (m) => m.ApiUsageModule
       ),
   },
   {
@@ -110,4 +127,5 @@ const routes: Routes = [
   ],
   exports: [RouterModule],
 })
-export class AppRoutingModule {}
+export class AppRoutingModule {
+}

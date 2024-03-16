@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {BadRequestException, Injectable, InternalServerErrorException} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {PaginatorService} from 'src/paginator/paginator.service';
 import {PaginatedQuery, PaginatorQuery} from 'src/paginator/types';
@@ -69,7 +69,15 @@ export class TrainingCycleService {
         return this.trainingCycleRepository.update({id}, {...updateTrainingCycleDto});
     }
 
-    remove(id: number) {
-        return this.trainingCycleRepository.delete({id});
+    async remove(id: number) {
+        try {
+            return await this.trainingCycleRepository.delete({id});
+        } catch (error) {
+            if (error.errno === 1451) {
+                throw new BadRequestException('Cannot delete, this training cycle has related predictions.');
+            } else {
+                throw new InternalServerErrorException('Oops! something went wrong.');
+            }
+        }
     }
 }

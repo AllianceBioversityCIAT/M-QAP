@@ -1,0 +1,55 @@
+counters-container, .charts-container, hr, .years-navigator {
+  margin-bottom: 2rem;
+}
+
+h4 {
+  font-size: 1.5rem;
+  margin-top: 1.5rem;
+  color: #2caffe;
+}
+
+.counters-container, .charts-container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+
+  .counter-container, .chart-container {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .counter-container.wide-counter {
+    min-width: 300px;
+  }
+}
+
+h5 {
+  font-size: 1.25rem;
+  color: #050410;
+}
+
+span {
+  font-size: 2rem;
+  color: #2caffe;
+  display: block;
+  text-align: right;
+  border-bottom: 2px solid #2caffe;
+  padding-bottom: 1rem;
+  font-weight: 100;
+}
+
+.years-navigator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  button {
+    margin-bottom: 0;
+    font-size: xx-large;
+    font-weight: bold;
+  }
+
+  button:not(.years-navigator-active) {
+    font-size: large;
+    font-weight: 300;
+  }
+}

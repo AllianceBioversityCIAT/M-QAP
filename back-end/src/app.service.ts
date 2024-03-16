@@ -45,6 +45,6 @@ export class AppService {
     }
 
     async getWosAvailableQuota(apiKeyEntity: ApiKey, year: number) {
-        return await this.apiKeysService.getWosAvailableQuota(apiKeyEntity, year);
+        return await this.apiKeysService.getWosAvailableQuota(apiKeyEntity, null, year);
     }
 }

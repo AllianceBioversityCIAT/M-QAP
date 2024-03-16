@@ -10,6 +10,7 @@ import {TrainingDataFormComponent} from '../../training-data-page/training-data-
 import {LoaderService} from 'src/app/services/loader.service';
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 import {OrganizationsService} from 'src/app/services/organizations.service';
+import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 
 @Component({
   selector: 'app-predictions-table',
@@ -41,6 +42,7 @@ export class PredictionsTableComponent {
     private loaderService: LoaderService,
     private fb: FormBuilder,
     private organizationsService: OrganizationsService,
+    private snackBarService: SnackBarService,
   ) {
   }
 
@@ -105,11 +107,16 @@ export class PredictionsTableComponent {
 
     this.predictionsService
       .find(queryString.join('&'))
-      .subscribe((response) => {
-        this.response = response;
-        this.length = response.meta.totalItems;
-        this.dataSource = new MatTableDataSource(response.data);
-        this.loaderService.close();
+      .subscribe({
+        next: (response) => {this.response = response;
+          this.length = response.meta.totalItems;
+          this.dataSource = new MatTableDataSource(response.data);
+          this.loaderService.close();
+        },
+        error: (error) => {
+          this.loaderService.close();
+          this.snackBarService.error(error.error.message);
+        },
       });
   }
 }

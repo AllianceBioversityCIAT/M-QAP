@@ -54,7 +54,6 @@ export class UploadFileMaterialComponent {
 
     this.mediaService.upload(formData).subscribe((file) => {
       this.uploaded.emit(file);
-      console.log('Called');
       input.srcElement.value = ''; // to reset the input and emit the event when select the same file more than ones.;
       this.loaderService.close();
     });

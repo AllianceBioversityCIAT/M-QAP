@@ -1,5 +1,5 @@
 <div class="main-container">
-  <section class="action-button-section">
+  <section *ngIf="isAdmin" class="action-button-section">
     <button (click)="openDialog()" mat-raised-button color="primary">
       <mat-icon> add_box</mat-icon>
       Add quota
@@ -52,7 +52,7 @@
           Quota
         </th>
         <td mat-cell *matCellDef="let element" class="width-14">
-          {{ element.quota }}
+          {{ element.quota | number }}
         </td>
       </ng-container>
 
@@ -79,17 +79,13 @@
         </th>
         <td mat-cell *matCellDef="let element" class="width-4 action-column">
           <div class="action-container">
-            <button
-              mat-icon-button
-              matTooltip="Edit"
-              (click)="openDialog(element.id)"
-            >
+            <button *ngIf="isAdmin" mat-icon-button matTooltip="Edit" (click)="openDialog(element.id)">
               <mat-icon>
                 <app-edit-icon></app-edit-icon>
               </mat-icon>
             </button>
 
-            <button mat-icon-button matTooltip="Delete" (click)="delete(element.id)">
+            <button *ngIf="isAdmin" mat-icon-button matTooltip="Delete" (click)="delete(element.id)">
               <mat-icon>
                 <app-delete-icon></app-delete-icon>
               </mat-icon>

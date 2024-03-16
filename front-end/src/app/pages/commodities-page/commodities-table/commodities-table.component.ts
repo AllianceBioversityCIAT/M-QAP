@@ -16,6 +16,8 @@ import {Organization} from 'src/app/share/types/organization.model.type';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 import {LoaderService} from 'src/app/services/loader.service';
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
+import {Router} from '@angular/router';
+import {AuthService} from 'src/app/pages/auth/auth.service';
 
 @Component({
   selector: 'app-commodities-table',
@@ -33,6 +35,7 @@ export class CommoditiesTableComponent {
   text = '';
   organizations: Organization[] = [];
   form!: FormGroup;
+  isAdmin = false;
 
   constructor(
     public dialog: MatDialog,
@@ -40,11 +43,16 @@ export class CommoditiesTableComponent {
     private snackBarService: SnackBarService,
     private mediaService: MediaService,
     private loaderService: LoaderService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    public router: Router,
+    private authService: AuthService,
   ) {
   }
 
   ngOnInit() {
+    this.router.events.subscribe(() => {
+      this.isAdmin = this.authService.isAdmin();
+    });
     this.initForm();
     this.loadData();
   }
@@ -83,11 +91,17 @@ export class CommoditiesTableComponent {
 
     this.commoditiesService
       .find(queryString.join('&'))
-      .subscribe((response) => {
-        this.response = response;
-        this.length = response.meta.totalItems;
-        this.dataSource = new MatTableDataSource(response.data);
-        this.loaderService.close();
+      .subscribe({
+        next: (response) => {
+          this.response = response;
+          this.length = response.meta.totalItems;
+          this.dataSource = new MatTableDataSource(response.data);
+          this.loaderService.close();
+        },
+        error: (error) => {
+          this.loaderService.close();
+          this.snackBarService.error(error.error.message);
+        },
       });
   }
 

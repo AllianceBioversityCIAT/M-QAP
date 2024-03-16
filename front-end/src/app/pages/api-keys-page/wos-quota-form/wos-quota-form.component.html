@@ -20,6 +20,13 @@
         <app-errors matError [animation]="true" [control]="form.get('organization')"></app-errors>
       </app-organization-input>
     </app-input>
+
+    <app-input>
+      <mat-label>Responsible</mat-label>
+      <app-user-input formControlName="responsible">
+        <app-errors matError [animation]="true" [control]="form.get('responsible')"></app-errors>
+      </app-user-input>
+    </app-input>
   </form>
 
   <button

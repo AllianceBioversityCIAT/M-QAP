@@ -8,6 +8,7 @@ import {OrganizationsService} from 'src/app/services/organizations.service';
 import {Organization} from 'src/app/share/types/organization.model.type';
 import {LoaderService} from 'src/app/services/loader.service';
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
+import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 
 @Component({
   selector: 'app-clarisa-table',
@@ -29,7 +30,8 @@ export class ClarisaTableComponent {
     public dialog: MatDialog,
     private organizationService: OrganizationsService,
     private loaderService: LoaderService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private snackBarService: SnackBarService,
   ) {
   }
 
@@ -72,11 +74,17 @@ export class ClarisaTableComponent {
 
     this.organizationService
       .find(queryString.join('&'))
-      .subscribe((response) => {
-        this.response = response;
-        this.length = response.meta.totalItems;
-        this.dataSource = new MatTableDataSource(response.data);
-        this.loaderService.close();
+      .subscribe({
+        next: (response) => {
+          this.response = response;
+          this.length = response.meta.totalItems;
+          this.dataSource = new MatTableDataSource(response.data);
+          this.loaderService.close();
+        },
+        error: (error) => {
+          this.loaderService.close();
+          this.snackBarService.error(error.error.message);
+        },
       });
   }
 }

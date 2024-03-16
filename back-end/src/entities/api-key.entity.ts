@@ -3,9 +3,9 @@ import {
     CreateDateColumn,
     Entity,
     JoinColumn,
-    JoinTable, ManyToOne,
+    JoinTable,
+    ManyToOne,
     OneToMany,
-    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -33,11 +33,11 @@ export class ApiKey {
     @Column({nullable: true})
     name: string;
 
-    @OneToOne(() => Organization, (organization) => organization.apikey, {nullable: true})
+    @ManyToOne(() => Organization, (organization) => organization.apikey, {nullable: true})
     @JoinColumn()
     organization: Organization;
 
-    @OneToOne(() => User, (user) => user.apikey, {nullable: true})
+    @ManyToOne(() => User, (user) => user.apikey, {nullable: true})
     @JoinColumn()
     user: User;
 

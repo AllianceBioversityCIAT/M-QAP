@@ -1,16 +1,5 @@
 export type ApiStatistics = {
-  apiKeys: {
-    name: string;
-    type: string;
-    wosUsage: {
-      wosQuota: number;
-      used: number
-      usedPercentage: number;
-      available: number;
-      availablePercentage: number;
-    },
-    apiUsage: number;
-  }[],
+  apiKeys: number;
   activeApiKeys: number;
   activeApiKeysPercentage: number;
   chartsData: {
@@ -33,19 +22,26 @@ export type ApiStatisticsSummary = {
   id: number;
   name: string;
   type: string;
-  wos_quota: number;
+  quota: number;
+  api_keys: number;
   used_wos_quota: number;
   api_requests: number;
   is_active: number;
 }
 
 export type ApiUsage = {
+  api_key: string;
+  name: string;
+  type: string;
   id: number;
   creation_date: string;
   path: string;
 }
 
 export type WosApiUsage = {
+  api_key: string;
+  name: string;
+  type: string;
   id: number;
   creation_date: string;
   doi: string;

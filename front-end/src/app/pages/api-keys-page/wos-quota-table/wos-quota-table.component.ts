@@ -12,6 +12,8 @@ import {WosQuotaFormComponent} from '../wos-quota-form/wos-quota-form.component'
 import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 import {debounceTime, distinctUntilChanged} from "rxjs/operators";
+import {Router} from '@angular/router';
+import {AuthService} from 'src/app/pages/auth/auth.service';
 
 @Component({
   selector: 'app-wos-quota-table',
@@ -19,7 +21,7 @@ import {debounceTime, distinctUntilChanged} from "rxjs/operators";
   styleUrls: ['./wos-quota-table.component.scss']
 })
 export class WosQuotaTableComponent {
-  columnsToDisplay: string[] = ['id', 'name', 'organization_id', 'is_active', 'creation_date', 'update_date', 'actions'];
+  columnsToDisplay: string[] = ['id', 'name', 'organization_id', 'responsible_id', 'is_active', 'creation_date', 'update_date', 'actions'];
   dataSource!: MatTableDataSource<WosQuota>;
   response!: Paginated<WosQuota>;
   length = 0;
@@ -31,6 +33,7 @@ export class WosQuotaTableComponent {
   selectedWosQuota: WosQuota | null = null;
   viewTable: 'apiKeys' | 'quotas' | null = null;
   year = (new Date()).getFullYear();
+  isAdmin = false;
 
   constructor(
     public dialog: MatDialog,
@@ -38,10 +41,15 @@ export class WosQuotaTableComponent {
     private loaderService: LoaderService,
     private fb: FormBuilder,
     private snackBarService: SnackBarService,
+    public router: Router,
+    private authService: AuthService,
   ) {
   }
 
   ngOnInit() {
+    this.router.events.subscribe(() => {
+      this.isAdmin = this.authService.isAdmin();
+    });
     this.initForm();
     this.loadData();
   }
@@ -80,11 +88,17 @@ export class WosQuotaTableComponent {
 
     this.apiKeyService
       .findWosQuota(queryString.join('&'))
-      .subscribe((response) => {
-        this.response = response;
-        this.length = response.meta.totalItems;
-        this.dataSource = new MatTableDataSource(response.data);
-        this.loaderService.close();
+      .subscribe({
+        next: (response) => {
+          this.response = response;
+          this.length = response.meta.totalItems;
+          this.dataSource = new MatTableDataSource(response.data);
+          this.loaderService.close();
+        },
+        error: (error) => {
+          this.loaderService.close();
+          this.snackBarService.error(error.error.message);
+        },
       });
   }
 

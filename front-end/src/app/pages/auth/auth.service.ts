@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
-import { firstValueFrom } from 'rxjs';
+import {firstValueFrom, lastValueFrom} from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { User } from 'src/app/share/types/user.model.type';
 import { environment } from 'src/environments/environment';
@@ -54,5 +54,18 @@ export class AuthService {
     const loggedUser = this.getLoggedInUser();
     if (loggedUser == null) return false;
     else return loggedUser.role == 'admin';
+  }
+
+  async checkResponsibilities(responsibilities: string[]): Promise<boolean> {
+    const userId = this.getLoggedInUser()?.id;
+    return await lastValueFrom(this.http
+      .post(environment.api_url + '/auth/responsibilities', {
+        responsibilities,
+        userId,
+      }).pipe(
+        map((d: any) => d),
+        catchError(e => e)
+      )
+    ).catch((e) => false);
   }
 }

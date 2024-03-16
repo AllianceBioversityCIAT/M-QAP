@@ -1,13 +1,13 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { TrainingCycleTableComponent } from './training-cycle-table.component';
-import { MatDialog } from '@angular/material/dialog';
-import { TrainingCycleService } from 'src/app/services/training-cycle.service';
-import { FormGroup } from '@angular/forms';
-import { Paginated } from 'src/app/share/types/paginate.type';
-import { TrainingCycle } from 'src/app/share/types/training-cycle.model.type';
-import { of } from 'rxjs';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { PagePaseModule } from '../../page-pase.module';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {TrainingCycleTableComponent} from './training-cycle-table.component';
+import {MatDialog} from '@angular/material/dialog';
+import {TrainingCycleService} from 'src/app/services/training-cycle.service';
+import {FormGroup} from '@angular/forms';
+import {Paginated} from 'src/app/share/types/paginate.type';
+import {TrainingCycle} from 'src/app/share/types/training-cycle.model.type';
+import {of} from 'rxjs';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {PageBaseModule} from '../../page-base.module';
 
 describe('TrainingCycleTableComponent', () => {
   let component: TrainingCycleTableComponent;
@@ -72,10 +72,10 @@ describe('TrainingCycleTableComponent', () => {
 
     TestBed.configureTestingModule({
       declarations: [TrainingCycleTableComponent],
-      imports: [PagePaseModule, BrowserAnimationsModule],
+      imports: [PageBaseModule, BrowserAnimationsModule],
       providers: [
-        { provide: TrainingCycleService, useValue: trainingCycleService },
-        { provide: MatDialog, useValue: matDialogService },
+        {provide: TrainingCycleService, useValue: trainingCycleService},
+        {provide: MatDialog, useValue: matDialogService},
       ],
     });
     fixture = TestBed.createComponent(TrainingCycleTableComponent);

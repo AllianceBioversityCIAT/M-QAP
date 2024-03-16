@@ -31,13 +31,14 @@ export class WosQuotaYearTableComponent {
   form!: FormGroup;
   @Input() selectedWosQuota: WosQuota | null = null;
   wosQuotaId: number | null = null;
+  @Input() isAdmin = false;
 
   constructor(
     public dialog: MatDialog,
     private apiKeyService: ApiKeysService,
     private snackBarService: SnackBarService,
     private loaderService: LoaderService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
   ) {
   }
 
@@ -85,11 +86,17 @@ export class WosQuotaYearTableComponent {
 
       this.apiKeyService
         .findWosQuotaYear(queryString.join('&'))
-        .subscribe((response) => {
-          this.response = response;
-          this.length = response.meta.totalItems;
-          this.dataSource = new MatTableDataSource(response.data);
-          this.loaderService.close();
+        .subscribe({
+          next: (response) => {
+            this.response = response;
+            this.length = response.meta.totalItems;
+            this.dataSource = new MatTableDataSource(response.data);
+            this.loaderService.close();
+          },
+          error: (error) => {
+            this.loaderService.close();
+            this.snackBarService.error(error.error.message);
+          },
         });
     }
   }

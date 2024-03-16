@@ -2,6 +2,7 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -10,6 +11,7 @@ import {
 import {Organization} from './organization.entity';
 import {ApiKey} from './api-key.entity';
 import {WosQuotaYear} from './wos-quota-year.entity';
+import {User} from './user.entity';
 
 @Entity()
 export class WosQuota {
@@ -28,12 +30,16 @@ export class WosQuota {
     @ManyToOne(() => Organization, (organization) => organization.id, {nullable: true})
     organization: Organization;
 
+    @ManyToOne(() => User, (responsible) => responsible.wosQuota)
+    @JoinColumn()
+    responsible: WosQuota;
+
     @OneToMany(() => WosQuotaYear, (wosQuotaYear) => wosQuotaYear.wosQuota)
-    wosQuotaYear: WosQuotaYear;
+    wosQuotaYear: WosQuotaYear[];
 
     @Column()
     is_active: boolean;
 
     @OneToMany(() => ApiKey, (apiKey) => apiKey.wosQuota)
-    apiKey: ApiKey;
+    apiKey: ApiKey[];
 }

@@ -8,8 +8,12 @@
     <mat-form-field appearance="outline" floatLabel="always">
       <mat-label>Order</mat-label>
       <mat-select formControlName="sortBy">
-        <mat-option value="id:DESC">ID / DESC</mat-option>
-        <mat-option value="id:ASC">ID / ACS</mat-option>
+        <mat-option value="api_key:DESC">API-key / DESC</mat-option>
+        <mat-option value="api_key:ASC">API-key / ACS</mat-option>
+        <mat-option value="name:DESC">Name / DESC</mat-option>
+        <mat-option value="name:ASC">Name / ACS</mat-option>
+        <mat-option value="type:DESC">Type / DESC</mat-option>
+        <mat-option value="type:ASC">Type / ACS</mat-option>
         <mat-option value="creation_date:DESC">Time / DESC</mat-option>
         <mat-option value="creation_date:ASC">Time / ACS</mat-option>
 
@@ -26,20 +30,40 @@
 
   <div class="table-box">
     <table mat-table [dataSource]="dataSource">
-      <!-- ID Column -->
-      <ng-container matColumnDef="id">
+      <!-- API-key Column -->
+      <ng-container matColumnDef="api_key">
+        <th mat-header-cell *matHeaderCellDef class="width-22">
+          API-key
+        </th>
+        <td mat-cell *matCellDef="let element" class="width-22">
+          {{ element.api_key }}
+        </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef class="width-22">
+          Name
+        </th>
+        <td mat-cell *matCellDef="let element" class="width-22">
+          {{ element.name }}
+        </td>
+      </ng-container>
+
+      <!-- Type Column -->
+      <ng-container matColumnDef="type">
         <th mat-header-cell *matHeaderCellDef class="width-8">
-          ID
+          Type
         </th>
         <td mat-cell *matCellDef="let element" class="width-8">
-          {{ element.id }}
+          {{ element.type }}
         </td>
       </ng-container>
 
       <!-- Created Date Column -->
       <ng-container matColumnDef="creation_date">
-        <th mat-header-cell *matHeaderCellDef class="width-14">Date</th>
-        <td mat-cell *matCellDef="let element" class="width-14">
+        <th mat-header-cell *matHeaderCellDef class="width-12">Time</th>
+        <td mat-cell *matCellDef="let element" class="width-12">
           {{ element.creation_date | date:'YYYY-MM-dd HH:mm:ss':'+0000' }}
         </td>
       </ng-container>

@@ -52,6 +52,7 @@ export class WosQuotaFormComponent implements OnInit {
     this.form = this.fb.group({
       name: ['', vb(z.string().min(2).max(255))],
       organization: [null],
+      responsible: [null],
     });
   }
 

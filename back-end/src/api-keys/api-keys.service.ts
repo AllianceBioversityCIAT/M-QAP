@@ -1,8 +1,8 @@
-import {BadRequestException, Injectable, InternalServerErrorException} from '@nestjs/common';
+import {BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException} from '@nestjs/common';
 import {TypeOrmCrudService} from '@nestjsx/crud-typeorm';
 import {ApiKey} from '../entities/api-key.entity';
 import {InjectRepository} from '@nestjs/typeorm';
-import {Between, DataSource, FindOneOptions, Repository} from 'typeorm';
+import {Between, DataSource, FindOneOptions, In, Repository} from 'typeorm';
 import {PaginatorService} from 'src/paginator/paginator.service';
 import {PaginatedQuery, PaginatorQuery} from 'src/paginator/types';
 import {CreateApiKeyDto} from './dto/create-api-key.dto';
@@ -22,11 +22,13 @@ import {CreateWosQuotaYearDto} from './dto/create-wos-quota-year.dto';
 import {UpdateWosQuotaYearDto} from './dto/update-wos-quota-year.dto';
 import {lastValueFrom} from 'rxjs';
 import {HttpService} from '@nestjs/axios';
+import {PrivilegesService, AuthenticatedRequest} from '../auth/privileges.service';
 
 @Injectable()
 export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
     constructor(
         private http: HttpService,
+        private privilegesService: PrivilegesService,
         @InjectRepository(ApiKey)
         public apiKeyRepository: Repository<ApiKey>,
         @InjectRepository(ApiKeyUsage)
@@ -72,7 +74,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         }
     }
 
-    public findAllWosQuota(query: PaginatorQuery): Promise<PaginatedQuery<WosQuota>> {
+    public findAllWosQuota(req: AuthenticatedRequest, query: PaginatorQuery): Promise<PaginatedQuery<WosQuota>> {
         const queryBuilder = this.wosQuotaRepository
             .createQueryBuilder('wos_quota')
             .select([
@@ -80,23 +82,30 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 'wos_quota.creation_date AS creation_date',
                 'wos_quota.update_date AS update_date',
                 'wos_quota.name AS name',
-                'organization.acronym AS organization',
+                'COALESCE(organization.acronym, organization.name) AS organization',
                 'wos_quota.is_active AS is_active',
+                'wos_quota.responsible_id AS responsible_id',
+                'user_responsible.email AS responsible',
             ])
             .leftJoin('organization', 'organization', 'organization.id = wos_quota.organization_id')
             .leftJoin('api_key', 'api_key', 'api_key.wos_quota_id = wos_quota.id')
             .leftJoin('organization', 'api_key_organization', 'api_key_organization.id = api_key.organization_id')
-            .leftJoin('user', 'api_key_user', 'api_key_user.id = api_key.user_id');
+            .leftJoin('user', 'api_key_user', 'api_key_user.id = api_key.user_id')
+            .leftJoin('user', 'user_responsible', 'user_responsible.id = wos_quota.responsible_id');
+
+        if (!this.privilegesService.isAdmin(req)) {
+            queryBuilder.where('wos_quota.responsible_id = :responsibleId', {responsibleId: req.user.id});
+        }
 
         return this.paginatorService.paginator(query, queryBuilder, [
             'wos_quota.id',
             'wos_quota.creation_date',
             'wos_quota.update_date',
             'wos_quota.name',
-            'organization.acronym',
+            'COALESCE(organization.acronym, organization.name)',
             'IF(wos_quota.is_active = 1, "Yes", "No")',
             'api_key.api_key',
-            `(CASE WHEN api_key.organization_id IS NOT NULL THEN api_key_organization.acronym
+            `(CASE WHEN api_key.organization_id IS NOT NULL THEN COALESCE(api_key_organization.acronym, api_key_organization.name)
                 WHEN api_key.user_id IS NOT NULL THEN api_key_user.email
                 ELSE api_key.name
                 END)`,
@@ -104,6 +113,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 WHEN api_key.user_id IS NOT NULL THEN "User"
                 ELSE "Application"
                 END)`,
+            'user_responsible.email',
         ], 'wos_quota.id', ['wos_quota.id']);
     }
 
@@ -120,8 +130,16 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         }
     }
 
-    removeWosQuota(id: number) {
-        return this.wosQuotaRepository.delete({id});
+    async removeWosQuota(id: number) {
+        try {
+            return await this.wosQuotaRepository.delete({id});
+        } catch (error) {
+            if (error.errno === 1451) {
+                throw new BadRequestException('Cannot delete, remove API-keys and quota years first.');
+            } else {
+                throw new InternalServerErrorException('Oops! something went wrong.');
+            }
+        }
     }
 
     async createWosQuotaYear(wosQuotaId: number, createWosQuotaYearDto: Partial<CreateWosQuotaYearDto>) {
@@ -150,7 +168,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         }
     }
 
-    public findAllWosQuotaYear(wosQuotaId: number, query: PaginatorQuery): Promise<PaginatedQuery<WosQuotaYear>> {
+    public findAllWosQuotaYear(req: AuthenticatedRequest, wosQuotaId: number, query: PaginatorQuery): Promise<PaginatedQuery<WosQuotaYear>> {
         const queryBuilder = this.wosQuotaYearRepository
             .createQueryBuilder('wos_quota_year')
             .select([
@@ -161,6 +179,12 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 'wos_quota_year.quota AS quota',
             ])
             .where('wos_quota_year.wos_quota_id = :wosQuotaId', {wosQuotaId});
+
+        if (!this.privilegesService.isAdmin(req)) {
+            queryBuilder
+                .innerJoin('wos_quota', 'wos_quota', 'wos_quota.id = wos_quota_year.wos_quota_id')
+                .andWhere('wos_quota.responsible_id = :responsibleId', {responsibleId: req.user.id});
+        }
 
         return this.paginatorService.paginator(query, queryBuilder, [
             'wos_quota_year.id',
@@ -179,9 +203,16 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         return this.wosQuotaYearRepository.delete({id});
     }
 
-    async create(wosQuotaId: number, createApiKeyDto: Partial<CreateApiKeyDto>) {
+    async create(req: AuthenticatedRequest, wosQuotaId: number, createApiKeyDto: Partial<CreateApiKeyDto>) {
+        if (!(await this.privilegesService.canManageApiKey(req, wosQuotaId))) {
+            throw new HttpException(
+                `Cannot create, You don't have enough privileges.`,
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
         try {
             createApiKeyDto.wosQuota = await this.findOneWosQuota({where: {id: wosQuotaId}});
+
             if (createApiKeyDto.name) {
                 createApiKeyDto.organization = null;
                 createApiKeyDto.user = null;
@@ -207,7 +238,13 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         }
     }
 
-    async update(id: number, updateApiKeyDto: UpdateApiKeyDto) {
+    async update(req: AuthenticatedRequest, id: number, updateApiKeyDto: UpdateApiKeyDto) {
+        if (!(await this.privilegesService.canManageApiKey(req, null, id))) {
+            throw new HttpException(
+                `Cannot update, You don't have enough privileges.`,
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
         try {
             if (updateApiKeyDto.name) {
                 updateApiKeyDto.organization = null;
@@ -232,7 +269,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         }
     }
 
-    public findAll(query: PaginatorQuery, wosQuotaId: number): Promise<PaginatedQuery<ApiKey>> {
+    public findAll(req: AuthenticatedRequest, query: PaginatorQuery, wosQuotaId: number): Promise<PaginatedQuery<ApiKey>> {
         const queryBuilder = this.apiKeyRepository
             .createQueryBuilder('api_key')
             .select([
@@ -241,13 +278,19 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 'api_key.update_date AS update_date',
                 'api_key.name AS name',
                 'api_key.api_key AS api_key',
-                'organization.acronym AS organization',
+                'COALESCE(organization.acronym, organization.name) AS organization',
                 'user.email AS user_email',
                 'api_key.is_active AS is_active',
             ])
             .leftJoin('organization', 'organization', 'organization.id = api_key.organization_id')
             .leftJoin('user', 'user', 'user.id = api_key.user_id')
-            .where('api_key.wos_quota_id = :wosQuotaId', {wosQuotaId})
+            .where('api_key.wos_quota_id = :wosQuotaId', {wosQuotaId});
+
+        if (!this.privilegesService.isAdmin(req)) {
+            queryBuilder
+                .innerJoin('wos_quota', 'wos_quota', 'wos_quota.id = api_key.wos_quota_id')
+                .andWhere('wos_quota.responsible_id = :responsibleId', {responsibleId: req.user.id});
+        }
 
         return this.paginatorService.paginator(query, queryBuilder, [
             'api_key.id',
@@ -255,14 +298,20 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             'api_key.update_date',
             'api_key.name',
             'api_key.api_key',
-            'organization.acronym',
+            'COALESCE(organization.acronym, organization.name)',
             'user.email',
             'api_key.is_active',
             'IF(api_key.is_active = 1, "Yes", "No")',
         ], 'api_key.id');
     }
 
-    async updateStatus(id: number, is_active: boolean) {
+    async updateStatus(req: AuthenticatedRequest, id: number, is_active: boolean) {
+        if (!(await this.privilegesService.canManageApiKey(req, null, id))) {
+            throw new HttpException(
+                `Cannot ${is_active ? 'activate' : 'deactivate'}, You don't have enough privileges.`,
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
         try {
             const updateApiKeyDto = {is_active} as UpdateApiKeyDto;
             return await this.apiKeyRepository.update({id}, {...updateApiKeyDto});
@@ -271,7 +320,13 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         }
     }
 
-    async regenerate(id: number) {
+    async regenerate(req: AuthenticatedRequest, id: number) {
+        if (!(await this.privilegesService.canManageApiKey(req, null, id))) {
+            throw new HttpException(
+                `Cannot regenerate, You don't have enough privileges.`,
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
         try {
             const api_key = await this.GetUniqueApiKey();
             const updateApiKeyDto = {api_key} as UpdateApiKeyDto;
@@ -281,8 +336,22 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         }
     }
 
-    remove(id: number) {
-        return this.apiKeyRepository.delete({id});
+    async remove(req: AuthenticatedRequest, id: number) {
+        if (!(await this.privilegesService.canManageApiKey(req, null, id))) {
+            throw new HttpException(
+                `Cannot delete, You don't have enough privileges.`,
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
+        try {
+            return await this.apiKeyRepository.delete({id});
+        } catch (error) {
+            if (error.errno === 1451) {
+                throw new BadRequestException('Cannot delete, API-key has usage logs.');
+            } else {
+                throw new InternalServerErrorException('Oops! something went wrong.');
+            }
+        }
     }
 
     private GenerateApiKey() {
@@ -316,21 +385,36 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         }
     }
 
-    async getApiUsage(apiKeyEntity: ApiKey, year: number = null) {
+    async getQuotaApiUsage(apiKeyEntity: ApiKey = null, wosQuotaEntity: WosQuota = null, year: number = null) {
+        if (!apiKeyEntity && !wosQuotaEntity) {
+            return 0;
+        }
+
         const date = year ? dayjs(`${year}-01-01`) : dayjs();
         return await this.apiKeyUsageRepository.count({
             where: {
-                apiKey: {id: apiKeyEntity.id},
+                apiKey: {
+                    wosQuota: {
+                        id: apiKeyEntity ? apiKeyEntity.wosQuota.id : wosQuotaEntity.id,
+                    },
+                },
                 creation_date: Between(date.startOf('year').toDate(), date.endOf('year').toDate())
             }
         } as FindManyOptions);
     }
 
-    async getApiUsageDetails(apiKeyEntity: ApiKey, year: number = null) {
+    async getApiUsageDetails(apiKeyEntity: ApiKey = null, wosQuotaEntity: WosQuota = null, year: number = null) {
+        if (!apiKeyEntity && !wosQuotaEntity) {
+            return [];
+        }
         const date = year ? dayjs(`${year}-01-01`) : dayjs();
         return await this.apiKeyUsageRepository.find({
             where: {
-                apiKey: {id: apiKeyEntity.id},
+                apiKey: {
+                    wosQuota: {
+                        id: apiKeyEntity ? apiKeyEntity.wosQuota.id : wosQuotaEntity.id,
+                    },
+                },
                 creation_date: Between(date.startOf('year').toDate(), date.endOf('year').toDate())
             }
         } as FindManyOptions);
@@ -349,63 +433,73 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         }
     }
 
-    async getWosAvailableQuota(apiKeyEntity: ApiKey, year: number = (new Date()).getFullYear()) {
+    async getWosAvailableQuota(apiKeyEntity: ApiKey = null, wosQuotaEntity: WosQuota = null, year: number = (new Date()).getFullYear()) {
+        const response = {
+            wosQuota: 0,
+            used: 0,
+            usedPercentage: 0,
+            available: 0,
+            availablePercentage: 0,
+        };
+
+        if (!apiKeyEntity && !wosQuotaEntity) {
+            return response;
+        }
+
         const date = dayjs(`${year}-01-01`);
         const used = await this.apiKeyWosUsageRepository.count({
             where: {
-                apiKey: {id: apiKeyEntity.id},
+                apiKey: {
+                    wosQuota: {
+                        id: apiKeyEntity ? apiKeyEntity.wosQuota.id : wosQuotaEntity.id,
+                    },
+                },
                 creation_date: Between(date.startOf('year').toDate(), date.endOf('year').toDate())
             }
         } as FindManyOptions);
+        response.used = used;
 
         const quotaYear = await this.findOneWosQuotaYear({
             where: {
                 year,
                 wosQuota: {
-                    id: apiKeyEntity.wosQuota.id
-                }
-            }
+                    id: apiKeyEntity ? apiKeyEntity.wosQuota.id : wosQuotaEntity.id,
+                },
+            },
         });
 
         if (!quotaYear) {
-            return {
-                wosQuota: 0,
-                used: 0,
-                usedPercentage: 0,
-                available: 0,
-                availablePercentage: 0,
-            };
+            return response;
         }
+        response.wosQuota = quotaYear.quota;
 
-        const available = quotaYear.quota - used;
-        const usedPercentage = Number(quotaYear.quota > 0 ? (used / quotaYear.quota * 100).toFixed(2) : 0);
-        const availablePercentage = Number((100 - Number(usedPercentage)).toFixed(2));
-        return {
-            wosQuota: quotaYear.quota,
-            used,
-            usedPercentage,
-            available,
-            availablePercentage,
-        };
+        response.available = quotaYear.quota - used;
+        response.usedPercentage = Number(quotaYear.quota > 0 ? (used / quotaYear.quota * 100).toFixed(2) : 0);
+        response.availablePercentage = Number((100 - Number(response.usedPercentage)).toFixed(2));
+
+        return response;
     }
 
-    async getApiWosUsageDetails(apiKeyEntity: ApiKey, year: number = null) {
+    async getApiWosUsageDetails(apiKeyEntity: ApiKey = null, wosQuotaEntity: WosQuota = null, year: number = null) {
+        if (!apiKeyEntity && !wosQuotaEntity) {
+            return [];
+        }
         const date = year ? dayjs(`${year}-01-01`) : dayjs();
         return await this.apiKeyWosUsageRepository.find({
             where: {
-                apiKey: {id: apiKeyEntity.id},
+                apiKey: {
+                    wosQuota: {
+                        id: apiKeyEntity ? apiKeyEntity.wosQuota.id : wosQuotaEntity.id,
+                    },
+                },
                 creation_date: Between(date.startOf('year').toDate(), date.endOf('year').toDate())
             }
         } as FindManyOptions);
     }
 
-    async getApiKeysUsage(year: number = null) {
-        const apiKeys = await this.find({
-            relations: ['organization', 'user', 'wosQuota']
-        });
-
+    async getApiKeysUsage(req: AuthenticatedRequest, year: number = null) {
         const usageData = {
-            apiKeys: [],
+            apiKeys: 0,
             activeApiKeys: 0,
             activeApiKeysPercentage: 0,
             chartsData: {
@@ -413,7 +507,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 apiUsageOverTime: [],
                 categories: [],
             },
-            remainingWosQuota: await this.getAvailableWosQuota(),
+            remainingWosQuota: 0,
             wosQuota: 0,
             wosRequests: 0,
             wosUsedPercentage: 0,
@@ -424,32 +518,70 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             year,
         };
 
+        let wosQuotas: WosQuota[] = [];
+        if (!this.privilegesService.isAdmin(req)) {
+            const apiKeys = await this.find({
+                where: {
+                    wosQuota: {
+                        responsible: {
+                            id: req.user.id,
+                        },
+                    },
+                },
+                relations: ['wosQuota'],
+            } as FindManyOptions);
+
+            const quotaIds = apiKeys.map((apiKey: ApiKey) => apiKey.wosQuota.id);
+            if (quotaIds.length > 0) {
+                wosQuotas = await this.wosQuotaRepository.find({
+                    where: {
+                        id: In(quotaIds)
+                    },
+                    relations: ['apiKey', 'organization'],
+                } as FindManyOptions);
+            } else {
+                return usageData;
+            }
+        } else {
+            wosQuotas = await this.wosQuotaRepository.find({
+                relations: ['apiKey', 'organization'],
+            });
+        }
+
+        usageData.remainingWosQuota = await this.getAvailableWosQuota();
+
         const yearMonthsSeriesObject = this.getYearMonthsSeriesObject(year);
         usageData.chartsData.categories = Object.keys(yearMonthsSeriesObject);
 
         const dois = {};
-        for (const index in apiKeys) {
-            if (apiKeys.hasOwnProperty(index)) {
-                const apiKey = apiKeys[index] as ApiKey;
-                const wosUsage = await this.getWosAvailableQuota(apiKeys[index], year);
-                const apiUsage = await this.getApiUsage(apiKeys[index], year);
+        for (const quotaIndex in wosQuotas) {
+            if (wosQuotas.hasOwnProperty(quotaIndex)) {
+                const wosQuota = wosQuotas[quotaIndex] as WosQuota;
 
-                const apiKeyDetails = {
-                    name: apiKey?.organization ? apiKey.organization.acronym : apiKey?.user ? apiKey.user.email : apiKey.name,
-                    type: apiKey?.organization ? 'Organization' : apiKey?.user ? 'User' : 'Application',
-                    wosUsage,
-                    apiUsage,
-                };
-                usageData.apiKeys.push(apiKeyDetails);
-                if (apiKey.is_active) {
-                    usageData.activeApiKeys++;
+                const wosUsage = await this.getWosAvailableQuota(null, wosQuota, year);
+                const apiUsage = await this.getQuotaApiUsage(null, wosQuota, year);
+
+                let wosQuotaName = wosQuota.name;
+                if (wosQuota?.organization) {
+                    if (wosQuota.organization?.acronym) {
+                        wosQuotaName = `${wosQuota.organization.acronym} (${wosQuota.name})`;
+                    } else {
+                        wosQuotaName = `${wosQuota.organization.name} (${wosQuota.name})`;
+                    }
                 }
+
+                wosQuota.apiKey.map((apiKey) => {
+                    usageData.apiKeys++;
+                    if (apiKey.is_active) {
+                        usageData.activeApiKeys++;
+                    }
+                });
 
                 usageData.wosQuota += wosUsage.wosQuota;
                 usageData.wosRequests += wosUsage.used;
                 usageData.apiRequests += apiUsage;
 
-                const ApiUsageDetails = await this.getApiUsageDetails(apiKeys[index], year);
+                const ApiUsageDetails = await this.getApiUsageDetails(null, wosQuota, year);
                 const ApiUsageDetailsSeries = JSON.parse(JSON.stringify(yearMonthsSeriesObject));
                 ApiUsageDetails.map(usage => {
                     const date = dayjs(usage.creation_date).format('MMM YYYY');
@@ -458,11 +590,11 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                     }
                 });
                 usageData.chartsData.apiUsageOverTime.push({
-                    name: apiKeyDetails.name,
+                    name: wosQuotaName,
                     data: Object.values(ApiUsageDetailsSeries),
                 });
 
-                const wosUsageDetails = await this.getApiWosUsageDetails(apiKeys[index], year);
+                const wosUsageDetails = await this.getApiWosUsageDetails(null, wosQuota, year);
                 const wosUsageDetailsSeries = JSON.parse(JSON.stringify(yearMonthsSeriesObject));
                 wosUsageDetails.map(usage => {
                     if (usage?.doi && usage.doi !== '') {
@@ -474,7 +606,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                     }
                 });
                 usageData.chartsData.wosUsageOverTime.push({
-                    name: apiKeyDetails.name,
+                    name: wosQuotaName,
                     data: Object.values(wosUsageDetailsSeries),
                 });
             }
@@ -485,8 +617,8 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         usageData.wosAvailable = usageData.wosQuota - usageData.wosRequests;
         usageData.wosAvailablePercentage = Number((100 - Number(usageData.wosUsedPercentage)).toFixed(2));
 
-        if (usageData.activeApiKeys > 0 && usageData.apiKeys.length > 0) {
-            usageData.activeApiKeysPercentage = Number((usageData.activeApiKeys / usageData.apiKeys.length * 100).toFixed(2));
+        if (usageData.activeApiKeys > 0 && usageData.apiKeys > 0) {
+            usageData.activeApiKeysPercentage = Number((usageData.activeApiKeys / usageData.apiKeys * 100).toFixed(2));
         }
         return usageData;
     }
@@ -502,53 +634,40 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         return yearMonthsSeriesObject;
     }
 
-    async findAllSummary(query: PaginatorQuery, year: number = (new Date()).getFullYear()): Promise<PaginatedQuery<any>> {
+    async findAllQuotaSummary(req: AuthenticatedRequest, query: PaginatorQuery, year: number = (new Date()).getFullYear()): Promise<PaginatedQuery<any>> {
         const queryBuilder = this.dataSource
             .createQueryBuilder()
-            .from('api_key', 'api_key')
+            .from('wos_quota', 'wos_quota')
             .select([
-                'api_key.id AS id',
-                'api_key.api_key AS api_key',
-                `(CASE WHEN api_key.organization_id IS NOT NULL THEN organization.acronym
-                WHEN api_key.user_id IS NOT NULL THEN user.email
-                ELSE api_key.name
-                END) AS name`,
-                `(CASE WHEN api_key.organization_id IS NOT NULL THEN "Organization"
-                WHEN api_key.user_id IS NOT NULL THEN "User"
-                ELSE "Application"
-                END) AS type`,
-                `(CASE WHEN wos_quota.organization_id IS NOT NULL THEN CONCAT(parent_organization.acronym, " (", wos_quota.name, ")")
+                'wos_quota.id AS id',
+                `(CASE WHEN wos_quota.organization_id IS NOT NULL THEN CONCAT(COALESCE(organization.acronym, organization.name), " (", wos_quota.name, ")")
                 ELSE wos_quota.name
-                END) AS parent_name`,
+                END) AS name`,
                 `(CASE WHEN wos_quota.organization_id IS NOT NULL THEN "Organization"
                 ELSE "Application"
-                END) AS parent_type`,
+                END) AS type`,
                 'wos_quota_year.quota AS quota',
+                'COUNT(DISTINCT api_key.id) AS api_keys',
                 'COUNT(DISTINCT api_key_wos_usage.id) AS used_wos_quota',
                 'COUNT(DISTINCT api_key_usage.id) AS api_requests',
-                'wos_quota.is_active AS quota_is_active',
-                'api_key.is_active AS is_active',
+                'wos_quota.is_active AS is_active',
             ])
-            .leftJoin('organization', 'organization', 'organization.id = api_key.organization_id')
-            .leftJoin('user', 'user', 'user.id = api_key.user_id')
-            .innerJoin('wos_quota', 'wos_quota', 'wos_quota.id = api_key.wos_quota_id')
+            .leftJoin('organization', 'organization', 'organization.id = wos_quota.organization_id')
+            .leftJoin('user', 'user_responsible', 'user_responsible.id = wos_quota.responsible_id')
             .leftJoin('wos_quota_year', 'wos_quota_year', 'wos_quota_year.wos_quota_id = wos_quota.id AND wos_quota_year.year = :year', {year})
-            .leftJoin('organization', 'parent_organization', 'parent_organization.id = wos_quota.organization_id')
+            .leftJoin('api_key', 'api_key', 'api_key.wos_quota_id = wos_quota.id')
+            .leftJoin('organization', 'api_key_organization', 'api_key_organization.id = api_key.organization_id')
+            .leftJoin('user', 'api_key_user', 'api_key_user.id = api_key.user_id')
             .leftJoin('api_key_wos_usage', 'api_key_wos_usage', 'api_key_wos_usage.api_key_id = api_key.id AND YEAR(api_key_wos_usage.creation_date) = :year', {year})
             .leftJoin('api_key_usage', 'api_key_usage', 'api_key_usage.api_key_id = api_key.id AND YEAR(api_key_usage.creation_date) = :year', {year});
 
+        if (!this.privilegesService.isAdmin(req)) {
+            queryBuilder.andWhere('wos_quota.responsible_id = :responsibleId', {responsibleId: req.user.id});
+        }
+
         return this.paginatorService.paginator(query, queryBuilder, [
-            'api_key.id',
-            'api_key.api_key',
-            `(CASE WHEN api_key.organization_id IS NOT NULL THEN organization.acronym
-                WHEN api_key.user_id IS NOT NULL THEN user.email
-                ELSE api_key.name
-                END)`,
-            `(CASE WHEN api_key.organization_id IS NOT NULL THEN "Organization"
-                WHEN api_key.user_id IS NOT NULL THEN "User"
-                ELSE "Application"
-                END)`,
-            `(CASE WHEN wos_quota.organization_id IS NOT NULL THEN CONCAT(parent_organization.acronym, " (", wos_quota.name, ")")
+            'wos_quota.id',
+            `(CASE WHEN wos_quota.organization_id IS NOT NULL THEN CONCAT(COALESCE(organization.acronym, organization.name), " (", wos_quota.name, ")")
                 ELSE wos_quota.name
                 END)`,
             `(CASE WHEN wos_quota.organization_id IS NOT NULL THEN "Organization"
@@ -556,23 +675,59 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 END)`,
             'wos_quota_year.quota',
             'IF(wos_quota.is_active = 1, "Yes", "No")',
-            'IF(api_key.is_active = 1, "Yes", "No")'
-        ], 'api_key.id', ['api_key.id']);
+            'api_key.api_key',
+            `(CASE WHEN api_key.organization_id IS NOT NULL THEN COALESCE(api_key_organization.acronym, api_key_organization.name)
+                WHEN api_key.user_id IS NOT NULL THEN api_key_user.email
+                ELSE api_key.name
+                END)`,
+            `(CASE WHEN api_key.organization_id IS NOT NULL THEN "Organization"
+                WHEN api_key.user_id IS NOT NULL THEN "User"
+                ELSE "Application"
+                END)`,
+            'user_responsible.email',
+        ], 'wos_quota.id', ['wos_quota.id']);
     }
 
-    public findAllDetails(query: PaginatorQuery, apiKeyId: number, type: string, year: number = (new Date()).getFullYear()): Promise<PaginatedQuery<ApiKeyUsage | ApiKeyWosUsage>> {
+    public findAllDetails(req: AuthenticatedRequest, query: PaginatorQuery, quotaId: number, type: string, year: number = (new Date()).getFullYear()): Promise<PaginatedQuery<ApiKeyUsage | ApiKeyWosUsage>> {
         if (type === 'wos') {
             const queryBuilder = this.apiKeyWosUsageRepository
                 .createQueryBuilder('api_key_wos_usage')
                 .select([
+                    'api_key.api_key AS api_key',
+                    `(CASE WHEN api_key.organization_id IS NOT NULL THEN COALESCE(organization.acronym, organization.name)
+                        WHEN api_key.user_id IS NOT NULL THEN user.email
+                        ELSE api_key.name
+                        END) AS name`,
+                    `(CASE WHEN api_key.organization_id IS NOT NULL THEN "Organization"
+                        WHEN api_key.user_id IS NOT NULL THEN "User"
+                        ELSE "Application"
+                        END) AS type`,
                     'api_key_wos_usage.id AS id',
                     'api_key_wos_usage.creation_date AS creation_date',
                     'api_key_wos_usage.doi AS doi',
                 ])
+                .innerJoin('api_key', 'api_key', 'api_key.id = api_key_wos_usage.api_key_id')
+                .leftJoin('organization', 'organization', 'organization.id = api_key.organization_id')
+                .leftJoin('user', 'user', 'user.id = api_key.user_id')
                 .where('YEAR(api_key_wos_usage.creation_date) = :year', {year})
-                .andWhere('api_key_wos_usage.api_key_id = :apiKeyId', {apiKeyId});
+                .andWhere('api_key.wos_quota_id = :quotaId', {quotaId});
+
+            if (!this.privilegesService.isAdmin(req)) {
+                queryBuilder
+                    .innerJoin('wos_quota', 'wos_quota', 'wos_quota.id = api_key.wos_quota_id')
+                    .andWhere('wos_quota.responsible_id = :responsibleId', {responsibleId: req.user.id});
+            }
 
             return this.paginatorService.paginator(query, queryBuilder, [
+                'api_key.api_key',
+                `(CASE WHEN api_key.organization_id IS NOT NULL THEN COALESCE(organization.acronym, organization.name)
+                    WHEN api_key.user_id IS NOT NULL THEN user.email
+                    ELSE api_key.name
+                    END)`,
+                `(CASE WHEN api_key.organization_id IS NOT NULL THEN "Organization"
+                    WHEN api_key.user_id IS NOT NULL THEN "User"
+                    ELSE "Application"
+                    END)`,
                 'api_key_wos_usage.id',
                 'api_key_wos_usage.creation_date',
                 'api_key_wos_usage.doi',
@@ -581,14 +736,41 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             const queryBuilder = this.apiKeyUsageRepository
                 .createQueryBuilder('api_key_usage')
                 .select([
+                    'api_key.api_key AS api_key',
+                    `(CASE WHEN api_key.organization_id IS NOT NULL THEN COALESCE(organization.acronym, organization.name)
+                        WHEN api_key.user_id IS NOT NULL THEN user.email
+                        ELSE api_key.name
+                        END) AS name`,
+                    `(CASE WHEN api_key.organization_id IS NOT NULL THEN "Organization"
+                        WHEN api_key.user_id IS NOT NULL THEN "User"
+                        ELSE "Application"
+                        END) AS type`,
                     'api_key_usage.id AS id',
                     'api_key_usage.creation_date AS creation_date',
                     'api_key_usage.path AS path',
                 ])
+                .innerJoin('api_key', 'api_key', 'api_key.id = api_key_usage.api_key_id')
+                .leftJoin('organization', 'organization', 'organization.id = api_key.organization_id')
+                .leftJoin('user', 'user', 'user.id = api_key.user_id')
                 .where('YEAR(api_key_usage.creation_date) = :year', {year})
-                .andWhere('api_key_usage.api_key_id = :apiKeyId', {apiKeyId});
+                .andWhere('api_key.wos_quota_id = :quotaId', {quotaId});
+
+            if (!this.privilegesService.isAdmin(req)) {
+                queryBuilder
+                    .innerJoin('wos_quota', 'wos_quota', 'wos_quota.id = api_key.wos_quota_id')
+                    .andWhere('wos_quota.responsible_id = :responsibleId', {responsibleId: req.user.id});
+            }
 
             return this.paginatorService.paginator(query, queryBuilder, [
+                'api_key.api_key',
+                `(CASE WHEN api_key.organization_id IS NOT NULL THEN COALESCE(organization.acronym, organization.name)
+                    WHEN api_key.user_id IS NOT NULL THEN user.email
+                    ELSE api_key.name
+                    END)`,
+                `(CASE WHEN api_key.organization_id IS NOT NULL THEN "Organization"
+                    WHEN api_key.user_id IS NOT NULL THEN "User"
+                    ELSE "Application"
+                    END)`,
                 'api_key_usage.id',
                 'api_key_usage.creation_date',
                 'api_key_usage.path',

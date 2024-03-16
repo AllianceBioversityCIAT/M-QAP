@@ -9,7 +9,7 @@ import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Admin)
+@Roles([Role.Admin, Role.User])
 @ApiTags('Organizations')
 @Controller('organizations')
 export class OrganizationsController {
@@ -27,6 +27,8 @@ export class OrganizationsController {
         return this.organizationsService.findOne(+id);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Get('import/partners')
     async importPartners() {
         await this.organizationsService.importPartners();

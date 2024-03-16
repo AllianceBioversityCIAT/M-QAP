@@ -1,28 +1,59 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { Role } from './role.enum';
-import { ROLES_KEY } from './roles.decorator';
+import {Injectable, CanActivate, ExecutionContext} from '@nestjs/common';
+import {Reflector} from '@nestjs/core';
+import {ROLES_KEY, RoleObject} from './roles.decorator';
+import {DataSource} from 'typeorm';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  dataSource: any;
-  constructor(private reflector: Reflector) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-
-    if (!requiredRoles) {
-      return true;
+    constructor(
+        private reflector: Reflector,
+        private dataSource: DataSource
+    ) {
     }
-    const request = context.switchToHttp().getRequest();
 
-    const user: any = request.user;
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        const rolesObject = this.reflector.getAllAndOverride<RoleObject>(ROLES_KEY, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
 
-    if (requiredRoles.some(requiredRole => user.role === requiredRole)) {
-      return true;
+        if (!rolesObject.role && !rolesObject.responsibility) {
+            return true;
+        }
+        const request = context.switchToHttp().getRequest();
+
+        const user: any = request.user;
+
+        if (rolesObject.role) {
+            if (rolesObject.role.some(requiredRole => user.role === requiredRole)) {
+                return true;
+            }
+        }
+
+        if (rolesObject.responsibility) {
+            const hasResponsibility = await this.checkMyResponsibilities(user.id, rolesObject.responsibility);
+            if (hasResponsibility) {
+                return true;
+            }
+        }
     }
-  }
+
+    async checkMyResponsibilities(userId: number, responsibilities: string[]) {
+        if (responsibilities.indexOf('quotaResponsible') !== -1) {
+            const hasResponsibility = await this.dataSource
+                .createQueryBuilder()
+                .from('wos_quota', 'wos_quota')
+                .select([
+                    'wos_quota.id AS id',
+                ])
+                .where('wos_quota.responsible_id = :userId', {userId})
+                .getCount();
+            if (hasResponsibility) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

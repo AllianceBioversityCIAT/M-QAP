@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards} from '@nestjs/common';
 import {JwtAuthGuard} from '../auth/jwt-auth.guard';
 import {RolesGuard} from '../auth/roles.guard';
 import {Roles} from '../auth/roles.decorator';
@@ -14,7 +14,7 @@ import {CreateWosQuotaYearDto} from './dto/create-wos-quota-year.dto';
 import {UpdateWosQuotaYearDto} from './dto/update-wos-quota-year.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Admin)
+@Roles([Role.Admin], ['quotaResponsible'])
 @Controller('api-keys')
 export class ApiKeysController {
     constructor(
@@ -23,28 +23,32 @@ export class ApiKeysController {
     }
 
     @Get('usage/:year')
-    usage(@Param('year') year: number) {
-        return this.apiKeysService.getApiKeysUsage(+year);
+    usage(@Request() req, @Param('year') year: number) {
+        return this.apiKeysService.getApiKeysUsage(req, +year);
     }
 
-    @Get('summary/:year')
-    async findAllSummary(
+    @Get('quota-summary/:year')
+    async findAllQuotaSummary(
+        @Request() req,
         @Paginator() query: PaginatorQuery,
         @Param('year') year: number,
         ) {
-        return await this.apiKeysService.findAllSummary(query, year);
+        return await this.apiKeysService.findAllQuotaSummary(req, query, year);
     }
 
-    @Get('details/:apiKeyId/:type/:year')
+    @Get('details/:quotaId/:type/:year')
     async findAllDetails(
+        @Request() req,
         @Paginator() query: PaginatorQuery,
-        @Param('apiKeyId') apiKeyId: number,
+        @Param('quotaId') quotaId: number,
         @Param('type') type: string,
         @Param('year') year: number,
         ) {
-        return await this.apiKeysService.findAllDetails(query, apiKeyId, type, year);
+        return await this.apiKeysService.findAllDetails(req, query, quotaId, type, year);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Post('wos-quota')
     createWosQuota(
         @Body() createWosQuotaDto: CreateWosQuotaDto,
@@ -52,6 +56,8 @@ export class ApiKeysController {
         return this.apiKeysService.createWosQuota(createWosQuotaDto);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Patch('wos-quota/:id')
     updateWosQuota(
         @Param('id') id: string,
@@ -61,10 +67,12 @@ export class ApiKeysController {
     }
 
     @Get('wos-quota')
-    findAllWosQuota(@Paginator() query: PaginatorQuery) {
-        return this.apiKeysService.findAllWosQuota(query);
+    findAllWosQuota(@Request() req, @Paginator() query: PaginatorQuery) {
+        return this.apiKeysService.findAllWosQuota(req, query);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Get('wos-quota/:id')
     findOneWosQuota(
         @Param('id') id: number,
@@ -72,16 +80,22 @@ export class ApiKeysController {
         return this.apiKeysService.findOneWosQuota({where: {id}, relations: ['organization']});
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Patch('wos-quota/update-status/:id')
     updateStatusWosQuota(@Param('id') id: string, @Body('is_active') is_active: boolean) {
         return this.apiKeysService.updateStatusWosQuota(+id, is_active);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Delete('wos-quota/:id')
     removeWosQuota(@Param('id') id: string) {
         return this.apiKeysService.removeWosQuota(+id);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Post('wos-quota-year/:wosQuotaId')
     createWosQuotaYear(
         @Param('wosQuotaId') wosQuotaId: number,
@@ -90,6 +104,8 @@ export class ApiKeysController {
         return this.apiKeysService.createWosQuotaYear(wosQuotaId, createWosQuotaYearDto);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Patch('wos-quota-year/:id')
     updateWosQuotaYear(
         @Param('id') id: string,
@@ -100,12 +116,15 @@ export class ApiKeysController {
 
     @Get('wos-quota-year')
     findAllWosQuotaYear(
+        @Request() req,
         @Query('wosQuotaId') wosQuotaId: number,
         @Paginator() query: PaginatorQuery,
         ) {
-        return this.apiKeysService.findAllWosQuotaYear(wosQuotaId, query);
+        return this.apiKeysService.findAllWosQuotaYear(req, wosQuotaId, query);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Get('wos-quota-year/:id')
     findOneWosQuotaYear(
         @Param('id') id: number,
@@ -113,6 +132,8 @@ export class ApiKeysController {
         return this.apiKeysService.findOneWosQuotaYear({where: {id}});
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles([Role.Admin])
     @Delete('wos-quota-year/:id')
     removeWosQuotaYear(@Param('id') id: string) {
         return this.apiKeysService.removeWosQuotaYear(+id);
@@ -120,18 +141,20 @@ export class ApiKeysController {
 
     @Post('api-keys/:wosQuotaId')
     create(
+        @Request() req,
         @Param('wosQuotaId') wosQuotaId: number,
         @Body() createApiKeyDto: CreateApiKeyDto,
     ) {
-        return this.apiKeysService.create(wosQuotaId, createApiKeyDto);
+        return this.apiKeysService.create(req, wosQuotaId, createApiKeyDto);
     }
 
     @Get('api-keys/:wosQuotaId')
     findAll(
+        @Request() req,
         @Param('wosQuotaId') wosQuotaId: number,
         @Paginator() query: PaginatorQuery,
     ) {
-        return this.apiKeysService.findAll(query, wosQuotaId);
+        return this.apiKeysService.findAll(req, query, wosQuotaId);
     }
 
     @Get('api-key/:id')
@@ -140,22 +163,30 @@ export class ApiKeysController {
     }
 
     @Patch('api-keys/:id')
-    update(@Param('id') id: string, @Body() updateApiKeyDto: UpdateApiKeyDto) {
-        return this.apiKeysService.update(+id, updateApiKeyDto);
+    update(
+        @Request() req,
+        @Param('id') id: string,
+        @Body() updateApiKeyDto: UpdateApiKeyDto,
+    ) {
+        return this.apiKeysService.update(req, +id, updateApiKeyDto);
     }
 
     @Patch('api-keys/update-status/:id')
-    updateStatus(@Param('id') id: string, @Body('is_active') is_active: boolean) {
-        return this.apiKeysService.updateStatus(+id, is_active);
+    updateStatus(
+        @Request() req,
+        @Param('id') id: string,
+        @Body('is_active') is_active: boolean,
+        ) {
+        return this.apiKeysService.updateStatus(req, +id, is_active);
     }
 
     @Patch('api-keys/regenerate/:id')
-    regenerate(@Param('id') id: string) {
-        return this.apiKeysService.regenerate(+id);
+    regenerate(@Request() req, @Param('id') id: string) {
+        return this.apiKeysService.regenerate(req, +id);
     }
 
     @Delete('api-keys/:id')
-    remove(@Param('id') id: string) {
-        return this.apiKeysService.remove(+id);
+    remove(@Request() req, @Param('id') id: string) {
+        return this.apiKeysService.remove(req, +id);
     }
 }

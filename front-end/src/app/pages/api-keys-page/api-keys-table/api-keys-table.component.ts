@@ -84,11 +84,17 @@ export class ApiKeysTableComponent {
 
       this.apiKeyService
         .find(queryString.join('&'), this.wosQuotaId)
-        .subscribe((response) => {
-          this.response = response;
-          this.length = response.meta.totalItems;
-          this.dataSource = new MatTableDataSource(response.data);
-          this.loaderService.close();
+        .subscribe({
+          next: (response) => {
+            this.response = response;
+            this.length = response.meta.totalItems;
+            this.dataSource = new MatTableDataSource(response.data);
+            this.loaderService.close();
+          },
+          error: (error) => {
+            this.loaderService.close();
+            this.snackBarService.error(error.error.message);
+          },
         });
     }
   }

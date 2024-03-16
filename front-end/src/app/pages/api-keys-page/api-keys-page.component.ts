@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {HeaderServiceService} from '../../header-service.service';
+import {HeaderServiceService} from 'src/app/header-service.service';
 
 @Component({
   selector: 'app-api-keys-page',
@@ -7,7 +7,9 @@ import {HeaderServiceService} from '../../header-service.service';
   styleUrls: ['./api-keys-page.component.scss']
 })
 export class ApiKeysPageComponent {
-  constructor(public headerService: HeaderServiceService) {
+  constructor(
+    public headerService: HeaderServiceService,
+  ) {
   }
 
   ngOnInit() {

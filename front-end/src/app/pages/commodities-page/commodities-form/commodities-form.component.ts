@@ -69,7 +69,7 @@ export class CommoditiesFormComponent implements OnInit {
           this.dialogRef.close({submitted: true});
         },
         error: (error: any) => {
-          this.loaderService.open();
+          this.loaderService.close();
           this.snackBrService.error(error.error.message)
         },
       });

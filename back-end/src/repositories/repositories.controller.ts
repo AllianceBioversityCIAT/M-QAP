@@ -12,7 +12,7 @@ import {CreateRepositorySchemaDto} from './dto/create-repositorySchema.dto';
 
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Admin)
+@Roles([Role.Admin])
 @Controller('repositories')
 export class RepositoriesController {
     constructor(

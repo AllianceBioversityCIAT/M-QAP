@@ -4,6 +4,7 @@ import {
     Controller,
     Delete,
     Get,
+    InternalServerErrorException,
     Param,
     Patch,
     Post,
@@ -33,7 +34,7 @@ import {Paginator} from 'src/paginator/paginator.decorator';
 import {PaginatorQuery} from 'src/paginator/types';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Admin)
+@Roles([Role.Admin])
 @ApiBearerAuth()
 @ApiCreatedResponse({
     description: '',
@@ -116,8 +117,16 @@ export class UsersController {
     }
 
     @Delete(':id')
-    deleteUser(@Param('id') id: number) {
-        return this.usersService.userRepository.delete(id);
+    async deleteUser(@Param('id') id: number) {
+        try {
+            return await this.usersService.userRepository.delete(id);
+        } catch (error) {
+            if (error.errno === 1451) {
+                throw new BadRequestException('Cannot delete, this user is in use.');
+            } else {
+                throw new InternalServerErrorException('Oops! something went wrong.');
+            }
+        }
     }
 
     @Get('export/all')

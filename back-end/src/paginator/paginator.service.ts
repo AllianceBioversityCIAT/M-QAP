@@ -25,8 +25,8 @@ export class PaginatorService {
 
         const totalQuery = selectQueryBuilder
             .clone()
-            .select([`COUNT(DISTINCT ${mainKey}) AS total`]);
-        const totalRecords = await totalQuery.getRawOne();
+            .select([`${mainKey} AS id`]);
+        const totalRecords = await totalQuery.getCount();
 
         if (groupBy) {
             groupBy.map((group, index) => {
@@ -54,7 +54,7 @@ export class PaginatorService {
         }
 
         response.data = await selectQueryBuilder.execute();
-        response.meta.totalItems = totalRecords && totalRecords?.total ? Number(totalRecords.total) : 0;
+        response.meta.totalItems = totalRecords ? Number(totalRecords) : 0;
         return response;
     }
 

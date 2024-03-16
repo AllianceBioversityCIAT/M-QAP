@@ -89,11 +89,17 @@ export class TrainingDataTableComponent {
     queryString.push(`search=${this.text}`);
     this.trainingDataService
       .find(queryString.join('&'))
-      .subscribe((response) => {
-        this.trainingData = response;
-        this.length = response.meta.totalItems;
-        this.dataSource = new MatTableDataSource(response.data);
-        this.loaderService.close();
+      .subscribe({
+        next: (response) => {
+          this.trainingData = response;
+          this.length = response.meta.totalItems;
+          this.dataSource = new MatTableDataSource(response.data);
+          this.loaderService.close();
+        },
+        error: (error) => {
+          this.loaderService.close();
+          this.snackBarService.error(error.error.message);
+        },
       });
   }
 
@@ -137,9 +143,16 @@ export class TrainingDataTableComponent {
           return this.trainingDataService.delete(id)
         })
       )
-      .subscribe(() => {
-        this.loadData();
-        this.snackBarService.success('Deleted successfully.');
+      .subscribe({
+        next: () => {
+          this.loaderService.close();
+          this.loadData();
+          this.snackBarService.success('Deleted successfully.');
+        },
+        error: (error) => {
+          this.loaderService.close();
+          this.snackBarService.error(error.error.message);
+        },
       });
   }
 }

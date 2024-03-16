@@ -2,6 +2,7 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn
@@ -47,6 +48,6 @@ export class Organization {
     @OneToOne(() => WosQuota, (wosQuota) => wosQuota.organization)
     wosQuota: WosQuota;
 
-    @OneToOne(() => ApiKey, (apiKey) => apiKey.organization)
+    @OneToMany(() => ApiKey, (apiKey) => apiKey.organization)
     apikey: ApiKey;
 }

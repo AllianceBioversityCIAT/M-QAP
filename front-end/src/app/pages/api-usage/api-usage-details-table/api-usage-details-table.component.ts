@@ -8,6 +8,7 @@ import {LoaderService} from 'src/app/services/loader.service';
 import {PageEvent} from '@angular/material/paginator';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
+import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 
 @Component({
   selector: 'app-api-usage-details-table',
@@ -15,34 +16,35 @@ import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
   styleUrls: ['./api-usage-details-table.component.scss']
 })
 export class ApiUsageDetailsTableComponent implements OnInit, OnDestroy {
-  columnsToDisplay: string[] = ['id', 'creation_date', 'path'];
-  columnsToDisplayWos: string[] = ['id', 'creation_date', 'doi'];
+  columnsToDisplay: string[] = ['api_key', 'name', 'type', 'creation_date', 'path'];
+  columnsToDisplayWos: string[] = ['api_key', 'name', 'type', 'creation_date', 'doi'];
   dataSource!: MatTableDataSource<ApiUsage | WosApiUsage>;
   response!: Paginated<ApiUsage | WosApiUsage>;
   length = 0;
   pageSize = 10;
   pageIndex = 0;
-  sortBy = 'id:DESC';
+  sortBy = 'creation_date:DESC';
   text = '';
   form!: FormGroup;
 
-  @Input() selectedApiKey: ApiStatisticsSummary | null = null;
+  @Input() selectedQuota: ApiStatisticsSummary | null = null;
   @Input() selectedApiKeySummaryType = '';
-  apiKeyId: number | null = null;
+  quotaId: number | null = null;
   @Input() yearSubject = new BehaviorSubject<number>((new Date()).getFullYear());
   yearSubjectSubscription: Subscription | null = null;
 
   constructor(
     private apiKeyService: ApiKeysService,
     private loaderService: LoaderService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private snackBarService: SnackBarService,
   ) {
   }
 
   ngOnInit() {
     this.initForm();
-    this.apiKeyId = this.selectedApiKey?.id ? this.selectedApiKey.id : null;
-    if (this.apiKeyId) {
+    this.quotaId = this.selectedQuota?.id ? this.selectedQuota.id : null;
+    if (this.quotaId) {
       this.yearSubjectSubscription = this.yearSubject.subscribe((value) => {
         this.loadData(value);
       });
@@ -58,7 +60,7 @@ export class ApiUsageDetailsTableComponent implements OnInit, OnDestroy {
   initForm() {
     this.form = this.fb.group({
       text: [''],
-      sortBy: ['id:DESC'],
+      sortBy: ['creation_date:DESC'],
     });
 
     this.form.valueChanges.pipe(
@@ -80,7 +82,7 @@ export class ApiUsageDetailsTableComponent implements OnInit, OnDestroy {
   }
 
   async loadData(year: number = (new Date()).getFullYear()) {
-    if (this.apiKeyId) {
+    if (this.quotaId) {
       this.loaderService.open();
       const queryString = [];
       queryString.push(`limit=${this.pageSize}`);
@@ -89,12 +91,18 @@ export class ApiUsageDetailsTableComponent implements OnInit, OnDestroy {
       queryString.push(`search=${this.text}`);
 
       this.apiKeyService
-        .findDetails(queryString.join('&'), this.apiKeyId, this.selectedApiKeySummaryType, year)
-        .subscribe((response) => {
-          this.response = response;
-          this.length = response.meta.totalItems;
-          this.dataSource = new MatTableDataSource(response.data);
-          this.loaderService.close();
+        .findDetails(queryString.join('&'), this.quotaId, this.selectedApiKeySummaryType, year)
+        .subscribe({
+          next: (response) => {
+            this.response = response;
+            this.length = response.meta.totalItems;
+            this.dataSource = new MatTableDataSource(response.data);
+            this.loaderService.close();
+          },
+          error: (error) => {
+            this.loaderService.close();
+            this.snackBarService.error(error.error.message);
+          },
         });
     }
   }

@@ -9,7 +9,7 @@ import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Admin, Role.User)
+@Roles([Role.Admin, Role.User])
 @Controller('dashboard')
 export class DashboardController {
   constructor(private dataSource: DataSource,private trainingDataService :TrainingDataService,private predictionsService :PredictionsService) {}

@@ -68,7 +68,6 @@ export class UsersFormComponent implements OnInit {
       this.loaderService.open();
       this.usersService.upsert(this.id, this.form.value).subscribe({
         next: () => {
-          console.log('this.id => ', this.id)
           this.loaderService.close();
           if (this.id)
             this.snackBrService.success('User updated successfully');
