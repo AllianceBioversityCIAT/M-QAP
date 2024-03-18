@@ -11,4 +11,7 @@ export class CreateWosQuotaDto {
 
     @Expose()
     is_active: boolean;
+
+    @Expose()
+    alert_on: number;
 }

@@ -84,6 +84,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 'wos_quota.name AS name',
                 'COALESCE(organization.acronym, organization.name) AS organization',
                 'wos_quota.is_active AS is_active',
+                'wos_quota.alert_on AS alert_on',
                 'wos_quota.responsible_id AS responsible_id',
                 'user_responsible.email AS responsible',
             ])
@@ -104,6 +105,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             'wos_quota.name',
             'COALESCE(organization.acronym, organization.name)',
             'IF(wos_quota.is_active = 1, "Yes", "No")',
+            'wos_quota.alert_on',
             'api_key.api_key',
             `(CASE WHEN api_key.organization_id IS NOT NULL THEN COALESCE(api_key_organization.acronym, api_key_organization.name)
                 WHEN api_key.user_id IS NOT NULL THEN api_key_user.email

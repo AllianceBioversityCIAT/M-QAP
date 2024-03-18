@@ -27,6 +27,14 @@
         <app-errors matError [animation]="true" [control]="form.get('responsible')"></app-errors>
       </app-user-input>
     </app-input>
+
+    <app-input>
+      <mat-label>Alert on%<span class="star">*</span></mat-label>
+      <mat-form-field hideRequiredMarker appearance="outline">
+        <input matInput type="number" formControlName="alert_on"/>
+        <app-errors matError [control]="form.get('alert_on')"></app-errors>
+      </mat-form-field>
+    </app-input>
   </form>
 
   <button

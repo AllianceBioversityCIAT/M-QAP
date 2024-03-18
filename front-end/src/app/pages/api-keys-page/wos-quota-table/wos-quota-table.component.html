@@ -45,6 +45,8 @@
         <mat-option value="responsible:ASC">Responsible / ACS</mat-option>
         <mat-option value="is_active:DESC">Is active / DESC</mat-option>
         <mat-option value="is_active:ASC">Is active / ACS</mat-option>
+        <mat-option value="alert_on:DESC">Alert on% / DESC</mat-option>
+        <mat-option value="alert_on:ASC">Alert on% / ACS</mat-option>
       </mat-select>
     </mat-form-field>
   </form>
@@ -98,6 +100,16 @@
         </th>
         <td mat-cell *matCellDef="let element" class="min-width-2">
           {{ element.is_active ? 'Yes' : 'No' }}
+        </td>
+      </ng-container>
+
+      <!-- Alert Column -->
+      <ng-container matColumnDef="alert_on">
+        <th mat-header-cell *matHeaderCellDef class="min-width-2">
+          Alert on%
+        </th>
+        <td mat-cell *matCellDef="let element" class="min-width-2">
+          {{ element.alert_on | number: '1.1-2' }}%
         </td>
       </ng-container>
 

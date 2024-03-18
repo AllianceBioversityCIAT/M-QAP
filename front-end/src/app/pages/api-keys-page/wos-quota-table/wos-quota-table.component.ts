@@ -21,7 +21,7 @@ import {AuthService} from 'src/app/pages/auth/auth.service';
   styleUrls: ['./wos-quota-table.component.scss']
 })
 export class WosQuotaTableComponent {
-  columnsToDisplay: string[] = ['id', 'name', 'organization_id', 'responsible_id', 'is_active', 'creation_date', 'update_date', 'actions'];
+  columnsToDisplay: string[] = ['id', 'name', 'organization_id', 'responsible_id', 'is_active', 'alert_on', 'creation_date', 'update_date', 'actions'];
   dataSource!: MatTableDataSource<WosQuota>;
   response!: Paginated<WosQuota>;
   length = 0;

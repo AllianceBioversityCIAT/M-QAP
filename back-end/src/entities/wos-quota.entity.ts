@@ -40,6 +40,9 @@ export class WosQuota {
     @Column()
     is_active: boolean;
 
+    @Column()
+    alert_on: number;
+
     @OneToMany(() => ApiKey, (apiKey) => apiKey.wosQuota)
     apiKey: ApiKey[];
 }

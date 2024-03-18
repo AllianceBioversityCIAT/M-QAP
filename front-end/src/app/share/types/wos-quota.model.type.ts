@@ -17,4 +17,6 @@ export type WosQuota = {
   wosQuotaYear: WosQuotaYear;
 
   is_active: string;
+
+  alert_on: number;
 };

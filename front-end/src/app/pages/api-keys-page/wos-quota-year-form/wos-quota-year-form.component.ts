@@ -5,7 +5,7 @@ import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 import {vb} from 'src/app/services/validator.service';
 import {z} from 'zod';
-import {LoaderService} from "../../../services/loader.service";
+import {LoaderService} from 'src/app/services/loader.service';
 
 export interface DialogData {
   id?: number;
