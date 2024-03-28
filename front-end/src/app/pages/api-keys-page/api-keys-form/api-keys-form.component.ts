@@ -2,7 +2,7 @@ import {Component, Inject, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
-import {ApiKeysService} from "src/app/services/api-keys.service";
+import {ApiKeysService} from 'src/app/services/api-keys.service';
 import {vb} from 'src/app/services/validator.service';
 import {z} from 'zod';
 import {LoaderService} from 'src/app/services/loader.service';

@@ -1,17 +1,21 @@
-import { Expose, Type } from 'class-transformer';
-import { IsString } from 'class-validator';
-import { Organization } from 'src/entities/organization.entity';
+import {Expose, Type} from 'class-transformer';
+import {IsString} from 'class-validator';
+import {Organization} from 'src/entities/organization.entity';
+import {ApiProperty} from '@nestjs/swagger';
 
 export class CreateTrainingDataDto {
-  @Expose()
-  @IsString()
-  text: string;
+    @ApiProperty()
+    @Expose()
+    @IsString()
+    text: string;
 
-  @Expose()
-  @IsString()
-  source: string;
+    @ApiProperty()
+    @Expose()
+    @IsString()
+    source: string;
 
-  @Expose()
-  @Type(() => Organization)
-  clarisa: Organization;
+    @ApiProperty()
+    @Expose()
+    @Type(() => Organization)
+    clarisa: Organization;
 }

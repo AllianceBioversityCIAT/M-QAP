@@ -17,9 +17,11 @@ import {RolesGuard} from '../auth/roles.guard';
 import {JwtAuthGuard} from '../auth/jwt-auth.guard';
 import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
+import {ApiTags} from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles([Role.Admin, Role.User])
+@ApiTags('Commodities')
 @Controller('commodities')
 export class CommoditiesController {
     constructor(private commoditiesService: CommoditiesService) {

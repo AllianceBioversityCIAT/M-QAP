@@ -11,7 +11,7 @@ import {PageEvent} from '@angular/material/paginator';
 import {WosQuotaFormComponent} from '../wos-quota-form/wos-quota-form.component';
 import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
-import {debounceTime, distinctUntilChanged} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 import {Router} from '@angular/router';
 import {AuthService} from 'src/app/pages/auth/auth.service';
 

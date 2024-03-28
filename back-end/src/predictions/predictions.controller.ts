@@ -6,10 +6,12 @@ import {JwtAuthGuard} from '../auth/jwt-auth.guard';
 import {RolesGuard} from '../auth/roles.guard';
 import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
+import {ApiTags} from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles([Role.Admin])
 
+@ApiTags('Predictions')
 @Controller('predictions')
 export class PredictionsController {
     constructor(private predictionsService: PredictionsService) {

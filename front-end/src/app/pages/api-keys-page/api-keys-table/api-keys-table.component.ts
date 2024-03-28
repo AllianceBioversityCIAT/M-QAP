@@ -12,7 +12,7 @@ import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/
 import {filter, switchMap} from 'rxjs';
 import {ApiKeysFormComponent} from '../api-keys-form/api-keys-form.component';
 import {WosQuota} from 'src/app/share/types/wos-quota.model.type';
-import {debounceTime, distinctUntilChanged} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 
 @Component({
   selector: 'app-api-keys-table',

@@ -17,9 +17,11 @@ import {JwtAuthGuard} from '../auth/jwt-auth.guard';
 import {RolesGuard} from '../auth/roles.guard';
 import {Roles} from '../auth/roles.decorator';
 import {Role} from '../auth/role.enum';
+import {ApiTags} from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles([Role.Admin])
+@ApiTags('Training data')
 @Controller('training-data')
 export class TrainingDataController {
     constructor(private trainingDataService: TrainingDataService) {

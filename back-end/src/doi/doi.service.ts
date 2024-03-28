@@ -2,9 +2,8 @@ import {
     HttpException,
     HttpStatus,
     Injectable,
-    Logger,
 } from '@nestjs/common';
-import {catchError, map} from 'rxjs/operators';
+import {map} from 'rxjs/operators';
 import {AI} from 'src/ai/ai.service';
 import {DoiInfo} from 'src/doi-info';
 import * as FormData from 'form-data';
@@ -14,6 +13,7 @@ import {HttpService} from '@nestjs/axios';
 import {ApiKeysService} from '../api-keys/api-keys.service';
 import {ApiKey} from '../entities/api-key.entity';
 import {AppService} from '../app.service';
+import {apiRequests} from '../link-request.dto';
 
 @Injectable()
 export class DoiService {
@@ -291,7 +291,7 @@ export class DoiService {
                 if (predict) {
                     const predection = await this.ai.makePrediction(d.name);
                     d.clarisa_id = predection.value.code;
-                    d.confidant = Math.round(predection.confidant * 100);
+                    d.confidant = Math.round(predection.confidant);
                 } else {
                     d.clarisa_id = null;
                     d.confidant = null;
@@ -315,7 +315,7 @@ export class DoiService {
         return result;
     }
 
-    prepareDoiPromises(doi: string, apiKeyEntity: ApiKey, include: string[] = [], exclude: string[] = []) {
+    prepareDoiPromises(doi: string, apiKeyEntity: ApiKey, include: apiRequests[] = [], exclude: apiRequests[] = []) {
         const promisesMapper: any = {
             wos: true,
             scopus: true,
@@ -328,13 +328,13 @@ export class DoiService {
 
         if (include && include.length > 0) {
             Object.keys(promisesMapper).map(value => {
-                if (include.indexOf(value) === -1) {
+                if (include.indexOf(value as apiRequests) === -1) {
                     promisesMapper[value] = false;
                 }
             });
         } else if (exclude && exclude.length > 0) {
             Object.keys(promisesMapper).map(value => {
-                if (exclude.indexOf(value) !== -1) {
+                if (exclude.indexOf(value as apiRequests) !== -1) {
                     promisesMapper[value] = false;
                 }
             });
@@ -362,7 +362,7 @@ export class DoiService {
         return promisesMapper;
     }
 
-    async getInfoByDOI(doi: string, apiKeyEntity: ApiKey, include: string[] = [], exclude: string[] = []) {
+    async getInfoByDOI(doi: string, apiKeyEntity: ApiKey, include: apiRequests[] = [], exclude: apiRequests[] = []) {
         doi = doi ? this.isDOI(doi) : false;
         if (!doi) {
             throw new HttpException(

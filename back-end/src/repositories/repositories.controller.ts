@@ -9,10 +9,12 @@ import {PaginatorQuery} from 'src/paginator/types';
 import {CreateRepositoriesDto} from './dto/create-repositories.dto';
 import {UpdateRepositoriesDto} from './dto/update-repositories.dto';
 import {CreateRepositorySchemaDto} from './dto/create-repositorySchema.dto';
+import {ApiTags} from '@nestjs/swagger';
 
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles([Role.Admin])
+@ApiTags('Repositories')
 @Controller('repositories')
 export class RepositoriesController {
     constructor(

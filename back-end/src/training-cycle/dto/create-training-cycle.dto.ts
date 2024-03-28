@@ -1,12 +1,15 @@
-import { Expose } from 'class-transformer';
+import {Expose} from 'class-transformer';
 import {IsBoolean, IsString} from 'class-validator';
+import {ApiProperty} from '@nestjs/swagger';
 
 export class CreateTrainingCycleDto {
-  @Expose()
-  @IsString()
-  text: string;
+    @ApiProperty()
+    @Expose()
+    @IsString()
+    text: string;
 
-  @Expose()
-  @IsBoolean()
-  training_is_completed?: boolean;
+    @ApiProperty()
+    @Expose()
+    @IsBoolean()
+    training_is_completed?: boolean;
 }

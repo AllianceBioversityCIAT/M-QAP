@@ -9,9 +9,10 @@ import {HttpService} from '@nestjs/axios';
 import {CommoditiesService} from 'src/commodities/commodities.service';
 import {RepositoriesService} from 'src/repositories/repositories.service';
 import {Repositories} from 'src/entities/repositories.entity';
-import {RepositoriesSchema} from "../entities/repositories-schema.entity";
+import {RepositoriesSchema} from '../entities/repositories-schema.entity';
 import {lastValueFrom} from 'rxjs';
 import {ApiKey} from '../entities/api-key.entity';
+import {apiRequests} from '../link-request.dto';
 
 const https = require('https');
 
@@ -335,7 +336,7 @@ export class HandleService {
         return arrayOfObjects;
     }
 
-    prepareHandleRequests(include: string[] = [], exclude: string[] = []) {
+    prepareHandleRequests(include: apiRequests[] = [], exclude: apiRequests[] = []) {
         const requestsMapper: any = {
             altmetric: true,
             cgiarRepository: true,
@@ -349,13 +350,13 @@ export class HandleService {
 
         if (include && include.length > 0) {
             Object.keys(requestsMapper).map(value => {
-                if (include.indexOf(value) === -1) {
+                if (include.indexOf(value as apiRequests) === -1) {
                     requestsMapper[value] = false;
                 }
             });
         } else if (exclude && exclude.length > 0) {
             Object.keys(requestsMapper).map(value => {
-                if (exclude.indexOf(value) !== -1) {
+                if (exclude.indexOf(value as apiRequests) !== -1) {
                     requestsMapper[value] = false;
                 }
             });
@@ -364,7 +365,7 @@ export class HandleService {
         return requestsMapper;
     }
 
-    async getInfoByRepositoryLink(handle: string, apiKeyEntity: ApiKey, include: string[] = [], exclude: string[] = []) {
+    async getInfoByRepositoryLink(handle: string, apiKeyEntity: ApiKey, include: apiRequests[] = [], exclude: apiRequests[] = []) {
         if (!handle) {
             throw new HttpException(
                 'Bad request valid handle must be provided',

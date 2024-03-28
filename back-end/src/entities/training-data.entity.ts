@@ -1,36 +1,43 @@
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
-import { Organization } from './organization.entity';
+import {Organization} from './organization.entity';
+import {ApiProperty} from '@nestjs/swagger';
 
-@Entity({})
+@Entity()
 export class TrainingData {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @ApiProperty()
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @CreateDateColumn()
-  creation_date: string;
+    @ApiProperty()
+    @CreateDateColumn()
+    creation_date: string;
 
-  @UpdateDateColumn()
-  update_date: string;
+    @ApiProperty()
+    @UpdateDateColumn()
+    update_date: string;
 
+    @ApiProperty()
+    @Column({unique: true})
+    text: string;
 
-  @Column({ unique: true })
-  text: string;
+    @ApiProperty()
+    @Column()
+    clarisa_id: number;
 
-  @Column()
-  clarisa_id: number;
+    @ApiProperty({type: () => Organization})
+    @ManyToOne(() => Organization)
+    @JoinColumn({name: 'clarisa_id'})
+    clarisa: Organization;
 
-  @ManyToOne(() => Organization)
-  @JoinColumn({ name: 'clarisa_id' })
-  clarisa: Organization;
-
-  @Column()
-  source: string;
+    @ApiProperty()
+    @Column()
+    source: string;
 }

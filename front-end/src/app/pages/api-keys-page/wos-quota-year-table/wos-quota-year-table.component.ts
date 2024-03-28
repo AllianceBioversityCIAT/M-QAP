@@ -12,7 +12,7 @@ import {LoaderService} from 'src/app/services/loader.service';
 import {PageEvent} from '@angular/material/paginator';
 import {DeleteConfirmDialogComponent} from 'src/app/share/delete-confirm-dialog/delete-confirm-dialog.component';
 import {WosQuotaYearFormComponent} from '../wos-quota-year-form/wos-quota-year-form.component';
-import {debounceTime, distinctUntilChanged} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 
 @Component({
   selector: 'app-wos-quota-year-table',

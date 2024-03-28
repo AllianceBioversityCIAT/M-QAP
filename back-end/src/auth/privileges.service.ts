@@ -1,6 +1,6 @@
 import {Injectable} from '@nestjs/common';
 import {User} from '../entities/user.entity';
-import {DataSource} from "typeorm";
+import {DataSource} from 'typeorm';
 
 export interface AuthenticatedRequest extends Request {
     user?: User;

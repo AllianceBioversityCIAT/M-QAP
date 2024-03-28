@@ -1,30 +1,37 @@
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    Entity,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
-import { Prediction } from './predictions.entity';
+import {Prediction} from './predictions.entity';
+import {ApiProperty} from '@nestjs/swagger';
 
 @Entity()
 export class TrainingCycle {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @ApiProperty()
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @CreateDateColumn()
-  creation_date: string;
+    @ApiProperty()
+    @CreateDateColumn()
+    creation_date: string;
 
-  @UpdateDateColumn()
-  update_date: string;
+    @ApiProperty()
+    @UpdateDateColumn()
+    update_date: string;
 
-  @Column()
-  text: string;
+    @ApiProperty()
+    @Column()
+    text: string;
 
-  @Column({default: false})
-  training_is_completed: boolean;
+    @ApiProperty()
+    @Column({default: false})
+    training_is_completed: boolean;
 
-  @OneToMany(() => Prediction, (prediction) => prediction.trainingCycle)
-  predictions: Prediction[];
+    @ApiProperty({type: () => Prediction})
+    @OneToMany(() => Prediction, (prediction) => prediction.trainingCycle)
+    predictions: Prediction[];
 }

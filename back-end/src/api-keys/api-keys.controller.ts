@@ -12,9 +12,11 @@ import {CreateWosQuotaDto} from './dto/create-wos-quota.dto';
 import {UpdateWosQuotaDto} from './dto/update-wos-quota.dto';
 import {CreateWosQuotaYearDto} from './dto/create-wos-quota-year.dto';
 import {UpdateWosQuotaYearDto} from './dto/update-wos-quota-year.dto';
+import {ApiTags} from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles([Role.Admin], ['quotaResponsible'])
+@ApiTags('API-keys')
 @Controller('api-keys')
 export class ApiKeysController {
     constructor(

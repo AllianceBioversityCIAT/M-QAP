@@ -1,40 +1,48 @@
-import { type } from 'os';
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
-import { TrainingCycle } from './training-cycle.entity';
-import { Organization } from './organization.entity';
+import {TrainingCycle} from './training-cycle.entity';
+import {Organization} from './organization.entity';
+import {ApiProperty} from '@nestjs/swagger';
 
 @Entity()
 export class Prediction {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @ApiProperty()
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @CreateDateColumn()
-  creation_date: string;
+    @ApiProperty()
+    @CreateDateColumn()
+    creation_date: string;
 
-  @UpdateDateColumn()
-  update_date: string;
+    @ApiProperty()
+    @UpdateDateColumn()
+    update_date: string;
 
-  @Column()
-  text: string;
+    @ApiProperty()
+    @Column()
+    text: string;
 
-  @Column()
-  clarisa_id: number;
+    @ApiProperty()
+    @Column()
+    clarisa_id: number;
 
-  @ManyToOne(() => Organization)
-  @JoinColumn({ name: 'clarisa_id' })
-  clarisa: Organization;
+    @ApiProperty({type: () => Organization})
+    @ManyToOne(() => Organization)
+    @JoinColumn({name: 'clarisa_id'})
+    clarisa: Organization;
 
-  @Column({ type: 'float' })
-  confidant: number;
+    @ApiProperty()
+    @Column({type: 'float'})
+    confidant: number;
 
-  @ManyToOne(() => TrainingCycle, (trainingCycle) => trainingCycle.predictions)
-  trainingCycle: TrainingCycle;
+    @ApiProperty({type: () => TrainingCycle})
+    @ManyToOne(() => TrainingCycle, (trainingCycle) => trainingCycle.predictions)
+    trainingCycle: TrainingCycle;
 }

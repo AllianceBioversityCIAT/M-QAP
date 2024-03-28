@@ -13,7 +13,10 @@ import {AI} from './ai/ai.service';
 import {DoiService} from './doi/doi.service';
 import {HandleService} from './handle/handle.service';
 import {AppService} from './app.service';
+import {ApiBody, ApiOperation, ApiTags} from '@nestjs/swagger';
+import {LinkRequestDto, apiRequests} from './link-request.dto';
 
+@ApiTags('Main')
 @Controller()
 export class AppController {
     constructor(
@@ -24,6 +27,7 @@ export class AppController {
     ) {
     }
 
+    @ApiOperation({summary: 'Get information from DOI from all available APIs.'})
     @Get('/')
     async info(
         @Query('apiKey') apiKey: string,
@@ -49,12 +53,14 @@ export class AppController {
         }
     }
 
+    @ApiOperation({summary: 'Get information from DOI from the selected available APIs.'})
     @Post('/')
+    @ApiBody({type: LinkRequestDto})
     async postInfo(
         @Query('apiKey') apiKey: string,
         @Body('link') link: string = null,
-        @Body('include') include: string[],
-        @Body('exclude') exclude: string[],
+        @Body('include') include: apiRequests[],
+        @Body('exclude') exclude: apiRequests[],
         @Request() req: any,
     ) {
         const apiKeyEntity = await this.appService.validateApiKey(apiKey, req.route.path);
@@ -76,6 +82,7 @@ export class AppController {
         }
     }
 
+    @ApiOperation({summary: 'Get information from CGIAR repositories from all available APIs.'})
     @Get('/qa')
     async qaInfo(
         @Query('apiKey') apiKey: string,
@@ -86,18 +93,21 @@ export class AppController {
         return this.handleService.getInfoByRepositoryLink(link, apiKeyEntity, [], []);
     }
 
+    @ApiOperation({summary: 'Get information from CGIAR repositories from the selected available APIs.'})
+    @ApiBody({type: LinkRequestDto})
     @Post('/qa')
     async postQaInfo(
         @Query('apiKey') apiKey: string,
         @Body('link') link: string = null,
-        @Body('include') include: string[],
-        @Body('exclude') exclude: string[],
+        @Body('include') include: apiRequests[],
+        @Body('exclude') exclude: apiRequests[],
         @Request() req: any,
     ) {
         const apiKeyEntity = await this.appService.validateApiKey(apiKey, req.route.path);
         return this.handleService.getInfoByRepositoryLink(link, apiKeyEntity, include, exclude);
     }
 
+    @ApiOperation({summary: 'Get institution AI matching prediction with CLARISA institutions list.'})
     @Get('/predict/:name')
     async predict(
         @Param('name') name: string = null,
@@ -108,6 +118,7 @@ export class AppController {
         return await this.ai.makePrediction(name);
     }
 
+    @ApiOperation({summary: 'Get assigned WoS quota details.'})
     @Get(['/available-wos-quota', '/available-wos-quota/:year'])
     async availableWosQuota(
         @Param('year') year: number,
