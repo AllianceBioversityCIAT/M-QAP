@@ -1,4 +1,4 @@
-import {BadRequestException, Injectable, Logger} from '@nestjs/common';
+import {BadRequestException, HttpException, HttpStatus, Injectable, Logger} from '@nestjs/common';
 import {map} from 'rxjs/operators';
 import {AI} from 'src/ai/ai.service';
 import {DoiService} from 'src/doi/doi.service';
@@ -43,13 +43,13 @@ export class HandleService {
         this.logger.log('Clarisa Regions data Loaded');
     }
 
-    async toClarisa(Items) {
+    async toClarisa(Items, predict = true) {
         if (!Array.isArray(Items)) Items = [Items];
         let result = [];
         for (let i in Items) {
             result.push({
                 name: Items[i],
-                prediction: await this.ai.makePrediction(Items[i]),
+                prediction: predict ? await this.ai.makePrediction(Items[i]) : null,
             });
         }
         return result;
@@ -335,41 +335,98 @@ export class HandleService {
         return arrayOfObjects;
     }
 
-    async getInfoByHandle(handle, apiKeyEntity: ApiKey) {
+    prepareHandleRequests(include: string[] = [], exclude: string[] = []) {
+        const requestsMapper: any = {
+            altmetric: true,
+            cgiarRepository: true,
+            doiInfo: true,
+            institutionPrediction: true,
+            agrovoc: true,
+            commodities: true,
+            orcid: true,
+            fair: true,
+        };
+
+        if (include && include.length > 0) {
+            Object.keys(requestsMapper).map(value => {
+                if (include.indexOf(value) === -1) {
+                    requestsMapper[value] = false;
+                }
+            });
+        } else if (exclude && exclude.length > 0) {
+            Object.keys(requestsMapper).map(value => {
+                if (exclude.indexOf(value) !== -1) {
+                    requestsMapper[value] = false;
+                }
+            });
+        }
+
+        return requestsMapper;
+    }
+
+    async getInfoByRepositoryLink(handle: string, apiKeyEntity: ApiKey, include: string[] = [], exclude: string[] = []) {
+        if (!handle) {
+            throw new HttpException(
+                'Bad request valid handle must be provided',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
         let parsedLink = this.IsDOIOrHandle(handle);
         if (!parsedLink?.identifier?.prefix && !parsedLink?.domain?.id) {
-            throw new BadRequestException('please provide valid link1');
+            throw new BadRequestException('Please provide valid link.');
         }
 
         let repository = await this.getInfoBySchema(parsedLink);
         if (parsedLink?.domain?.id) {
             parsedLink = await this.getIdentifier(repository, parsedLink.domain.id);
             if (!parsedLink?.identifier?.prefix) {
-                throw new BadRequestException('please provide valid link2');
+                throw new BadRequestException('Please provide valid link.');
             }
             repository = await this.getInfoBySchema(parsedLink);
         }
 
         const {prefix, suffix} = parsedLink.identifier;
-        let dataSources = [this.getAltmetricByHandle(prefix, suffix, repository.identifier_type)];
-        if (repository.type == 'DSpace5') {
-            dataSources.push(this.getDpsace(prefix, suffix, repository));
-        } else if (repository.type == 'DSpace6') {
-            dataSources.push(this.getDpsace(prefix, suffix, repository));
-        } else if (repository.type == 'DSpace7') {
-            dataSources.push(this.getDpsace7(prefix, suffix, repository));
-        } else if (repository.type == 'Dataverse') {
-            dataSources.push(this.getDataVerse(prefix, suffix, repository));
-        } else if (repository.type == 'CKAN') {
-            dataSources.push(this.getCkan(prefix, suffix, repository));
+
+        const requestsMapper = this.prepareHandleRequests(include, exclude);
+
+        let dataSources = [];
+
+        if (requestsMapper?.altmetric) {
+            dataSources.push(this.getAltmetricByHandle(prefix, suffix, repository.identifier_type));
         }
 
-        const results = await Promise.all(dataSources);
+        let data: any = {};
+        repository.schemas.map(schema => {
+            data[schema.target] = null;
+        });
+        if (requestsMapper?.cgiarRepository) {
+            if (repository.type == 'DSpace5') {
+                data = {...data, ...(await this.getDpsace(prefix, suffix, repository))};
+            } else if (repository.type == 'DSpace6') {
+                data = {...data, ...(await this.getDpsace(prefix, suffix, repository))};
+            } else if (repository.type == 'DSpace7') {
+                data = {...data, ...(await this.getDpsace7(prefix, suffix, repository))};
+            } else if (repository.type == 'Dataverse') {
+                data = {...data, ...(await this.getDataVerse(prefix, suffix, repository))};
+            } else if (repository.type == 'CKAN') {
+                data = {...data, ...(await this.getCkan(prefix, suffix, repository))};
+            }
+        } else {
+            if (repository.identifier_type === 'DOI') {
+                data.Handle = `https://dx.doi.org/${prefix}/${suffix}`;
+            } else {
+                data.Handle = `https://hdl.handle.net/${prefix}/${suffix}`;
+            }
+        }
 
-        let data = results.length > 1 ? results[1] : results[0];
+        const promisesMapper: any = {};
+        if (requestsMapper?.altmetric) {
+            promisesMapper.handle_altmetric = this.getAltmetricByHandle(prefix, suffix, repository.identifier_type);
+        }
 
-        if (data?.Affiliation)
-            data.Affiliation = await this.toClarisa(data.Affiliation);
+        if (data?.Affiliation) {
+            promisesMapper.Affiliation = this.toClarisa(data.Affiliation, requestsMapper?.institutionPrediction);
+        }
 
         if (data?.['Region of the research']) {
             data['Region of the research'] = this.toClarisaRegions(
@@ -377,19 +434,25 @@ export class HandleService {
             );
         }
 
-        if (!data?.['Region of the research'] && !data?.['Countries'])
-            data['Geographic location'] = {
-                name: 'Global',
-                clarisa_id: 1,
-            };
+        if (requestsMapper?.cgiarRepository) {
+            if (!data?.['Region of the research'] && !data?.['Countries']) {
+                data['Geographic location'] = {
+                    name: 'Global',
+                    clarisa_id: 1,
+                };
+            }
+        }
 
-        if (data.hasOwnProperty('Funding source') && data['Funding source'])
-            data['Funding source'] = await this.toClarisa(data['Funding source']);
+        if (data.hasOwnProperty('Funding source') && data['Funding source']) {
+            promisesMapper['Funding source'] = this.toClarisa(data['Funding source'], requestsMapper?.institutionPrediction);
+        }
 
         if (data?.Keywords) {
-            if (!Array.isArray(data?.Keywords)) data.Keywords = [data.Keywords];
-            data['agrovoc_keywords'] = await this.getAgrovocKeywords(data.Keywords);
-            data['Commodities'] = await this.getCommodities(data.Keywords);
+            if (!Array.isArray(data?.Keywords)) {
+                data.Keywords = [data.Keywords];
+            }
+            promisesMapper['AGROVOC Keywords'] = requestsMapper?.agrovoc ? this.getAgrovocKeywords(data.Keywords) : null;
+            promisesMapper['Commodities'] = requestsMapper?.commodities ? this.getCommodities(data.Keywords) : null;
         }
 
         if (data?.Countries) {
@@ -414,20 +477,25 @@ export class HandleService {
             data['Countries'] = newArrayOfCountries;
         }
 
-        if (results.length > 1) data['handle_altmetric'] = results[0];
-
-        let DOI_INFO = null;
-        if (data?.DOI || repository.identifier_type == 'DOI') {
-            let doi = this.doi.isDOI(repository.identifier_type == 'DOI' ? (`${prefix}/${suffix}`) : data.DOI);
-            if (doi) {
-                DOI_INFO = await this.doi.getInfoByDOI(doi, apiKeyEntity);
-                data['DOI_Info'] = DOI_INFO;
+        if (requestsMapper?.doiInfo) {
+            if (data?.DOI || repository.identifier_type == 'DOI') {
+                let doi = this.doi.isDOI(repository.identifier_type == 'DOI' ? (`${prefix}/${suffix}`) : data.DOI);
+                if (doi) {
+                    promisesMapper['DOI_Info'] = this.doi.getInfoByDOI(doi, apiKeyEntity, include, exclude);
+                }
             }
         }
 
-        if (data?.ORCID) data['ORCID_Data'] = await this.getORCID(data.ORCID);
+        if (data?.ORCID) {
+            promisesMapper['ORCID_Data'] = requestsMapper?.orcid ? this.getORCID(data.ORCID) : null;
+        }
 
-        data['FAIR'] = this.calculateFAIR(data);
+        const promises = await Promise.all(Object.values(promisesMapper));
+        Object.keys(promisesMapper).map((key, index) => {
+            data[key] = promises?.[index];
+        });
+
+        data['FAIR'] = requestsMapper?.fair ? this.calculateFAIR(data) : null;
 
         return data;
     }
@@ -453,17 +521,15 @@ export class HandleService {
                     description:
                         'The knowledge product is described by rich metadata such as title, authors, description/abstract, and issue date',
                     valid:
-                        (data['Issued date'] ? true : false) &&
-                        (data.Title ? true : false) &&
-                        (data.Authors ? true : false) &&
-                        (data.Description ? true : false),
+                        (!!data['Issued date']) &&
+                        (!!data.Title) &&
+                        (!!data.Authors) &&
+                        (!!data.Description),
                 },
                 {
                     name: 'F3',
                     description: 'At least one author is linked through their ORCID',
-                    valid: data.ORCID_Data
-                        ? data.ORCID_Data && data.ORCID_Data.length > 0
-                        : false,
+                    valid: data.ORCID_Data ? data.ORCID_Data && data.ORCID_Data.length > 0 : false,
                 },
             ],
             A: [
@@ -477,17 +543,13 @@ export class HandleService {
                 {
                     name: 'I1',
                     description: 'Metadata contain AGROVOC keywords',
-                    valid: data?.agrovoc_keywords
-                        ? data.agrovoc_keywords.keywords.length > 0
-                        : false,
+                    valid: data?.agrovoc_keywords?.keywords ? data.agrovoc_keywords.keywords.length > 0 : false,
                 },
                 {
                     name: 'I2',
                     description:
                         'Metadata include qualified references to other (meta)data',
-                    valid: data
-                        ? data.hasOwnProperty('Reference to other knowledge products')
-                        : false,
+                    valid: data ? data.hasOwnProperty('Reference to other knowledge products') : false,
                 },
             ],
             R: [
@@ -500,9 +562,7 @@ export class HandleService {
                         (data['Open Access'] as string)
                             .toLocaleLowerCase()
                             .includes('open access') &&
-                        licenses.indexOf(data['Rights']) >= 0
-                            ? true
-                            : false,
+                        licenses.indexOf(data['Rights']) >= 0,
                 },
             ],
         };

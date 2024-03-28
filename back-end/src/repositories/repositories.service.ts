@@ -74,40 +74,29 @@ export class RepositoriesService extends TypeOrmCrudService<Repositories> {
     }
 
     async updateSchema(repositoryId: number, createRepositorySchemaDtos: CreateRepositorySchemaDto[]) {
-        const repository = await this.repositoriesRepository.findOne({where: {id: repositoryId}});
-        const sources = [];
+        const repository = await this.repositoriesRepository.findOne({
+            where: {id: repositoryId},
+            relations: ['schemas']
+        });
+        const existingIds = repository.schemas.map(schema => schema.id);
         const promises: any = createRepositorySchemaDtos.map(async (createRepositorySchemaDto) => {
-            sources.push(createRepositorySchemaDto.source);
-            createRepositorySchemaDto.repository = repository;
-            const schema = await this.findSchema({
-                where: {
-                    repository: {id: repositoryId},
-                    source: createRepositorySchemaDto.source
-                }
-            });
-            if (schema) {
-                if (schema.target !== createRepositorySchemaDto.target) {
-                    const updateRepositorySchemaDto = {
-                        target: createRepositorySchemaDto.target,
-                    } as UpdateRepositorySchemaDto;
-                    return this.RepositoriesSchemaRepository.update({id: schema.id}, {...updateRepositorySchemaDto});
-                } else {
-                    return schema;
-                }
+            const id = existingIds.splice(0, 1);
+            if (id?.[0]) {
+                return this.RepositoriesSchemaRepository.update({id: id[0]}, {...createRepositorySchemaDto});
             } else {
                 const newRepositorySchema = this.RepositoriesSchemaRepository.create({...createRepositorySchemaDto});
                 return this.RepositoriesSchemaRepository.save(newRepositorySchema);
             }
         });
-        promises.push(this.deleteRemovedSchema(sources, repositoryId));
+        promises.push(this.deleteRemovedSchema(existingIds, repositoryId));
         await Promise.all(promises);
     }
 
-    async deleteRemovedSchema(sources: string[], repositoryId: number) {
+    async deleteRemovedSchema(existingIds: number[], repositoryId: number) {
         const removedSchema = await this.findAllSchema({
             where: {
                 repository: {id: repositoryId},
-                source: Not(In(sources))
+                id: In(existingIds),
             }
         });
         return this.RepositoriesSchemaRepository.remove(removedSchema);

@@ -1,11 +1,13 @@
 import {
     Controller,
     Get,
+    Post,
     HttpException,
     HttpStatus,
     Param,
     Query,
     Request,
+    Body,
 } from '@nestjs/common';
 import {AI} from './ai/ai.service';
 import {DoiService} from './doi/doi.service';
@@ -24,43 +26,76 @@ export class AppController {
 
     @Get('/')
     async info(
-        @Query('link') link: string = null,
-        @Query('handle') handle: string,
         @Query('apiKey') apiKey: string,
+        @Query('link') link: string = null,
         @Request() req: any,
     ) {
         const apiKeyEntity = await this.appService.validateApiKey(apiKey, req.route.path);
         if (link) {
             const doi = this.doiService.isDOI(link);
-            if (doi) return this.doiService.getInfoByDOI(doi, apiKeyEntity);
-            else
+            if (doi) {
+                return this.doiService.getInfoByDOI(doi, apiKeyEntity, [], []);
+            } else {
                 throw new HttpException(
                     'Bad request valid DOI must be provided',
                     HttpStatus.BAD_REQUEST,
                 );
-        } else if (handle) {
-            return this.handleService.getInfoByHandle(handle, apiKeyEntity);
-        } else
+            }
+        } else {
             throw new HttpException(
                 'Bad request valid handle must be provided',
                 HttpStatus.BAD_REQUEST,
             );
+        }
     }
 
-    @Get('/qa')
-    async qaInfo(
-        @Query('link') link: string = null,
+    @Post('/')
+    async postInfo(
         @Query('apiKey') apiKey: string,
+        @Body('link') link: string = null,
+        @Body('include') include: string[],
+        @Body('exclude') exclude: string[],
         @Request() req: any,
     ) {
         const apiKeyEntity = await this.appService.validateApiKey(apiKey, req.route.path);
         if (link) {
-            return this.handleService.getInfoByHandle(link, apiKeyEntity);
-        } else
+            const doi = this.doiService.isDOI(link);
+            if (doi) {
+                return this.doiService.getInfoByDOI(doi, apiKeyEntity, include, exclude);
+            } else {
+                throw new HttpException(
+                    'Bad request valid DOI must be provided',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+        } else {
             throw new HttpException(
                 'Bad request valid handle must be provided',
                 HttpStatus.BAD_REQUEST,
             );
+        }
+    }
+
+    @Get('/qa')
+    async qaInfo(
+        @Query('apiKey') apiKey: string,
+        @Query('link') link: string = null,
+        @Request() req: any,
+    ) {
+        const apiKeyEntity = await this.appService.validateApiKey(apiKey, req.route.path);
+        return this.handleService.getInfoByRepositoryLink(link, apiKeyEntity, [], []);
+    }
+
+    @Post('/qa')
+    async postQaInfo(
+        @Query('apiKey') apiKey: string,
+        @Body('link') link: string = null,
+        @Body('include') include: string[],
+        @Body('exclude') exclude: string[],
+        @Request() req: any,
+    ) {
+        const apiKeyEntity = await this.appService.validateApiKey(apiKey, req.route.path);
+        return this.handleService.getInfoByRepositoryLink(link, apiKeyEntity, include, exclude);
     }
 
     @Get('/predict/:name')
