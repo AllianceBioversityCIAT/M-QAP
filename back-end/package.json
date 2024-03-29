@@ -54,6 +54,7 @@
     "dayjs": "^1.11.10",
     "express-query-parameters": "^1.0.2",
     "form-data": "^3.0.0",
+    "fuzzball": "^2.1.2",
     "fuzzy-search": "^3.2.1",
     "i": "^0.3.7",
     "iso-639-1": "^2.1.15",

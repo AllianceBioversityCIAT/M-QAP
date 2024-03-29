@@ -110,19 +110,29 @@ export class AppController {
     @ApiOperation({summary: 'Get institution AI matching prediction with CLARISA institutions list.'})
     @Get('/predict/:name')
     async predict(
-        @Param('name') name: string = null,
         @Query('apiKey') apiKey: string,
+        @Param('name') name: string = null,
         @Request() req: any,
     ) {
         await this.appService.validateApiKey(apiKey, req.route.path);
         return await this.ai.makePrediction(name);
     }
 
+    @ApiOperation({summary: 'Get institution AI matching prediction and text matching with CLARISA institutions list.'})
+    @Get('/predict-text-match/:name')
+    async predictFuzzywuzzy(
+        @Query('apiKey') apiKey: string,
+        @Param('name') name: string = null,
+        @Request() req: any,
+    ) {
+        return await this.ai.makePrediction(name, true);
+    }
+
     @ApiOperation({summary: 'Get assigned WoS quota details.'})
     @Get(['/available-wos-quota', '/available-wos-quota/:year'])
     async availableWosQuota(
-        @Param('year') year: number,
         @Query('apiKey') apiKey: string,
+        @Param('year') year: number,
         @Request() req: any,
     ) {
         const apiKeyEntity = await this.appService.validateApiKey(apiKey, req.route.path);
