@@ -4,7 +4,7 @@ require('@tensorflow/tfjs');
 import * as tf from '@tensorflow/tfjs-node';
 import * as use from '@tensorflow-models/universal-sentence-encoder';
 import * as path from 'path';
-import {HttpException, HttpStatus, Injectable, Logger} from '@nestjs/common';
+import {BadRequestException, HttpException, HttpStatus, Injectable, Logger} from '@nestjs/common';
 import {HttpService} from '@nestjs/axios';
 import {catchError, map} from 'rxjs/operators';
 import * as fs from 'fs';
@@ -16,6 +16,7 @@ import {UpdateTrainingCycleDto} from '../training-cycle/dto/update-training-cycl
 import {Worker} from 'worker_threads';
 import workerThreadFilePath from './worker-threads/config';
 import {OrganizationsService} from '../organizations/organizations.service';
+import {Not} from 'typeorm';
 
 @Injectable()
 export class AiTrainingService {
@@ -42,7 +43,7 @@ export class AiTrainingService {
         let lastCycle = null;
         this.activeCycleId = null;
         try {
-            const active_cycle = await this.trainingCycleService.findLatestOne(true);
+            const active_cycle = await this.trainingCycleService.findLatestActiveOne();
             if (active_cycle) {
                 lastCycle = active_cycle;
                 this.activeCycleId = active_cycle.id;
@@ -64,8 +65,8 @@ export class AiTrainingService {
                 const updateTrainingCycleDto: UpdateTrainingCycleDto = {
                     training_is_completed: false,
                 };
-                await this.trainingCycleService.update(lastCycle.id, updateTrainingCycleDto);
-                this.init();
+                await this.trainingCycleService.update({id: lastCycle.id}, updateTrainingCycleDto);
+                await this.init();
             } else {
                 this.logger.log('No Trained Model found.');
             }
@@ -81,7 +82,12 @@ export class AiTrainingService {
                     catchError((e) => {
                         return [];
                     }),
-                ));
+                ))
+            .catch(async (e) => {
+                const activeCycle = await this.trainingCycleService.findLatestActiveOne();
+                const activeFolderPath = path.join(process.cwd(), 'uploads/training-data/' + activeCycle.id);
+                return JSON.parse(fs.readFileSync(activeFolderPath + '/clarisa_data.json', 'utf8'));
+            });
         await fs.writeFileSync(trainingFolderPath + '/clarisa_data.json', JSON.stringify(clarisaData));
         return clarisaData;
     }
@@ -109,9 +115,9 @@ export class AiTrainingService {
         }
         await this.trainingCycleService.create(trainingCycle);
 
-        const activeCycle = await this.trainingCycleService.findLatestOne();
-        this.activeTrainingCycleId = activeCycle.id;
-        const trainingFolderPath = path.join(process.cwd(), 'uploads/training-data/' + activeCycle.id);
+        const currentCycle = await this.trainingCycleService.findLatestOne();
+        this.activeTrainingCycleId = currentCycle.id;
+        const trainingFolderPath = path.join(process.cwd(), 'uploads/training-data/' + currentCycle.id);
 
         this.socketsGateway.emitTrainingProgress(2, 'Collecting data...', false);
 
@@ -169,16 +175,16 @@ export class AiTrainingService {
                             training_is_completed: true,
                         };
 
-                        await this.trainingCycleService.update(activeCycle.id, updateTrainingCycleDto);
+                        await this.trainingCycleService.update({id: currentCycle.id}, updateTrainingCycleDto);
                         await this.organizationService.importPartners(controlledListData);
                         await this.init();
                         this.socketsGateway.emitTrainingProgress(0, 'Finished', false);
                     } else {
                         this.activeTrainingAbortSignal = false;
-                        await this.trainingCycleService.remove(activeCycle.id);
+                        await this.trainingCycleService.remove(currentCycle.id);
                         this.socketsGateway.emitTrainingProgress(0, 'Terminated', false);
                         const trainingFolderPathParts = trainingFolderPath.split('uploads/');
-                        if (trainingFolderPathParts?.[1] && trainingFolderPathParts[1] === 'training-data/' + activeCycle.id) {
+                        if (trainingFolderPathParts?.[1] && trainingFolderPathParts[1] === 'training-data/' + currentCycle.id) {
                             fs.rmSync(trainingFolderPath, {recursive: true, force: true});
                         }
                     }
@@ -211,6 +217,23 @@ export class AiTrainingService {
                 stopped: false,
                 message: 'No active training cycles.'
             };
+        }
+    }
+
+    async setActiveCycle(id: number) {
+        const trainingCycle = await this.trainingCycleService.findOne(id);
+        if (trainingCycle.training_is_completed) {
+            const updateTrainingCycleDto: UpdateTrainingCycleDto = {
+                is_active: true,
+            }
+            const updated = await this.trainingCycleService.update({id}, {...updateTrainingCycleDto});
+
+            updateTrainingCycleDto.is_active = false;
+            await this.trainingCycleService.update({id: Not(id)}, {...updateTrainingCycleDto});
+            await this.init();
+            return updated;
+        } else {
+            throw new BadRequestException('Cannot set as active, this training cycle training was not completed.');
         }
     }
 }

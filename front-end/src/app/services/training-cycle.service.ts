@@ -51,4 +51,8 @@ export class TrainingCycleService {
   cancelTraining() {
     return this.http.get(`${this.api}/cancel-training`);
   }
+
+  setActiveCycle(id: number) {
+    return this.http.patch(`${this.api}/set-active-cycle/${id}`, null);
+  }
 }

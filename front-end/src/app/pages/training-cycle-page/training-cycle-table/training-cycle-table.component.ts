@@ -19,7 +19,7 @@ import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
   styleUrls: ['./training-cycle-table.component.scss'],
 })
 export class TrainingCycleTableComponent {
-  columnsToDisplay: string[] = ['id', 'text', 'creation_date', 'update_date', 'training_is_completed', 'actions'];
+  columnsToDisplay: string[] = ['id', 'text', 'creation_date', 'update_date', 'training_is_completed', 'is_active', 'actions'];
   dataSource!: MatTableDataSource<TrainingCycle>;
   form!: FormGroup;
   response!: Paginated<TrainingCycle>;
@@ -197,6 +197,35 @@ export class TrainingCycleTableComponent {
             },
           });
         }
+      });
+  }
+
+  setActiveCycle(id: number) {
+    this.dialog
+      .open(DeleteConfirmDialogComponent, {
+        data: {
+          message: 'Are you sure you want to set this cycle as active?',
+          title: 'Activate training cycle',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        filter((i) => !!i),
+        switchMap(() => {
+          this.loaderService.open();
+          return this.trainingCycleService.setActiveCycle(id)
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.loaderService.close();
+          this.loadData();
+          this.snackBarService.success('Active training cycle is set successfully.');
+        },
+        error: (error) => {
+          this.loaderService.close();
+          this.snackBarService.error(error.error.message);
+        },
       });
   }
 }

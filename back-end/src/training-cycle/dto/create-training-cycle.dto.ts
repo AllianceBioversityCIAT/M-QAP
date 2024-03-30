@@ -12,4 +12,9 @@ export class CreateTrainingCycleDto {
     @Expose()
     @IsBoolean()
     training_is_completed?: boolean;
+
+    @ApiProperty()
+    @Expose()
+    @IsBoolean()
+    is_active?: boolean;
 }

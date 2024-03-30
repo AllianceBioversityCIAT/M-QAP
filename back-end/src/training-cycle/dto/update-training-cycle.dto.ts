@@ -14,4 +14,10 @@ export class UpdateTrainingCycleDto {
     @IsBoolean()
     @IsOptional()
     training_is_completed?: boolean;
+
+    @ApiProperty()
+    @Expose()
+    @IsBoolean()
+    @IsOptional()
+    is_active?: boolean;
 }

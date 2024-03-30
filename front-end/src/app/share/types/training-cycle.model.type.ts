@@ -1,4 +1,4 @@
-import { Prediction } from './prediction.model.type';
+import {Prediction} from './prediction.model.type';
 
 export type TrainingCycle = {
   id: number;
@@ -8,6 +8,10 @@ export type TrainingCycle = {
   update_date: string;
 
   text: string;
+
+  training_is_completed: string;
+
+  is_active: string;
 
   predictions: Prediction[];
 };

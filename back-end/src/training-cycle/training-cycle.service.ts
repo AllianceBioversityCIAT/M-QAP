@@ -6,6 +6,7 @@ import {TrainingCycle as TrainingCycle} from 'src/entities/training-cycle.entity
 import {IsNull, Not, Repository} from 'typeorm';
 import {CreateTrainingCycleDto} from './dto/create-training-cycle.dto';
 import {UpdateTrainingCycleDto} from './dto/update-training-cycle.dto';
+import {FindOptionsWhere} from 'typeorm/find-options/FindOptionsWhere';
 
 @Injectable()
 export class TrainingCycleService {
@@ -30,6 +31,7 @@ export class TrainingCycleService {
                 'training_cycle.update_date AS update_date',
                 'training_cycle.text AS text',
                 'training_cycle.training_is_completed AS training_is_completed',
+                'training_cycle.is_active AS is_active',
             ]);
 
         return this.paginatorService.paginator(query, queryBuilder, [
@@ -38,6 +40,7 @@ export class TrainingCycleService {
             'training_cycle.update_date',
             'training_cycle.text',
             'IF(training_cycle.training_is_completed = 1, "Yes", "No")',
+            'IF(training_cycle.is_active = 1, "Yes", "No")',
         ], 'training_cycle.id');
     }
 
@@ -65,8 +68,18 @@ export class TrainingCycleService {
         });
     }
 
-    update(id: number, updateTrainingCycleDto: UpdateTrainingCycleDto) {
-        return this.trainingCycleRepository.update({id}, {...updateTrainingCycleDto});
+    findLatestActiveOne() {
+        return this.trainingCycleRepository.findOne({
+            where: {
+                training_is_completed: true,
+                is_active: true,
+            },
+            order: {id: 'DESC'},
+        });
+    }
+
+    update(criteria: FindOptionsWhere<TrainingCycle>, updateTrainingCycleDto: UpdateTrainingCycleDto) {
+        return this.trainingCycleRepository.update(criteria, {...updateTrainingCycleDto});
     }
 
     async remove(id: number) {

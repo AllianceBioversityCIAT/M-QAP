@@ -31,6 +31,10 @@ export class TrainingCycle {
     @Column({default: false})
     training_is_completed: boolean;
 
+    @ApiProperty()
+    @Column({default: false})
+    is_active: boolean;
+
     @ApiProperty({type: () => Prediction})
     @OneToMany(() => Prediction, (prediction) => prediction.trainingCycle)
     predictions: Prediction[];

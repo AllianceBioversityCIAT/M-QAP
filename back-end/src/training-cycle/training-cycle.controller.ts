@@ -81,9 +81,9 @@ export class TrainingCycleController {
     @Patch(':id')
     update(
         @Param('id') id: number,
-        @Body() updateUserDto: UpdateTrainingCycleDto,
+        @Body() updateTrainingCycleDto: UpdateTrainingCycleDto,
     ) {
-        return this.trainingCycleService.update(+id, updateUserDto);
+        return this.trainingCycleService.update({id}, updateTrainingCycleDto);
     }
 
     @Delete(':id')
@@ -108,5 +108,12 @@ export class TrainingCycleController {
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
+    }
+
+    @Patch('set-active-cycle/:id')
+    setActiveCycle(
+        @Param('id') id: number,
+    ) {
+        return this.aiTrainingService.setActiveCycle(+id);
     }
 }
