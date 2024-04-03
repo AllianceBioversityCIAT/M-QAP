@@ -173,6 +173,7 @@ export class AiTrainingService {
                     if (!this.activeTrainingAbortSignal) {
                         const updateTrainingCycleDto: UpdateTrainingCycleDto = {
                             training_is_completed: true,
+                            is_active: true,
                         };
 
                         await this.trainingCycleService.update({id: currentCycle.id}, updateTrainingCycleDto);
