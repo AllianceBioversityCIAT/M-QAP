@@ -125,6 +125,7 @@ export class AppController {
         @Param('name') name: string = null,
         @Request() req: any,
     ) {
+        await this.appService.validateApiKey(apiKey, req.route.path);
         return await this.ai.makePrediction(name, true);
     }
 

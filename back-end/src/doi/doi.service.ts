@@ -12,7 +12,6 @@ const https = require('https');
 import {HttpService} from '@nestjs/axios';
 import {ApiKeysService} from '../api-keys/api-keys.service';
 import {ApiKey} from '../entities/api-key.entity';
-import {AppService} from '../app.service';
 import {apiRequests} from '../link-request.dto';
 
 @Injectable()
@@ -21,7 +20,6 @@ export class DoiService {
     constructor(
         private httpService: HttpService,
         private ai: AI,
-        private appService: AppService,
         private apiKeysService: ApiKeysService,
     ) {
     }
