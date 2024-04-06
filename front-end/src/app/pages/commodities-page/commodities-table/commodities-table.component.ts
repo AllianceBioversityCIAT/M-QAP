@@ -135,7 +135,7 @@ export class CommoditiesTableComponent {
     this.dialog
       .open(DeleteConfirmDialogComponent, {
         data: {
-          message: 'Are you sure you want to delete this record ?',
+          message: 'Are you sure you want to delete this record?',
           title: 'Delete',
         },
       })

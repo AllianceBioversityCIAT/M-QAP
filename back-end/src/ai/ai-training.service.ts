@@ -17,6 +17,7 @@ import {Worker} from 'worker_threads';
 import workerThreadFilePath from './worker-threads/config';
 import {OrganizationsService} from '../organizations/organizations.service';
 import {Not} from 'typeorm';
+import {SubstitutionDataService} from '../substitution-data/substitution-data.service';
 
 @Injectable()
 export class AiTrainingService {
@@ -35,6 +36,7 @@ export class AiTrainingService {
         private trainingDataService: TrainingDataService,
         private socketsGateway: SocketsGateway,
         private organizationService: OrganizationsService,
+        private substitutionDataService: SubstitutionDataService,
     ) {
         this.init();
     }
@@ -132,27 +134,28 @@ export class AiTrainingService {
             }
         });
 
+        const substitutionData = await this.substitutionDataService.getAll();
+
         this.socketsGateway.emitTrainingProgress(3, 'Preparing data...', false);
 
         const progressSettings = {
             reservedPercentage: 3,
             availablePercentage: 97,
             availablePercentageDistribution: {
-                compiling: 19,
                 trainingStart: 1,
-                training: 80,
+                training: 99,
             },
         };
 
         const worker = new Worker(workerThreadFilePath, {
             workerData: {
-                loadDataPatchSize: 1000,
-                epochs: 100,
-                trainingPatchSize: 50,
+                epochs: 60,
+                trainingBatchSize: 128,
                 progressSettings,
                 trainingFolderPath,
                 controlledListData,
                 trainingData,
+                substitutionData,
             },
         });
 
@@ -173,10 +176,10 @@ export class AiTrainingService {
                     if (!this.activeTrainingAbortSignal) {
                         const updateTrainingCycleDto: UpdateTrainingCycleDto = {
                             training_is_completed: true,
-                            is_active: true,
                         };
 
                         await this.trainingCycleService.update({id: currentCycle.id}, updateTrainingCycleDto);
+                        await this.setActiveCycle(currentCycle.id);
                         await this.organizationService.importPartners(controlledListData);
                         await this.init();
                         this.socketsGateway.emitTrainingProgress(0, 'Finished', false);

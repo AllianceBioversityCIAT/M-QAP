@@ -24,6 +24,7 @@ import {RepositoriesModule} from './repositories/repositories.module';
 import {UsersModule} from './users/users.module';
 import {ApiKeysModule} from './api-keys/api-keys.module';
 import {PaginatorService} from './paginator/paginator.service';
+import {SubstitutionDataModule} from './substitution-data/substitution-data.module';
 
 @Module({
     imports: [
@@ -56,6 +57,7 @@ import {PaginatorService} from './paginator/paginator.service';
         RepositoriesModule,
         UsersModule,
         ApiKeysModule,
+        SubstitutionDataModule,
     ],
     controllers: [AppController, DashboardController],
     providers: [AppService, DoiService, AI, HandleService, FormatService, PaginatorService],

@@ -99,10 +99,11 @@ export class StatisticsService {
             await this.trainingCycleService.trainingCycleRepository
                 .createQueryBuilder('cycle')
                 .select('cycle.id', 'cycle_id')
+                .addSelect('cycle.text', 'cycle')
                 .addSelect('COUNT(prediction.id) as predictions_count')
                 .leftJoin('cycle.predictions', 'prediction')
                 .groupBy('cycle.id')
-                .orderBy('cycle_id', 'DESC')
+                .orderBy('cycle_id', 'ASC')
                 .execute();
 
         return plainToInstance(PredictionsForEachCycle, q, {
@@ -116,10 +117,11 @@ export class StatisticsService {
             await this.trainingCycleService.trainingCycleRepository
                 .createQueryBuilder('cycle')
                 .select('cycle.id', 'cycle_id')
+                .addSelect('cycle.text', 'cycle')
                 .addSelect('AVG(prediction.confidant) as predictions_average')
                 .leftJoin('cycle.predictions', 'prediction')
                 .groupBy('cycle.id')
-                .orderBy('cycle_id', 'DESC')
+                .orderBy('cycle_id', 'ASC')
                 .execute();
 
         return plainToInstance(PredictionsAverageForEachCycle, q, {

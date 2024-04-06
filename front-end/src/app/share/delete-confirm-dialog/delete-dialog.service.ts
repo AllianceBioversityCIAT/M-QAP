@@ -9,7 +9,7 @@ export class DeleteDialogService {
 
   create(
     data: { message: string; title: string } = {
-      message: 'Are you sure you want to delete this record ?',
+      message: 'Are you sure you want to delete this record?',
       title: 'Delete',
     }
   ): Observable<boolean> {

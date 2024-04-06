@@ -4,6 +4,11 @@ export interface TrainingResponse {
     error?: any;
 }
 
+export interface SubstitutionItem {
+    find: string;
+    replace: string;
+}
+
 export interface TrainingItem {
     text: string;
     id: number;

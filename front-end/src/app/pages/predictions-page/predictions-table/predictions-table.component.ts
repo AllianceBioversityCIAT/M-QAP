@@ -33,7 +33,7 @@ export class PredictionsTableComponent {
   length = 0;
   pageSize = 10;
   pageIndex = 0;
-  sortBy = 'text:ASC';
+  sortBy = 'id:DESC';
   text = '';
 
   constructor(
@@ -54,7 +54,7 @@ export class PredictionsTableComponent {
   initForm() {
     this.form = this.fb.group({
       text: [''],
-      sortBy: ['text:ASC'],
+      sortBy: ['id:DESC'],
     });
 
     this.form.valueChanges.pipe(

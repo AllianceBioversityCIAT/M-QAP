@@ -35,6 +35,15 @@ const routes: Routes = [
   },
   {
     canActivate: [ComponentGuard],
+    path: 'substitution-data',
+    data: {roles: ['admin']},
+    loadChildren: () =>
+      import('./pages/substitutions-page/substitutions-page.module').then(
+        (m) => m.SubstitutionsPageModule
+      ),
+  },
+  {
+    canActivate: [ComponentGuard],
     path: 'training-cycle',
     data: {roles: ['admin']},
     loadChildren: () =>

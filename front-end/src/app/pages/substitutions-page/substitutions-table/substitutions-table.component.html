@@ -1,15 +1,15 @@
 <div class="main-container">
   <section class="action-button-section">
     <button (click)="openDialog()" mat-raised-button color="primary">
-      <mat-icon> add_box </mat-icon>
-      Add new user
+      <mat-icon> add_box</mat-icon>
+      Add substitution data
     </button>
   </section>
 
   <form [formGroup]="form">
     <mat-form-field appearance="outline" floatLabel="always">
       <mat-label>Search</mat-label>
-      <input type="text" matInput formControlName="text" />
+      <input type="text" matInput formControlName="text"/>
     </mat-form-field>
 
     <mat-form-field appearance="outline" floatLabel="always">
@@ -17,12 +17,10 @@
       <mat-select formControlName="sortBy">
         <mat-option value="id:DESC">ID / DESC</mat-option>
         <mat-option value="id:ASC">ID / ACS</mat-option>
-        <mat-option value="full_name:DESC">Name / DESC</mat-option>
-        <mat-option value="full_name:ASC">Name / ACS</mat-option>
-        <mat-option value="email:DESC">Email / DESC</mat-option>
-        <mat-option value="email:ASC">Email / ACS</mat-option>
-        <mat-option value="role:DESC">Role / DESC</mat-option>
-        <mat-option value="role:ASC">Role / ACS</mat-option>
+        <mat-option value="find_text:DESC">Find / DESC</mat-option>
+        <mat-option value="find_text:ASC">Find / ACS</mat-option>
+        <mat-option value="replace_text:DESC">Replace / DESC</mat-option>
+        <mat-option value="replace_text:ASC">Replace / ACS</mat-option>
       </mat-select>
     </mat-form-field>
   </form>
@@ -37,49 +35,49 @@
         </td>
       </ng-container>
 
-      <!-- Name Column -->
-      <ng-container matColumnDef="full_name">
+      <!-- Find Column -->
+      <ng-container matColumnDef="find_text">
         <th mat-header-cell *matHeaderCellDef class="min-width-22 width-fill">
-          Name
+          Find
         </th>
         <td mat-cell *matCellDef="let element" class="min-width-22 width-fill">
-          {{ element.full_name }}
+          {{ element.find_text }}
         </td>
       </ng-container>
 
-      <!-- Email Column -->
-      <ng-container matColumnDef="email">
-        <th mat-header-cell *matHeaderCellDef class="width-14">Email</th>
-        <td mat-cell *matCellDef="let element" class="width-8">
-          {{ element.email }}
-        </td>
-      </ng-container>
-
-      <!-- Role Column -->
-      <ng-container matColumnDef="role">
-        <th mat-header-cell *matHeaderCellDef class="width-14">Role</th>
-        <td mat-cell *matCellDef="let element" class="width-8">
-          {{ element.role }}
-        </td>
-      </ng-container>
-
-      <!-- Action Name Column -->
-      <ng-container matColumnDef="actions" stickyEnd>
-        <th mat-header-cell *matHeaderCellDef class="width-4">
-          <span class="h5">Action</span>
+      <!-- Replace Column -->
+      <ng-container matColumnDef="replace_text">
+        <th mat-header-cell *matHeaderCellDef class="min-width-22 width-fill">
+          Replace
         </th>
-        <td mat-cell *matCellDef="let element" class="width-4 action-column">
+        <td mat-cell *matCellDef="let element" class="min-width-22 width-fill">
+          {{ element.replace_text }}
+        </td>
+      </ng-container>
+
+      <!-- Action Column -->
+      <ng-container matColumnDef="actions" stickyEnd>
+        <th mat-header-cell *matHeaderCellDef class="width-8">Action</th>
+        <td mat-cell *matCellDef="let element" class="width-8 action-column">
           <div class="action-container">
             <button
               mat-icon-button
               matTooltip="Edit"
               (click)="openDialog(element.id)"
             >
-              <mat-icon><app-edit-icon></app-edit-icon> </mat-icon>
+              <mat-icon>
+                <app-edit-icon></app-edit-icon>
+              </mat-icon>
             </button>
 
-            <button mat-icon-button matTooltip="Delete" (click)="delete(element.id)">
-              <mat-icon><app-delete-icon></app-delete-icon></mat-icon>
+            <button
+              mat-icon-button
+              matTooltip="Delete"
+              (click)="delete(element.id)"
+            >
+              <mat-icon>
+                <app-delete-icon></app-delete-icon>
+              </mat-icon>
             </button>
           </div>
         </td>

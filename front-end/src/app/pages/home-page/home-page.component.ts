@@ -76,15 +76,12 @@ export class HomePageComponent {
               tickPositioner: function () {
                 return (this.series[0] as any)?.processedXData;
               },
+              categories: response.averagePredictionPerCycle.map(item => item.cycle),
             },
             series: [
               {
                 name: 'Average confidence rate / Cycle',
-                data: response.averagePredictionPerCycle.map((i) => ({
-                  name: 'Average',
-                  y: i.predictions_average,
-                  x: i.cycle_id,
-                })),
+                data: response.averagePredictionPerCycle.map(item => item.predictions_average),
               } as any,
             ],
           });
@@ -120,14 +117,12 @@ export class HomePageComponent {
               tickPositioner: function () {
                 return (this.series[0] as any)?.processedXData;
               },
+              categories: response.predictionCountPerCycle.map(item => item.cycle),
             },
             series: [
               {
                 name: 'Predictions count / Cycle',
-                data: response.predictionCountPerCycle.map((i) => ({
-                  y: i.predictions_count,
-                  x: i.cycle_id,
-                })),
+                data: response.predictionCountPerCycle.map(item => item.predictions_count),
               } as any,
             ],
           });

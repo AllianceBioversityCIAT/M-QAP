@@ -6,10 +6,12 @@ export type Statistics = {
   totalTrainingData: number;
   predictionCountPerCycle: {
     cycle_id: number;
+    cycle: string;
     predictions_count: number;
   }[];
   averagePredictionPerCycle: {
-    predictions_average: number;
     cycle_id: number;
+    cycle: string;
+    predictions_average: number;
   }[];
 };

@@ -10,10 +10,23 @@ import {SocketsGateway} from '../sockets/sockets.gateway';
 import {PaginatorService} from '../paginator/paginator.service';
 import {OrganizationsService} from '../organizations/organizations.service';
 import {Organization} from '../entities/organization.entity';
+import {SubstitutionData} from '../entities/substitution-data.entity';
+import {SubstitutionDataService} from '../substitution-data/substitution-data.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([TrainingCycle, TrainingData, Organization]), HttpModule],
-    providers: [TrainingCycleService, AiTrainingService, TrainingDataService, SocketsGateway, PaginatorService, OrganizationsService],
+    imports: [
+        TypeOrmModule.forFeature([TrainingCycle, TrainingData, Organization, SubstitutionData]),
+        HttpModule
+    ],
+    providers: [
+        TrainingCycleService,
+        AiTrainingService,
+        TrainingDataService,
+        SocketsGateway,
+        PaginatorService,
+        OrganizationsService,
+        SubstitutionDataService
+    ],
     exports: [AiTrainingService]
 })
 export class AiTrainingModule {

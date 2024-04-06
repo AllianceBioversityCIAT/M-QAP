@@ -1,11 +1,11 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {TrainingDataService} from 'src/app/services/training-data.service';
-import {vb} from 'src/app/services/validator.service';
+import {SubstitutionDataService} from '../../../services/substitution-data.service';
 import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
-import {z} from 'zod';
 import {LoaderService} from 'src/app/services/loader.service';
+import {vb} from 'src/app/services/validator.service';
+import {z} from 'zod';
 
 export interface DialogData {
   id?: number;
@@ -13,17 +13,17 @@ export interface DialogData {
 }
 
 @Component({
-  selector: 'app-training-data-form',
-  templateUrl: './training-data-form.component.html',
-  styleUrls: ['./training-data-form.component.scss'],
+  selector: 'app-substitutions-form',
+  templateUrl: './substitutions-form.component.html',
+  styleUrls: ['./substitutions-form.component.scss']
 })
-export class TrainingDataFormComponent implements OnInit {
+export class SubstitutionsFormComponent implements OnInit {
   form!: FormGroup;
 
   constructor(
-    public dialogRef: MatDialogRef<TrainingDataFormComponent>,
+    public dialogRef: MatDialogRef<SubstitutionsFormComponent>,
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
-    private trainingDataService: TrainingDataService,
+    private substitutionDataService: SubstitutionDataService,
     private snackBarService: SnackBarService,
     private fb: FormBuilder,
     private loaderService: LoaderService,
@@ -41,7 +41,7 @@ export class TrainingDataFormComponent implements OnInit {
 
   patchForm() {
     if (this.id) {
-      this.trainingDataService.get(this.id).subscribe((data) => {
+      this.substitutionDataService.get(this.id).subscribe((data) => {
         this.form.patchValue(data);
         this.loaderService.close();
       });
@@ -52,9 +52,8 @@ export class TrainingDataFormComponent implements OnInit {
 
   private async formInit() {
     this.form = this.fb.group({
-      text: ['', vb(z.string().min(2).max(255))],
-      source: ['system/form', vb(z.string().min(4).max(255))],
-      clarisa: [null, vb(z.object({}))],
+      find_text: ['', vb(z.string().min(1).max(255))],
+      replace_text: ['', vb(z.string().min(1).max(255))],
     });
   }
 
@@ -63,27 +62,27 @@ export class TrainingDataFormComponent implements OnInit {
     this.form.updateValueAndValidity();
     if (this.form.valid) {
       this.loaderService.open();
-      this.trainingDataService
+      this.substitutionDataService
         .upsert(this.id, this.form.value)
         .subscribe({
           next: () => {
             this.loaderService.close();
             if (this.id) {
               this.snackBarService.success(
-                'Training data updated successfully.'
+                'Substitution data updated successfully.'
               );
             } else {
-              this.snackBarService.success('Training data added successfully.');
+              this.snackBarService.success('Substitution data added successfully.');
             }
             this.dialogRef.close({submitted: true});
           },
           error: (error) => {
             this.loaderService.close();
             if (this.id) {
-              this.snackBarService.error('Training data failed to update.');
+              this.snackBarService.error('Substitution data failed to update.');
             } else if (this.data?.data) {
               this.snackBarService.error(
-                'Training data failed to add (Duplicated Data).'
+                'Substitution data failed to add (Duplicated Data).'
               );
             } else {
               this.snackBarService.error(error.error.message);
