@@ -25,6 +25,8 @@ import {UsersModule} from './users/users.module';
 import {ApiKeysModule} from './api-keys/api-keys.module';
 import {PaginatorService} from './paginator/paginator.service';
 import {SubstitutionDataModule} from './substitution-data/substitution-data.module';
+import {EmailsModule} from './emails/emails.module';
+import {ScheduleModule} from '@nestjs/schedule';
 
 @Module({
     imports: [
@@ -43,6 +45,7 @@ import {SubstitutionDataModule} from './substitution-data/substitution-data.modu
             autoLoadEntities: true,
             namingStrategy: new SnakeNamingStrategy(),
         }),
+        ScheduleModule.forRoot(),
         SocketsModule,
         HttpModule,
         TrainingDataModule,
@@ -58,6 +61,7 @@ import {SubstitutionDataModule} from './substitution-data/substitution-data.modu
         UsersModule,
         ApiKeysModule,
         SubstitutionDataModule,
+        EmailsModule,
     ],
     controllers: [AppController, DashboardController],
     providers: [AppService, DoiService, AI, HandleService, FormatService, PaginatorService],

@@ -95,6 +95,15 @@ const routes: Routes = [
       ),
   },
   {
+    canActivate: [ComponentGuard],
+    path: 'emails',
+    data: {roles: ['admin']},
+    loadChildren: () =>
+      import('./pages/emails-page/emails-page.module').then(
+        (m) => m.EmailsPageModule
+      ),
+  },
+  {
     canActivate: [AuthGuard],
     // canActivate: [ComponentGuard],
     path: 'api-keys',

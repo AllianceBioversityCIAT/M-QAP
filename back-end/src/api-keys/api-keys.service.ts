@@ -23,6 +23,7 @@ import {UpdateWosQuotaYearDto} from './dto/update-wos-quota-year.dto';
 import {lastValueFrom} from 'rxjs';
 import {HttpService} from '@nestjs/axios';
 import {PrivilegesService, AuthenticatedRequest} from '../auth/privileges.service';
+import {EmailsService} from '../emails/emails.service';
 
 @Injectable()
 export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
@@ -41,6 +42,7 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
         public apiKeyWosUsageRepository: Repository<ApiKeyWosUsage>,
         private readonly dataSource: DataSource,
         private readonly paginatorService: PaginatorService,
+        private emailsService: EmailsService,
     ) {
         super(apiKeyRepository);
     }
@@ -429,7 +431,16 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 doi
             } as CreateApiKeyWosUsageDto;
             const newRepository = this.apiKeyWosUsageRepository.create({...createApiKeyWosUsageDto});
-            return await this.apiKeyWosUsageRepository.save(newRepository);
+            const result = await this.apiKeyWosUsageRepository.save(newRepository);
+
+            const availableQuota = await this.getWosAvailableQuota(apiKeyEntity);
+            const alertOnCount = Math.floor(availableQuota.wosQuota * availableQuota.alertOn / 100);
+
+            if (alertOnCount === availableQuota.used) {
+                this.emailsService.createQuotaLimitAlertEmail(apiKeyEntity.wosQuota.id);
+            }
+
+            return result;
         } catch (error) {
             throw new InternalServerErrorException('Oops! something went wrong.');
         }
@@ -442,11 +453,14 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             usedPercentage: 0,
             available: 0,
             availablePercentage: 0,
+            alertOn: 0,
         };
 
         if (!apiKeyEntity && !wosQuotaEntity) {
             return response;
         }
+
+        response.alertOn = wosQuotaEntity ? wosQuotaEntity.alert_on : apiKeyEntity.wosQuota.alert_on;
 
         const date = dayjs(`${year}-01-01`);
         const used = await this.apiKeyWosUsageRepository.count({

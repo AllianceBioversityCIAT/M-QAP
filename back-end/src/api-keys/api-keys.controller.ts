@@ -79,7 +79,7 @@ export class ApiKeysController {
     findOneWosQuota(
         @Param('id') id: number,
     ) {
-        return this.apiKeysService.findOneWosQuota({where: {id}, relations: ['organization']});
+        return this.apiKeysService.findOneWosQuota({where: {id}, relations: ['organization', 'responsible']});
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)

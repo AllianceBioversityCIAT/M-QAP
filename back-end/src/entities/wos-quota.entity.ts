@@ -39,7 +39,7 @@ export class WosQuota {
     @ApiProperty({type: () => WosQuota})
     @ManyToOne(() => User, (responsible) => responsible.wosQuota)
     @JoinColumn()
-    responsible: WosQuota;
+    responsible: User;
 
     @ApiProperty({type: () => WosQuotaYear})
     @OneToMany(() => WosQuotaYear, (wosQuotaYear) => wosQuotaYear.wosQuota)
