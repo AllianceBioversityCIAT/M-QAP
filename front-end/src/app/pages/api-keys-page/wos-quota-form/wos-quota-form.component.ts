@@ -53,7 +53,7 @@ export class WosQuotaFormComponent implements OnInit {
       name: ['', vb(z.string().min(2).max(255))],
       organization: [null],
       responsible: [null],
-      alert_on: [0, vb(z.number().min(0).max(99.99))],
+      alert_on: [0, vb(z.number().int().min(0).max(99.99))],
     });
   }
 
