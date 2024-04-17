@@ -9,7 +9,8 @@ import {SnackBarService} from 'src/app/share/snack-bar/snack-bar.service';
 import {LoaderService} from 'src/app/services/loader.service';
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 import {PageEvent} from '@angular/material/paginator';
-import {EmailBodyComponent} from "../email-body/email-body.component";
+import {EmailBodyComponent} from '../email-body/email-body.component';
+import {DeleteConfirmDialogComponent} from '../../../share/delete-confirm-dialog/delete-confirm-dialog.component';
 
 @Component({
   selector: 'app-email-table',
@@ -17,7 +18,7 @@ import {EmailBodyComponent} from "../email-body/email-body.component";
   styleUrls: ['./email-table.component.scss']
 })
 export class EmailTableComponent {
-  columnsToDisplay: string[] = ['id', 'name', 'subject', 'email', 'status', 'creation_date', 'update_date', 'actions'];
+  columnsToDisplay: string[] = ['id', 'name', 'subject', 'email', 'status', 'limit_exceeded', 'creation_date', 'update_date', 'actions'];
   dataSource!: MatTableDataSource<EmailType>;
   form!: FormGroup;
   response!: Paginated<EmailType>;
@@ -94,5 +95,32 @@ export class EmailTableComponent {
       width: '700px',
       data: data,
     });
+  }
+
+  sendEmail(id: number): void {
+    this.dialog
+      .open(DeleteConfirmDialogComponent, {
+        data: {
+          message: 'Are you sure you want to send this email?',
+          title: 'Send Email',
+        },
+      })
+      .afterClosed()
+      .subscribe(async (dialogResult) => {
+        if (dialogResult == true) {
+          this.loaderService.open();
+          this.emailsService.sendEmail(id).subscribe({
+            next: () => {
+              this.loaderService.close();
+              this.loadData();
+              this.snackBarService.success('Email sent successfully.');
+            },
+            error: (error) => {
+              this.loaderService.close();
+              this.snackBarService.error(error.error.message);
+            },
+          });
+        }
+      });
   }
 }

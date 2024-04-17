@@ -27,4 +27,9 @@ export class CreateEmailDto {
     @Expose()
     @IsBoolean()
     status: boolean;
+
+    @ApiProperty()
+    @Expose()
+    @IsBoolean()
+    limit_exceeded: boolean;
 }

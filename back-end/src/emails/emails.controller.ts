@@ -1,4 +1,4 @@
-import {Controller, Get, UseGuards} from '@nestjs/common';
+import {Controller, Get, Param, UseGuards} from '@nestjs/common';
 import {JwtAuthGuard} from "../auth/jwt-auth.guard";
 import {RolesGuard} from "../auth/roles.guard";
 import {Roles} from "../auth/roles.decorator";
@@ -19,5 +19,10 @@ export class EmailsController {
     @Get('')
     findAll(@Paginator() query: PaginatorQuery) {
         return this.emailsService.findAll(query);
+    }
+
+    @Get('send-email/:id')
+    sendEmail(@Param('id') id: number) {
+        return this.emailsService.sendEmail(id);
     }
 }

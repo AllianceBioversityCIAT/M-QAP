@@ -18,6 +18,8 @@
         <mat-option value="email:ASC">Email / ACS</mat-option>
         <mat-option value="status:DESC">Status / DESC</mat-option>
         <mat-option value="status:ASC">Status / ACS</mat-option>
+        <mat-option value="limit_exceeded:DESC">Daily limit exceeded / DESC</mat-option>
+        <mat-option value="limit_exceeded:ASC">Daily limit exceeded / ACS</mat-option>
       </mat-select>
     </mat-form-field>
   </form>
@@ -34,10 +36,10 @@
 
       <!-- Name Column -->
       <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef class="min-width-22 width-fill">
+        <th mat-header-cell *matHeaderCellDef class="width-14">
           Name
         </th>
-        <td mat-cell *matCellDef="let element" class="min-width-22 width-fill">
+        <td mat-cell *matCellDef="let element" class="width-14">
           {{ element.name }}
         </td>
       </ng-container>
@@ -45,7 +47,7 @@
       <!-- Subject Column -->
       <ng-container matColumnDef="subject">
         <th mat-header-cell *matHeaderCellDef class="width-14">Subject</th>
-        <td mat-cell *matCellDef="let element" class="width-8">
+        <td mat-cell *matCellDef="let element" class="width-14">
           {{ element.subject }}
         </td>
       </ng-container>
@@ -53,16 +55,24 @@
       <!-- Email Column -->
       <ng-container matColumnDef="email">
         <th mat-header-cell *matHeaderCellDef class="width-14">Email</th>
-        <td mat-cell *matCellDef="let element" class="width-8">
+        <td mat-cell *matCellDef="let element" class="width-14">
           {{ element.email }}
         </td>
       </ng-container>
 
       <!-- Status Column -->
       <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef class="width-14">Status</th>
+        <th mat-header-cell *matHeaderCellDef class="width-8">Status</th>
         <td mat-cell *matCellDef="let element" class="width-8">
           {{ element.status ? 'Sent' : 'Not sent' }}
+        </td>
+      </ng-container>
+
+      <!-- Daily limit exceeded Column -->
+      <ng-container matColumnDef="limit_exceeded">
+        <th mat-header-cell *matHeaderCellDef class="width-8">Daily limit exceeded</th>
+        <td mat-cell *matCellDef="let element" class="width-8">
+          {{ element.limit_exceeded ? 'Exceeded' : '' }}
         </td>
       </ng-container>
 
@@ -91,6 +101,9 @@
           <div class="action-container">
             <button mat-icon-button matTooltip="View" (click)="openShowEmailBodyDialog(element.email_body)">
               <mat-icon>visibility</mat-icon>
+            </button>
+            <button *ngIf="!element.status" mat-icon-button matTooltip="Send Email" (click)="sendEmail(element.id)">
+              <mat-icon>send</mat-icon>
             </button>
           </div>
         </td>

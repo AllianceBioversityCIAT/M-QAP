@@ -13,5 +13,7 @@ export type EmailType = {
 
   status: boolean;
 
+  limit_exceeded: boolean;
+
   email_body: string;
 };

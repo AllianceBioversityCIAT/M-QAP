@@ -34,4 +34,8 @@ export class Email {
     @ApiProperty()
     @Column({default: false})
     status: boolean;
+
+    @ApiProperty()
+    @Column({default: false})
+    limit_exceeded: boolean;
 }

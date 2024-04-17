@@ -16,4 +16,8 @@ export class EmailsService {
   find(queryString: string) {
     return this.http.get<Paginated<EmailType>>(`${this.api}?${queryString}`);
   }
+
+  sendEmail(id: number) {
+    return this.http.get(`${this.api}/send-email/${id}`);
+  }
 }

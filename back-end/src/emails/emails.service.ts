@@ -35,6 +35,7 @@ export class EmailsService extends TypeOrmCrudService<Email> {
                 'email.subject AS subject',
                 'email.email AS email',
                 'email.status AS status',
+                'email.limit_exceeded AS limit_exceeded',
                 'email.email_body AS email_body',
             ]);
 
@@ -45,6 +46,7 @@ export class EmailsService extends TypeOrmCrudService<Email> {
             'email.subject',
             'email.email',
             'IF(email.status = 1, "Sent", "Not sent")',
+            'IF(email.limit_exceeded = 1, "Exceeded", "")',
         ], 'email.id');
     }
 
@@ -84,33 +86,52 @@ export class EmailsService extends TypeOrmCrudService<Email> {
     @Cron(CronExpression.EVERY_30_SECONDS, {
         name: 'email-notifications',
     })
-    private sendEmailNotifications() {
+    private triggerSendEmailNotifications() {
+        this.sendEmailNotifications();
+    }
+    private async sendEmailNotifications() {
         const dailyLimit = Number(process.env.EMAILS_DAILY_LIMIT);
-        this.count({
+        const emails = await this.find({
             where: {
+                status: false,
+                limit_exceeded: false,
                 creation_date: Raw(alias => `DATE(${alias}) = DATE(NOW())`)
-            }
-        })
-            .then(emailsToday => {
-                if (emailsToday >= dailyLimit) {
-                    this.logger.log('Emails daily limit exceeded.');
-                } else {
-                    this.find({
-                        where: {
-                            status: false,
-                        },
-                        take: dailyLimit
-                    })
-                        .then(emails => {
-                            if (emails.length) {
-                                this.logger.log(`Sending ${emails.length} emails...`);
-                                for (let email of emails) {
-                                    this.send(email);
-                                }
-                            }
-                        });
+            },
+            take: dailyLimit
+        });
+
+        if (emails.length) {
+            const emailsToday = await this.count({
+                where: {
+                    status: true,
+                    limit_exceeded: false,
+                    creation_date: Raw(alias => `DATE(${alias}) = DATE(NOW())`),
                 }
             });
+
+            if (emailsToday >= dailyLimit) {
+                this.logger.log('Emails daily limit exceeded.');
+                for (let email of emails) {
+                    this.emailRepository.update(email.id, {limit_exceeded: true});
+                }
+            } else {
+                this.logger.log(`Sending ${emails.length} emails...`);
+                for (let email of emails) {
+                    this.send(email);
+                }
+            }
+        }
+    }
+
+    async sendEmail(id: number = null) {
+        const email = await this.findOne({
+            where: {
+                status: false,
+                id
+            },
+        });
+        this.logger.log(`Manually sending email ID ${id}...`);
+        this.send(email);
     }
 
     async createEmail(createEmailDto: CreateEmailDto) {
