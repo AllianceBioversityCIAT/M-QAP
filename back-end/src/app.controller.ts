@@ -115,7 +115,7 @@ export class AppController {
         @Request() req: any,
     ) {
         await this.appService.validateApiKey(apiKey, req.route.path);
-        return await this.ai.makePrediction(name);
+        return await this.ai.makePrediction(name, false, true);
     }
 
     @ApiOperation({summary: 'Get institution AI matching prediction and text matching with CLARISA institutions list.'})
@@ -126,7 +126,7 @@ export class AppController {
         @Request() req: any,
     ) {
         await this.appService.validateApiKey(apiKey, req.route.path);
-        return await this.ai.makePrediction(name, true);
+        return await this.ai.makePrediction(name, true, true);
     }
 
     @ApiOperation({summary: 'Get assigned WoS quota details.'})

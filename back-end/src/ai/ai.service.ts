@@ -17,11 +17,41 @@ export class AI {
         return Math.round(percent * 100);
     }
 
-    async makePrediction(value, fuzzywuzzy = false) {
+    pickHighest(obj: any, num = 1) {
+        const items = {};
+        if (num > Object.keys(obj).length) {
+            return false;
+        }
+        Object.keys(obj).sort((a, b) => obj[b] - obj[a]).forEach((key, ind) => {
+            if (ind < num) {
+                items[key] = obj[key];
+            }
+        });
+        return items;
+    }
+
+    async makePrediction(value: string, fuzzywuzzy = false, top10 = false) {
         try {
             const todoEmbedding = await this.aiTrainingService.naturalModel.embed(value.toLowerCase());
             const results: any = this.aiTrainingService.model.predict(todoEmbedding);
             const clarisa_index = this.aiTrainingService.clarisa[results.argMax(1).dataSync()[0]];
+
+            const top10Predictions = [];
+            if (top10) {
+                const predictionsResults = results.dataSync();
+                const topPredictions = this.pickHighest(predictionsResults, 10);
+
+                for (const clarisIndex in topPredictions) {
+                    const confidant: number = this.calculatePercent(topPredictions[clarisIndex]);
+                    if (confidant > 0) {
+                        top10Predictions.push({
+                            value: this.aiTrainingService.clarisa[clarisIndex],
+                            confidant: this.calculatePercent(topPredictions[clarisIndex])
+                        });
+                    }
+                }
+                top10Predictions.sort((a, b) => b.confidant - a.confidant);
+            }
 
             const confidant: number = this.calculatePercent(
                 Math.max(...results.dataSync().map((d) => d)),
@@ -36,6 +66,7 @@ export class AI {
                         Math.max(...results.dataSync().map((d) => d)),
                     ),
                     fuzzywuzzy: await this.fuzzBall(value),
+                    top10Predictions: top10 ? top10Predictions : null,
                 };
             } else {
                 return {
@@ -43,6 +74,7 @@ export class AI {
                     confidant: this.calculatePercent(
                         Math.max(...results.dataSync().map((d) => d)),
                     ),
+                    top10Predictions: top10 ? top10Predictions : null,
                 };
             }
         } catch (e) {
