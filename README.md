@@ -1,5 +1,3 @@
-#### M-QAP description for GitHub (https://github.com/AllianceBioversityCIAT/M-QAP)  
-
 The Monitoring, Evaluation, and Learning Quality Assurance Processor (M-QAP) is a tool designed to extract publication metadata using Application Programming Interfaces (APIs) from various sources, including Web of Science, Scopus, Unpaywall, Crossref, ORCID, and Altmetrics. This tool was developed to support CGIAR institutions in reporting to its dashboard (https://www.cgiar.org/impact/results-dashboard/) and ensure that publications with a Digital Object Identifier (DOI) are validated against the above sources. 
 
 Over time, M-QAP has evolved to perform additional functions, such as: 
