@@ -544,13 +544,13 @@ export class HandleService {
                 {
                     name: 'I1',
                     description: 'Metadata contain AGROVOC keywords',
-                    valid: data?.agrovoc_keywords?.keywords ? data.agrovoc_keywords.keywords.length > 0 : false,
+                    valid: data?.['AGROVOC Keywords']?.keywords ? data['AGROVOC Keywords'].keywords.length > 0 : false,
                 },
                 {
                     name: 'I2',
                     description:
                         'Metadata include qualified references to other (meta)data',
-                    valid: data ? data.hasOwnProperty('Reference to other knowledge products') : false,
+                    valid: data?.['Reference to other knowledge products'],
                 },
             ],
             R: [
