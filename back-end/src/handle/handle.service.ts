@@ -452,7 +452,7 @@ export class HandleService {
             if (!Array.isArray(data?.Keywords)) {
                 data.Keywords = [data.Keywords];
             }
-            promisesMapper['AGROVOC Keywords'] = requestsMapper?.agrovoc ? this.getAgrovocKeywords(data.Keywords) : null;
+            promisesMapper['agrovoc_keywords'] = requestsMapper?.agrovoc ? this.getAgrovocKeywords(data.Keywords) : null;
             promisesMapper['Commodities'] = requestsMapper?.commodities ? this.getCommodities(data.Keywords) : null;
         }
 
@@ -544,7 +544,7 @@ export class HandleService {
                 {
                     name: 'I1',
                     description: 'Metadata contain AGROVOC keywords',
-                    valid: data?.['AGROVOC Keywords']?.keywords ? data['AGROVOC Keywords'].keywords.length > 0 : false,
+                    valid: data?.['agrovoc_keywords']?.keywords ? data['agrovoc_keywords'].keywords.length > 0 : false,
                 },
                 {
                     name: 'I2',
