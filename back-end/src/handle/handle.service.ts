@@ -550,7 +550,7 @@ export class HandleService {
                     name: 'I2',
                     description:
                         'Metadata include qualified references to other (meta)data',
-                    valid: data?.['Reference to other knowledge products'],
+                    valid: !!data?.['Reference to other knowledge products'],
                 },
             ],
             R: [
