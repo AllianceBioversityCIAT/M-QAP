@@ -410,14 +410,18 @@ export class DoiService {
         }
 
         result.doi = result.doi ? result.doi : doi;
-        if (resultsMapper?.scopus) {
-            result = {...result, ...resultsMapper.scopus};
+        if (resultsMapper?.unpaywall) {
+            result = {...result, ...resultsMapper.unpaywall};
         }
         if (resultsMapper?.altmetric?.title) {
             result.altmetric = resultsMapper.altmetric;
+        } else {
+            result.altmetric = null;
         }
         if (resultsMapper?.gardian?.title) {
             result.gardian = resultsMapper.gardian;
+        } else {
+            result.gardian = null;
         }
 
         result.is_isi = 'N/A';
