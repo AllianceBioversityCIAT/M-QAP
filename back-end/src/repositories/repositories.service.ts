@@ -84,6 +84,7 @@ export class RepositoriesService extends TypeOrmCrudService<Repositories> {
             if (id?.[0]) {
                 return this.RepositoriesSchemaRepository.update({id: id[0]}, {...createRepositorySchemaDto});
             } else {
+                createRepositorySchemaDto.repository = repository;
                 const newRepositorySchema = this.RepositoriesSchemaRepository.create({...createRepositorySchemaDto});
                 return this.RepositoriesSchemaRepository.save(newRepositorySchema);
             }
