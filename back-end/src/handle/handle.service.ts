@@ -522,7 +522,7 @@ export class HandleService {
                     description:
                         'The knowledge product is described by rich metadata such as title, authors, description/abstract, and issue date',
                     valid:
-                        (!!data['Issued date']) &&
+                        (!!data['Issued date'] || !!data['Online publication date']) &&
                         (!!data.Title) &&
                         (!!data.Authors) &&
                         (!!data.Description),
