@@ -32,6 +32,26 @@ export class AI {
 
     async makePrediction(value: string, fuzzywuzzy = false, top10 = false) {
         try {
+            value = value ? value.trim() : null;
+            if (!value || value.trim() === '') {
+                if (fuzzywuzzy) {
+                    return {
+                        value: null,
+                        confidant: 0,
+                        fuzzywuzzy: {
+                            value: null,
+                            confidant: 0,
+                        },
+                        top10Predictions: null,
+                    };
+                } else {
+                    return {
+                        value: null,
+                        confidant: 0,
+                        top10Predictions: null,
+                    };
+                }
+            }
             const todoEmbedding = await this.aiTrainingService.naturalModel.embed(value.toLowerCase());
             const results: any = this.aiTrainingService.model.predict(todoEmbedding);
             const clarisa_index = this.aiTrainingService.clarisa[results.argMax(1).dataSync()[0]];
