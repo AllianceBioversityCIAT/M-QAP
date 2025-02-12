@@ -42,7 +42,7 @@ export class DoiService {
                 }),
             )
             .toPromise()
-            .catch((d) => d.response.status);
+            .catch((d) => 404);
     }
 
     async crossrefAgency(doi) {
