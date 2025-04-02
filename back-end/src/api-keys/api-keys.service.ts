@@ -669,10 +669,11 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
             .addSelect(
                 subQuery => {
                     return subQuery
-                        .from('api_key_wos_usage', 'api_key_wos_usages')
+                        .from('api_key_wos_usage', 'api_key_wos_usage')
                         .select('COUNT(*) AS used_wos_quota')
-                        .where('api_key_wos_usages.api_key_id = api_key.id')
-                        .andWhere('YEAR(api_key_wos_usages.creation_date) = :year', {year});
+                        .innerJoin('api_key', 'api_key', 'api_key_wos_usage.api_key_id = api_key.id')
+                        .where('api_key.wos_quota_id = wos_quota.id')
+                        .andWhere('YEAR(api_key_wos_usage.creation_date) = :year', {year});
                 },
                 'used_wos_quota'
             )
@@ -681,7 +682,9 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                     return subQuery
                         .from('api_key_usage', 'api_key_usage')
                         .select('COUNT(*) AS api_requests')
-                        .where('api_key_usage.api_key_id = api_key.id')
+                        .innerJoin('api_key', 'api_key', 'api_key_usage.api_key_id = api_key.id')
+                        .where('api_key.wos_quota_id = wos_quota.id')
+                        .where('api_key.wos_quota_id = wos_quota.id')
                         .andWhere('YEAR(api_key_usage.creation_date) = :year', {year});
                 },
                 'api_requests'

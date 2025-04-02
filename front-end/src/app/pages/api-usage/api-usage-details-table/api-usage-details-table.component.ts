@@ -81,7 +81,8 @@ export class ApiUsageDetailsTableComponent implements OnInit, OnDestroy {
     this.loadData();
   }
 
-  async loadData(year: number = (new Date()).getFullYear()) {
+  async loadData(year: number = this.yearSubject.getValue()) {
+    year = year ?? (new Date()).getFullYear();
     if (this.quotaId) {
       this.loaderService.open();
       const queryString = [];
