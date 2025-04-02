@@ -664,18 +664,34 @@ export class ApiKeysService extends TypeOrmCrudService<ApiKey> {
                 END) AS type`,
                 'wos_quota_year.quota AS quota',
                 'COUNT(DISTINCT api_key.id) AS api_keys',
-                'COUNT(DISTINCT api_key_wos_usage.id) AS used_wos_quota',
-                'COUNT(DISTINCT api_key_usage.id) AS api_requests',
                 'wos_quota.is_active AS is_active',
             ])
+            .addSelect(
+                subQuery => {
+                    return subQuery
+                        .from('api_key_wos_usage', 'api_key_wos_usages')
+                        .select('COUNT(*) AS used_wos_quota')
+                        .where('api_key_wos_usages.api_key_id = api_key.id')
+                        .andWhere('YEAR(api_key_wos_usages.creation_date) = :year', {year});
+                },
+                'used_wos_quota'
+            )
+            .addSelect(
+                subQuery => {
+                    return subQuery
+                        .from('api_key_usage', 'api_key_usage')
+                        .select('COUNT(*) AS api_requests')
+                        .where('api_key_usage.api_key_id = api_key.id')
+                        .andWhere('YEAR(api_key_usage.creation_date) = :year', {year});
+                },
+                'api_requests'
+            )
             .leftJoin('organization', 'organization', 'organization.id = wos_quota.organization_id')
             .leftJoin('user', 'user_responsible', 'user_responsible.id = wos_quota.responsible_id')
             .leftJoin('wos_quota_year', 'wos_quota_year', 'wos_quota_year.wos_quota_id = wos_quota.id AND wos_quota_year.year = :year', {year})
             .leftJoin('api_key', 'api_key', 'api_key.wos_quota_id = wos_quota.id')
             .leftJoin('organization', 'api_key_organization', 'api_key_organization.id = api_key.organization_id')
-            .leftJoin('user', 'api_key_user', 'api_key_user.id = api_key.user_id')
-            .leftJoin('api_key_wos_usage', 'api_key_wos_usage', 'api_key_wos_usage.api_key_id = api_key.id AND YEAR(api_key_wos_usage.creation_date) = :year', {year})
-            .leftJoin('api_key_usage', 'api_key_usage', 'api_key_usage.api_key_id = api_key.id AND YEAR(api_key_usage.creation_date) = :year', {year});
+            .leftJoin('user', 'api_key_user', 'api_key_user.id = api_key.user_id');
 
         if (!this.privilegesService.isAdmin(req)) {
             queryBuilder.andWhere('wos_quota.responsible_id = :responsibleId', {responsibleId: req.user.id});
