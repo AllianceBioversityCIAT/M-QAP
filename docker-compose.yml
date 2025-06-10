@@ -10,24 +10,10 @@ services:
       MYSQL_PASSWORD: root
     volumes:
       - ./mysqlData:/var/lib/mysql
-    ports:
-      - "127.0.0.1:3366:3306"
-  clarisa_wos_phpmyadmin:
-    container_name: clarisa_wos_phpmyadmin
-    depends_on:
-      - clarisa_wos_mysql
-    image: phpmyadmin/phpmyadmin:latest
-    links:
-      - clarisa_wos_mysql
-    ports:
-      - 8182:80
-    environment:
-      PMA_HOST: clarisa_wos_mysql
-
   clarisa_wos_api:
     container_name: clarisa_wos_api
     depends_on:
-      - mysql
+      - clarisa_wos_mysql
     build:
       context: ./back-end
       dockerfile: Dockerfile
@@ -35,7 +21,6 @@ services:
     volumes:
       - ./back-end/media:/back-end/media
       - ./back-end/uploads:/back-end/uploads
-
   clarisa_wos_front_end:
     container_name: clarisa_wos_front_end
     build: front-end
@@ -43,7 +28,7 @@ services:
     links:
       - clarisa_wos_api
     depends_on:
-      - mysql
+      - clarisa_wos_mysql
       - clarisa_wos_api
     ports:
       - 9981:80
