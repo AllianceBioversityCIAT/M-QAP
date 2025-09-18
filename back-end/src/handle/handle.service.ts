@@ -589,7 +589,7 @@ export class HandleService {
             keywords_agro.push(
                 this.http
                     .get(
-                        `https://agrovoc.uniroma2.it/agrovoc/rest/v1/agrovoc/search?query=${keyw}`,
+                        `https://agrovoc.fao.org/browse/rest/v1/agrovoc/search?query=${keyw}`,
                     )
                     .pipe(
                         map((d) => {
