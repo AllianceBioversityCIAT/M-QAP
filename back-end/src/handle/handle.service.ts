@@ -233,14 +233,33 @@ export class HandleService {
 
     async getCommodities(keywords: string[]) {
         if (!Array.isArray(keywords)) keywords = [keywords];
-        keywords = keywords.map((i) => i.toLowerCase());
+        const keywordsSplit = [];
+        keywords.map((keyword) => {
+            keyword = keyword.trim().toLowerCase();
+            keywordsSplit.push(keyword);
+            if (keyword !== '') {
+                keywordsSplit.push(keyword);
+                const keywordArray = keyword.split(' ');
+                keywordArray.map(keywordSplit => {
+                    keywordSplit = keywordSplit.trim().toLowerCase();
+                    if (keywordSplit !== '') {
+                        keywordsSplit.push(keywordSplit);
+                    }
+
+                });
+            }
+        });
+        if (keywordsSplit.length === 0) {
+            return [];
+        }
+
         const q = this.commoditiesService.commoditiesRepository
             .createQueryBuilder('commodity')
             .leftJoinAndSelect('commodity.parent', 'parentCommodity')
-            .where('LOWER(commodity.name) IN(:keywords)', {keywords});
+            .where('LOWER(commodity.name) IN(:keywordsSplit)', {keywordsSplit});
 
         const list = await q.getMany();
-        return list.map((i) => i?.parent?.name ?? i.name);
+        return [...new Set(list.map((i) => i?.parent?.name ?? i.name))];
     }
 
     addOn(formatted_data, repository: Repositories) {
